@@ -4,35 +4,7 @@ import { ConflictError } from "../../errors";
 import authService from "../../service/auth.service";
 import mailService from "../../service/mail.service";
 
-export default class AuthenticationController {
-  protected async login(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response> {
-    try {
-      const { authType } = req.query;
-      const data = req.body;
-
-      const obj = await authService.handleUserAuthentication(data);
-
-      if(obj == null) return res.status(400).json({
-        status: 400,
-        message: "Invalid login credentials",
-      });
-
-      const token = await authService.generateToken(obj.data);
-      console.log(token);
-
-      return res.status(200).json({
-        status: 200,
-        message: "Login successful.",
-        data: { user: obj.transfromedUser, token },
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
+export default class CustomerController {
 
   protected async signup(
     req: Request,
@@ -51,7 +23,7 @@ export default class AuthenticationController {
             to: "turboburstenvironment@gmail.com",
             subject: "Welcome to FBY Security",
             templateName: "welcome",
-            variables: { userRole: "Admin", website: "https://fby-security.com", email: obj.transfromedUser.email, password: data.password },
+            variables: { userRole: "Customer", website: "https://fby-security.com", email: obj.transfromedUser.email, password: data.password },
           });
         }
       } catch (error) {
@@ -81,7 +53,7 @@ export default class AuthenticationController {
       var { transfromedUser } = await authService.transformUserForResponse(user, relatedLocation?.address);
       return res.status(200).json({
         status: 200,
-        data: {user: transfromedUser, token: req.headers.authorization.split(" ")[1]},
+        data: transfromedUser,
       });
     } catch (error) {
       next(error);

@@ -15,17 +15,27 @@ class AuthenticationService {
   private UserModel = Admin;
   private LocationModel = Location;
 
-  async handleUserAuthentication(data): Promise<Admin> {
+  async handleUserAuthentication(data): Promise<any> {
     const { email, password } = data;
     let hashedPassword;
     try {
-      hashedPassword = await bcrypt.hash(password, Number(serverConfig.SALT_ROUNDS));
+      hashedPassword = await bcrypt.hash(
+        password,
+        Number(serverConfig.SALT_ROUNDS)
+      );
     } catch (error) {
       return null;
     }
     const user = await Admin.findOne({ where: { email: email } });
     if (!bcrypt.compare(password, hashedPassword)) return null;
-    return user;
+
+    var relatedLocation = await this.LocationModel.findByPk(user.location_id);
+
+    var transfromedUserObj = await this.transformUserForResponse(
+      user,
+      relatedLocation?.address
+    );
+    return transfromedUserObj;
   }
 
   async handleUserCreation(data: object): Promise<any> {
@@ -41,9 +51,12 @@ class AuthenticationService {
     } = await authUtil.verifyUserCreationData.validateAsync(data);
     let hashedPassword;
     try {
-      hashedPassword = await bcrypt.hash(password, Number(serverConfig.SALT_ROUNDS));
+      hashedPassword = await bcrypt.hash(
+        password,
+        Number(serverConfig.SALT_ROUNDS)
+      );
     } catch (error) {
-      throw new SystemError('An error occured while processing your request');
+      throw new SystemError("An error occured while processing your request");
     }
     console.log(hashedPassword);
 
@@ -58,7 +71,6 @@ class AuthenticationService {
       // is_archived: false
     });
     console.log(createdLocation.id);
-
     const user = await this.UserModel.create({
       first_name,
       last_name,
@@ -69,8 +81,8 @@ class AuthenticationService {
       password: hashedPassword,
       location_id: createdLocation.id,
     });
-
-    return await this.transformUserForResponse(user, address);
+    var transfromedUserObj = await this.transformUserForResponse(user, address);
+    return transfromedUserObj;
   }
 
   async generateToken(user: Admin) {
@@ -87,7 +99,10 @@ class AuthenticationService {
     }
   }
 
-  transformUserForResponse(data: IAdmin, location: String) {
+  transformUserForResponse(
+    data: Admin,
+    address: String
+  ): { transfromedUser; data: Admin } {
     try {
       var {
         id,
@@ -95,7 +110,6 @@ class AuthenticationService {
         first_name,
         last_name,
         email,
-        password,
         date_of_birth,
         gender,
         created_at,
@@ -110,15 +124,14 @@ class AuthenticationService {
         last_name,
         email,
         // Added Location
-        location,
-        password,
+        address,
         date_of_birth,
         gender,
         created_at,
         updated_at,
         is_archived,
       };
-      return transfromedUser;
+      return { transfromedUser, data };
     } catch (error) {
       console.log(error);
       throw new Error(error);
