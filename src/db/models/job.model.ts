@@ -91,7 +91,7 @@ import IJob from "../../interfaces/job.interface";
       },
       {
         tableName: "jobs",
-        timestamps: true,
+        timestamps: true, underscored: true,
         sequelize: connection,
       }
     );

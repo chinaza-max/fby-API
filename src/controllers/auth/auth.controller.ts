@@ -21,6 +21,7 @@ export default class AuthenticationController {
       });
 
       const token = await authService.generateToken(user);
+      console.log(token);
 
       return res.status(200).json({
         status: 200,

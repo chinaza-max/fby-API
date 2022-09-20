@@ -99,7 +99,7 @@ import ICustomer from "../../interfaces/customer.interface";
       },
       {
         tableName: "customers",
-        timestamps: true,
+        timestamps: true, underscored: true,
         sequelize: connection,
       }
     );

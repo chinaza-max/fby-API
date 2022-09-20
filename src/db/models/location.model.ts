@@ -7,7 +7,6 @@ import {
   Sequelize,
 } from "sequelize";
 import ILocation from "../../interfaces/location.interface";
-import { GenderTypes } from "../../interfaces/types.interface";
 
 class Location
   extends Model<InferAttributes<Location>, InferCreationAttributes<Location>>
@@ -50,7 +49,7 @@ export function init(connection: Sequelize) {
     },
     {
       tableName: "location",
-      timestamps: true,
+      timestamps: true, underscored: true,
       sequelize: connection,
     }
   );

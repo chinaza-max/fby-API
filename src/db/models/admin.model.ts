@@ -1,4 +1,5 @@
 import {
+  BelongsToGetAssociationMixin,
     CreationOptional,
     DataTypes,
     InferAttributes,
@@ -27,6 +28,10 @@ import IAdmin from "../../interfaces/admin.interface";
     declare location_id?: CreationOptional<number>;
     declare is_archived: CreationOptional<boolean>;
     declare last_logged_in?: CreationOptional<Date>;
+
+    public getLocation!: BelongsToGetAssociationMixin<Location>;
+
+    public location?: Location;
   }
   
   export function init(connection: Sequelize) {
@@ -99,7 +104,7 @@ import IAdmin from "../../interfaces/admin.interface";
       },
       {
         tableName: "admin",
-        timestamps: true,
+        timestamps: true, underscored: true,
         sequelize: connection,
       }
     );

@@ -4,7 +4,7 @@ import serverConfig from "../config/server.config";
 import authUtil from "../utils/auth.util";
 import IAdmin from "../interfaces/admin.interface";
 import bcrypt from "bcrypt";
-import { ConflictError } from "../errors";
+import { ConflictError, SystemError } from "../errors";
 
 interface DecodedToken {
   payload: IAdmin | null;
@@ -19,16 +19,16 @@ class AuthenticationService {
     const { email, password } = data;
     let hashedPassword;
     try {
-      hashedPassword = await bcrypt.hash(password, serverConfig.SALT_ROUNDS);
+      hashedPassword = await bcrypt.hash(password, Number(serverConfig.SALT_ROUNDS));
     } catch (error) {
       return null;
     }
     const user = await Admin.findOne({ where: { email: email } });
-    if(!bcrypt.compare(password, hashedPassword)) return null;
+    if (!bcrypt.compare(password, hashedPassword)) return null;
     return user;
   }
 
-  async handleUserCreation(data: object): Promise<Admin> {
+  async handleUserCreation(data: object): Promise<any> {
     const {
       first_name,
       last_name,
@@ -37,14 +37,27 @@ class AuthenticationService {
       date_of_birth,
       gender,
       password,
-      address
+      address,
     } = await authUtil.verifyUserCreationData.validateAsync(data);
+    let hashedPassword;
+    try {
+      hashedPassword = await bcrypt.hash(password, Number(serverConfig.SALT_ROUNDS));
+    } catch (error) {
+      throw new SystemError('An error occured while processing your request');
+    }
+    console.log(hashedPassword);
 
-    var existingUser = this.getUserByEmail(email);
-    if(existingUser != null) throw new ConflictError("A user with this email already exists");
+    var existingUser = await this.getUserByEmail(email);
+    console.log(existingUser);
+    if (existingUser != null)
+      throw new ConflictError("A user with this email already exists");
     var createdLocation = await this.LocationModel.create({
-      address: address
+      address: address,
+      // created_at: new Date(),
+      // updated_at: new Date(),
+      // is_archived: false
     });
+    console.log(createdLocation.id);
 
     const user = await this.UserModel.create({
       first_name,
@@ -53,11 +66,11 @@ class AuthenticationService {
       image,
       date_of_birth,
       gender,
-      password,
-      location_id: createdLocation.id
+      password: hashedPassword,
+      location_id: createdLocation.id,
     });
 
-    return user;
+    return await this.transformUserForResponse(user, address);
   }
 
   async generateToken(user: Admin) {
@@ -71,6 +84,44 @@ class AuthenticationService {
       return token;
     } catch (error) {
       return error;
+    }
+  }
+
+  transformUserForResponse(data: IAdmin, location: String) {
+    try {
+      var {
+        id,
+        image,
+        first_name,
+        last_name,
+        email,
+        password,
+        date_of_birth,
+        gender,
+        created_at,
+        updated_at,
+        is_archived,
+      } = data;
+
+      var transfromedUser = {
+        id,
+        image,
+        first_name,
+        last_name,
+        email,
+        // Added Location
+        location,
+        password,
+        date_of_birth,
+        gender,
+        created_at,
+        updated_at,
+        is_archived,
+      };
+      return transfromedUser;
+    } catch (error) {
+      console.log(error);
+      throw new Error(error);
     }
   }
 

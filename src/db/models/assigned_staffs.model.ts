@@ -1,4 +1,5 @@
 import {
+  BelongsToGetAssociationMixin,
     CreationOptional,
     DataTypes,
     InferAttributes,
@@ -9,6 +10,8 @@ import {
 import IAssignedStaffs from "../../interfaces/assigned_staffs.interface";
   import IFacility from "../../interfaces/facility.interface";
   import IFacilityLocation from "../../interfaces/facility_location.interface";
+import Job from "./job.model";
+import Staff from "./staff.model";
   
   class AssignedStaffs
     extends Model<InferAttributes<AssignedStaffs>, InferCreationAttributes<AssignedStaffs>>
@@ -20,6 +23,12 @@ import IAssignedStaffs from "../../interfaces/assigned_staffs.interface";
     declare created_at?: CreationOptional<Date>;
     declare updated_at?: CreationOptional<Date>;
     declare is_archived: CreationOptional<boolean>;
+
+    public getJob!: BelongsToGetAssociationMixin<Job>;
+    public getStaff!: BelongsToGetAssociationMixin<Staff>;
+
+    public job?: Job;
+    public staff?: Staff;
   }
   
   export function init(connection: Sequelize) {
@@ -56,7 +65,7 @@ import IAssignedStaffs from "../../interfaces/assigned_staffs.interface";
       },
       {
         tableName: "assigned_staffs",
-        timestamps: true,
+        timestamps: true, underscored: true,
         sequelize: connection,
       }
     );

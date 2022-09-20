@@ -20,6 +20,7 @@ class DB {
         password: serverConfig.DB_PASSWORD,
         port: Number(serverConfig.DB_PORT),
         database: serverConfig.DB_NAME,
+        logQueryParameters: true
       };
       this.sequelize = new Sequelize(
         serverConfig.DB_NAME,

@@ -57,7 +57,7 @@ export function init(connection: Sequelize) {
     },
     {
       tableName: "coordinates",
-      timestamps: true,
+      timestamps: true, underscored: true,
       sequelize: connection,
     }
   );

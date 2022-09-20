@@ -98,7 +98,7 @@ export function init(connection: Sequelize) {
     },
     {
       tableName: "staff",
-      timestamps: true,
+      timestamps: true, underscored: true,
       sequelize: connection,
     }
   );

@@ -55,7 +55,7 @@ export function init(connection: Sequelize) {
     },
     {
       tableName: "facility_locations",
-      timestamps: true,
+      timestamps: true, underscored: true,
       sequelize: connection,
     }
   );

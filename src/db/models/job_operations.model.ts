@@ -77,7 +77,7 @@ export function init(connection: Sequelize) {
     },
     {
       tableName: "job_operations",
-      timestamps: true,
+      timestamps: true, underscored: true,
       sequelize: connection,
     }
   );

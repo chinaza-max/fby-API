@@ -16,6 +16,34 @@ import AssignedStaffs, {
   init as initAssignedStaffs,
 } from "./assigned_staffs.model";
 
+function associate() {
+  // User Favorite Relationships
+  Admin.belongsTo(Location, {
+    foreignKey: {
+      allowNull: false,
+      name: "location_id",
+      field: "location_id",
+    },
+    as: "location",
+  });
+  AssignedStaffs.belongsTo(Job, {
+    foreignKey: {
+      allowNull: false,
+      name: "job_id",
+      field: "job_id",
+    },
+    as: "job",
+  });
+  AssignedStaffs.belongsTo(Staff, {
+    foreignKey: {
+      allowNull: false,
+      name: "staff_id",
+      field: "staff_id",
+    },
+    as: "staff",
+  });
+}
+
 export {
   Admin,
   Staff,
