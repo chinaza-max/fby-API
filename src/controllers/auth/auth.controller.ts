@@ -14,12 +14,18 @@ export default class AuthenticationController {
       const { authType } = req.query;
       const data = req.body;
 
-      const obj = await authService.handleUserAuthentication(data);
+      var obj;
+      try {
+        obj = await authService.handleUserAuthentication(data);
+      } catch (error) {
+        console.log(error);
+      }
 
-      if(obj == null) return res.status(400).json({
-        status: 400,
-        message: "Invalid login credentials",
-      });
+      if (obj == null)
+        return res.status(400).json({
+          status: 400,
+          message: "Invalid login credentials",
+        });
 
       const token = await authService.generateToken(obj.data);
       console.log(token);
@@ -51,7 +57,12 @@ export default class AuthenticationController {
             to: "turboburstenvironment@gmail.com",
             subject: "Welcome to FBY Security",
             templateName: "welcome",
-            variables: { userRole: "Admin", website: "https://fby-security.com", email: obj.transfromedUser.email, password: data.password },
+            variables: {
+              userRole: "Admin",
+              website: "https://fby-security.com",
+              email: obj.transfromedUser.email,
+              password: data.password,
+            },
           });
         }
       } catch (error) {
@@ -78,10 +89,16 @@ export default class AuthenticationController {
       const user = await authService.getCurrentUser(id);
       var LocationModel = Location;
       var relatedLocation = await LocationModel.findByPk(user.location_id);
-      var { transfromedUser } = await authService.transformUserForResponse(user, relatedLocation?.address);
+      var { transfromedUser } = await authService.transformUserForResponse(
+        user,
+        relatedLocation?.address
+      );
       return res.status(200).json({
         status: 200,
-        data: {user: transfromedUser, token: req.headers.authorization.split(" ")[1]},
+        data: {
+          user: transfromedUser,
+          token: req.headers.authorization.split(" ")[1],
+        },
       });
     } catch (error) {
       next(error);
