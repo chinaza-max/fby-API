@@ -1,9 +1,12 @@
+import { ScheduleLengthTypes } from "./types.interface";
+
 export default interface ISchedule {
-    _id: number;
+    id: number;
     start_time: string;
     end_time: string;
+    check_in_date: Date;
     job_id: number;
-    schedule_length: string;
+    schedule_length: ScheduleLengthTypes;
     created_at?: Date;
     updated_at?: Date;
     is_archived?: boolean;

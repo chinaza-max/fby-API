@@ -5,11 +5,11 @@ class AdminUtil {
     first_name: Joi.string().required(),
     last_name: Joi.string().required(),
     address: Joi.string(),
-    email: Joi.string().required(),
+    email: Joi.string().trim().required(),
     password: Joi.string().required(),
     date_of_birth: Joi.date().min(new Date("1900-01-01").toLocaleDateString("af-AZ")).required(),
     gender: Joi.string().required().valid('MALE', 'FEMALE', 'NOT_SPECIFIED'),
-    image: Joi.string().min(5),
+    // image: Joi.string().min(5),
   });
 }
 

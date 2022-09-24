@@ -20,6 +20,7 @@ import Staff from "./staff.model";
     declare id: CreationOptional<number>;
     declare job_id: number;
     declare staff_id: number;
+    declare accept_assignment: boolean;
     declare created_at?: CreationOptional<Date>;
     declare updated_at?: CreationOptional<Date>;
     declare is_archived: CreationOptional<boolean>;
@@ -46,6 +47,10 @@ import Staff from "./staff.model";
         staff_id: {
           type: DataTypes.NUMBER,
           allowNull: false,
+        },
+        accept_assignment: {
+          type: DataTypes.BOOLEAN,
+          allowNull: true,
         },
         created_at: {
           type: DataTypes.DATE,

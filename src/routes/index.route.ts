@@ -3,6 +3,8 @@ import { NotFoundError } from "../errors";
 import authMiddleware from "../middlewares/auth.middleware";
 import authRoute from "./auth.route";
 import userRoute from "./user.route";
+import customerRoute from "./customer.route";
+import jobRoute from "./job.route";
 
 class Routes {
   public router: Router;
@@ -28,6 +30,10 @@ class Routes {
     this.router.use(`${rootAPI}/auth`, authRoute);
 
     this.router.use(authMiddleware.validateUserToken);
+
+    this.router.use(`${rootAPI}/customer`, customerRoute);
+
+    this.router.use(`${rootAPI}/job`, jobRoute);
 
     this.router.use(`${rootAPI}/user`, userRoute);
 
