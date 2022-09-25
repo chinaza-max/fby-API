@@ -17,17 +17,9 @@ class AuthenticationService {
 
   async handleUserAuthentication(data): Promise<any> {
     const { email, password } = data;
-    let hashedPassword;
-    try {
-      hashedPassword = await bcrypt.hash(
-        password,
-        Number(serverConfig.SALT_ROUNDS)
-      );
-    } catch (error) {
-      return null;
-    }
     const user = await Admin.findOne({ where: { email: email } });
-    if (!bcrypt.compare(password, hashedPassword)) return null;
+    console.log(bcrypt.compare(password, user.password));
+    if (!(await bcrypt.compare(password, user.password))) return null;
 
     var relatedLocation = await this.LocationModel.findByPk(user.location_id);
 
