@@ -58,13 +58,18 @@ class UserService {
           facilityLocation.coordinates_id
         );
         if (coodinates == null) continue;
+        let getStaffJobStatus = () => {
+            if(relatedJob.job_status == "COMPLETED") return relatedJob.job_status;
+            else if(assignment.accept_assignment === true) return "ACTIVE";
+            else if(assignment.accept_assignment === null) return "PENDING";
+        }
         const currentJob = {
           id: relatedJob.id,
           description: relatedJob.description,
           payment: relatedJob.staff_charge,
           job_type: relatedJob.job_type,
           accepted: assignment.accept_assignment,
-          status: relatedJob.job_status,
+          status: getStaffJobStatus(),
           facility: {
             id: facility.id,
             name: facility.name,
