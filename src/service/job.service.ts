@@ -64,6 +64,7 @@ class UserService {
           payment: relatedJob.staff_charge,
           job_type: relatedJob.job_type,
           accepted: assignment.accept_assignment,
+          status: relatedJob.job_status,
           facility: {
             id: facility.id,
             name: facility.name,
