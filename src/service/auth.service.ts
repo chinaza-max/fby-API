@@ -30,6 +30,22 @@ class AuthenticationService {
     return transfromedUserObj;
   }
 
+  async handleAdminAuthentication(data): Promise<any> {
+    const { email, password } = data;
+    const user = await Admin.findOne({ where: { email: email } });
+    console.log(bcrypt.compare(password, user.password));
+    if (!(await bcrypt.compare(password, user.password))) return null;
+    if(user.role != "ADMIN") return -1;
+
+    var relatedLocation = await this.LocationModel.findByPk(user.location_id);
+
+    var transfromedUserObj = await this.transformUserForResponse(
+      user,
+      relatedLocation?.address
+    );
+    return transfromedUserObj;
+  }
+
   async handleUserCreation(data: object): Promise<any> {
     const {
       first_name,
@@ -82,7 +98,7 @@ class AuthenticationService {
       const rawUser = user.get();
       const token = jwt.sign(rawUser, serverConfig.TOKEN_SECRET, {
         algorithm: "HS256",
-        expiresIn: serverConfig.TOKEN_EXPIRES_IN,
+        expiresIn: "2d",
         issuer: serverConfig.TOKEN_ISSUER,
       });
       return token;

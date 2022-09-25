@@ -31,7 +31,8 @@ export default class JobController {
       const data = req.body;
 
       const obj = await jobService.getAllJobsAdmin();
-      if(obj?.length === null){
+      console.log(obj?.length);
+      if(obj?.length != 0 && obj?.length == null){
         return res.status(400).json({
           status: 400,
           data: obj ?? "Failed to process request",

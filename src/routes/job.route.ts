@@ -11,7 +11,7 @@ class JobRoutes extends JobController {
   }
 
   private routes(): void {
-    this.router.get("/", this.getAllJobs);
+    this.router.get("/allJobs", this.getAllJobs);
     this.router.get("/myJobs", this.getMyJobs);
     this.router.post("/", this.createJob);
   }

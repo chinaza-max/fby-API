@@ -40,7 +40,92 @@ class UserService {
           where: {
             id: assignment.job_id,
             job_status: {
-                [Op.ne]: "CANCELED",
+              [Op.ne]: "CANCELED",
+            },
+          },
+        });
+        if (relatedJobs == null) continue;
+        const relatedJob = relatedJobs[0];
+        const facility = await this.FacilityModel.findByPk(
+          relatedJob.facility_id
+        );
+        if (facility == null) continue;
+        const facilityLocation = await this.FacilityLocationModel.findByPk(
+          facility.id
+        );
+        if (relatedJob == null) continue;
+        const coodinates = await this.CoordinatesModel.findByPk(
+          facilityLocation.coordinates_id
+        );
+        if (coodinates == null) continue;
+        const currentJob = {
+          id: relatedJob.id,
+          description: relatedJob.description,
+          payment: relatedJob.staff_charge,
+          job_type: relatedJob.job_type,
+          accepted: assignment.accept_assignment,
+          facility: {
+            id: facility.id,
+            name: facility.name,
+            location: {
+              address: facilityLocation.address,
+              latitude: coodinates.latitude,
+              longitude: coodinates.longitude,
+            },
+          },
+          schedule: [],
+        };
+        const relatedSchedules = await this.ScheduleModel.findAll({
+          where: {
+            job_id: relatedJob.id,
+          },
+        });
+        var scheduleRes = [];
+        for (const iSchedule of relatedSchedules) {
+          const latestRelatedJobOperation =
+            await this.JobOperationsModel.findOrCreate({
+              where: {
+                staff_id: staffId,
+                schedule_id: iSchedule.id,
+              },
+              defaults: {
+                staff_id: staffId,
+                schedule_id: iSchedule.id,
+              },
+            });
+          scheduleRes.push({
+            id: iSchedule.id,
+            start_time: iSchedule.start_time,
+            end_time: iSchedule.end_time,
+            check_in_date: iSchedule.check_in_date,
+            schedule_length: iSchedule.schedule_length,
+            operations: {
+              id: latestRelatedJobOperation[0].id,
+              checked_in: latestRelatedJobOperation[0].checked_in,
+              checked_out: latestRelatedJobOperation[0].checked_out,
+            },
+          });
+        }
+        currentJob.schedule = [...scheduleRes];
+        jobs.push(currentJob);
+      }
+      return jobs;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
+  async getAllJobsAdmin(): Promise<any[]> {
+    try {
+      const jobs = [];
+      const relatedAssignments = await this.AssignedStaffsModel.findAll();
+      for (const assignment of relatedAssignments) {
+        const relatedJobs = await this.JobModel.findAll({
+          where: {
+            id: assignment.job_id,
+            job_status: {
+              [Op.ne]: "CANCELED",
             },
           },
         });
@@ -83,13 +168,13 @@ class UserService {
           const latestRelatedJobOperation =
             await this.JobOperationsModel.findOrCreate({
               where: {
-                staff_id: staffId,
+                staff_id: assignment.staff_id,
                 schedule_id: iSchedule.id,
               },
               defaults: {
-                staff_id: staffId,
+                staff_id: assignment.staff_id,
                 schedule_id: iSchedule.id,
-              }
+              },
             });
           scheduleRes.push({
             id: iSchedule.id,
@@ -109,14 +194,9 @@ class UserService {
       }
       return jobs;
     } catch (error) {
-        console.log(error);
-        return null;
+      console.log(error);
+      return null;
     }
-  }
-
-  async getAllJobsAdmin(): Promise<any[]> {
-    var jobs = [];
-    return jobs;
   }
 
   async createJob(data: any): Promise<any> {

@@ -16,6 +16,10 @@ class AuthRoutes extends AuthController {
       "/login",
       this.login
     );
+    this.router.post(
+      "/admin/login",
+      this.loginAdmin
+    );
 
     this.router.get("/", authMiddleware.validateUserToken, this.whoAmI);
     this.router.post("/register", this.signup);

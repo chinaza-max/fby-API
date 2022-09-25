@@ -40,6 +40,46 @@ export default class AuthenticationController {
     }
   }
 
+  protected async loginAdmin(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const { authType } = req.query;
+      const data = req.body;
+
+      var obj;
+      try {
+        obj = await authService.handleAdminAuthentication(data);
+      } catch (error) {
+        console.log(error);
+      }
+      if (obj == -1)
+        return res.status(401).json({
+          status: 401,
+          message: "Unauthorized access!",
+        });
+
+      if (obj == null)
+        return res.status(400).json({
+          status: 400,
+          message: "Invalid login credentials",
+        });
+
+      const token = await authService.generateToken(obj.data);
+      console.log(token);
+
+      return res.status(200).json({
+        status: 200,
+        message: "Login successful.",
+        data: { user: obj.transfromedUser, token },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   protected async signup(
     req: Request,
     res: Response,
