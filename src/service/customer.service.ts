@@ -13,6 +13,7 @@ import bcrypt from "bcrypt";
 import { ConflictError, SystemError } from "../errors";
 import authService from "./auth.service";
 import ICustomer from "../interfaces/customer.interface";
+import utilService from "./util.service";
 
 interface DecodedToken {
   payload: ICustomer | null;
@@ -123,6 +124,7 @@ class CustomerService {
       sites
     );
     transfromedUserObj.transfromedUser.password = password;
+    utilService.updateStat('CUSTOMER_SIGNUP');
     return transfromedUserObj;
   }
 

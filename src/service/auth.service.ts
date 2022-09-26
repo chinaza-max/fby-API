@@ -5,6 +5,8 @@ import authUtil from "../utils/auth.util";
 import IAdmin from "../interfaces/admin.interface";
 import bcrypt from "bcrypt";
 import { ConflictError, SystemError } from "../errors";
+import utilService from "./util.service";
+import { Op } from "sequelize";
 
 interface DecodedToken {
   payload: IAdmin | null;
@@ -17,8 +19,14 @@ class AuthenticationService {
 
   async handleUserAuthentication(data): Promise<any> {
     const { email, password } = data;
-    const user = await Admin.findOne({ where: { email: email } });
-    console.log(bcrypt.compare(password, user.password));
+    const user = await Admin.findOne({
+      where: {
+        email: email,
+        role: {
+          [Op.eq]: null,
+        },
+      },
+    });
     if (!(await bcrypt.compare(password, user.password))) return null;
 
     var relatedLocation = await this.LocationModel.findByPk(user.location_id);
@@ -27,6 +35,7 @@ class AuthenticationService {
       user,
       relatedLocation?.address
     );
+    await utilService.updateStat("GUARD_SIGNIN");
     return transfromedUserObj;
   }
 
@@ -35,7 +44,7 @@ class AuthenticationService {
     const user = await Admin.findOne({ where: { email: email } });
     console.log(bcrypt.compare(password, user.password));
     if (!(await bcrypt.compare(password, user.password))) return null;
-    if(user.role != "ADMIN") return -1;
+    if (user.role != "ADMIN") return -1;
 
     var relatedLocation = await this.LocationModel.findByPk(user.location_id);
 
@@ -43,11 +52,12 @@ class AuthenticationService {
       user,
       relatedLocation?.address
     );
+    await utilService.updateStat("STAFF_SIGNIN");
     return transfromedUserObj;
   }
 
   async handleUserCreation(data: object): Promise<any> {
-    const {
+    let {
       first_name,
       last_name,
       email,
@@ -58,6 +68,7 @@ class AuthenticationService {
       address,
     } = await authUtil.verifyUserCreationData.validateAsync(data);
     let hashedPassword;
+    if (password == null) password = this.generatePassword();
     try {
       hashedPassword = await bcrypt.hash(
         password,
@@ -74,9 +85,6 @@ class AuthenticationService {
       throw new ConflictError("A user with this email already exists");
     var createdLocation = await this.LocationModel.create({
       address: address,
-      // created_at: new Date(),
-      // updated_at: new Date(),
-      // is_archived: false
     });
     console.log(createdLocation.id);
     const user = await this.UserModel.create({
@@ -90,6 +98,54 @@ class AuthenticationService {
       location_id: createdLocation.id,
     });
     var transfromedUserObj = await this.transformUserForResponse(user, address);
+    await utilService.updateStat("GUARD_SIGNUP");
+    return transfromedUserObj;
+  }
+
+  async handleAdminCreation(data: object): Promise<any> {
+    let {
+      first_name,
+      last_name,
+      email,
+      image,
+      date_of_birth,
+      gender,
+      password,
+      address,
+    } = await authUtil.verifyUserCreationData.validateAsync(data);
+    let hashedPassword;
+    if (password == null) password = this.generatePassword();
+    try {
+      hashedPassword = await bcrypt.hash(
+        password,
+        Number(serverConfig.SALT_ROUNDS)
+      );
+    } catch (error) {
+      throw new SystemError("An error occured while processing your request");
+    }
+    console.log(hashedPassword);
+
+    var existingUser = await this.getUserByEmail(email);
+    console.log(existingUser);
+    if (existingUser != null)
+      throw new ConflictError("A user with this email already exists");
+    var createdLocation = await this.LocationModel.create({
+      address: address,
+    });
+    console.log(createdLocation.id);
+    const user = await this.UserModel.create({
+      first_name,
+      last_name,
+      email,
+      image,
+      date_of_birth,
+      gender,
+      password: hashedPassword,
+      location_id: createdLocation.id,
+      role: "ADMIN",
+    });
+    var transfromedUserObj = await this.transformUserForResponse(user, address);
+    await utilService.updateStat("STAFF_SIGNUP");
     return transfromedUserObj;
   }
 

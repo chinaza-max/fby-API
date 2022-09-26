@@ -18,6 +18,9 @@ import AssignedStaffs, {
 import Schedule, {
   init as initSchedule,
 } from "./schedule.model";
+import Statistics, {
+  init as initStatistics,
+} from "./statistics.model";
 
 function associate() {
   // User Favorite Relationships
@@ -58,7 +61,8 @@ export {
   Job,
   JobOperations,
   AssignedStaffs,
-  Schedule
+  Schedule,
+  Statistics
 };
 
 export function init(connection: Sequelize) {
@@ -70,6 +74,7 @@ export function init(connection: Sequelize) {
   initCoordinates(connection);
   initLocation(connection);
   initJob(connection);
+  initStatistics(connection);
   initSchedule(connection);
   initJobOperations(connection);
   initAssignedStaffs(connection);

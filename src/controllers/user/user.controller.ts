@@ -23,4 +23,21 @@ export default class UserController {
       next(error);
     }
   }
+
+  protected async getAllStaff(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const users = await userService.getAllStaff();
+
+      return res.status(200).json({
+        status: 200,
+        data: users,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

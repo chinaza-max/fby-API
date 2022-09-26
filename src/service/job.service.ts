@@ -135,35 +135,46 @@ class UserService {
   async getAllJobsAdmin(): Promise<any[]> {
     try {
       const jobs = [];
-      const relatedAssignments = await this.AssignedStaffsModel.findAll();
-      for (const assignment of relatedAssignments) {
-        if (assignment.accept_assignment === false) continue;
-        const relatedJobs = await this.JobModel.findAll({
-          where: {
-            id: assignment.job_id,
-            job_status: {
-              [Op.ne]: "CANCELED",
-            },
-          },
-        });
-        if (relatedJobs == null) continue;
-        const relatedJob = relatedJobs[0];
+      const availableJobs = await this.JobModel.findAll({
+        where: {
+          is_deleted: false,
+        } as any,
+      });
+
+      for (const availableJob of availableJobs) {
         const facility = await this.FacilityModel.findByPk(
-          relatedJob.facility_id
+          availableJob.facility_id
         );
         if (facility == null) continue;
         const facilityLocation = await this.FacilityLocationModel.findByPk(
           facility.id
         );
-        if (relatedJob == null) continue;
+        if (facilityLocation == null) continue;
         const coodinates = await this.CoordinatesModel.findByPk(
           facilityLocation.coordinates_id
         );
-        if (coodinates == null) continue;
-        const currentJob = {
-          id: relatedJob.id,
-          description: relatedJob.description,
-          payment: relatedJob.staff_charge,
+        const relatedSchedules = await this.ScheduleModel.findAll({
+          where: {
+            job_id: availableJob.id,
+          },
+        });
+        const assignedStaffs = await this.AssignedStaffsModel.findAll({
+          where: {
+            job_id: availableJob.id,
+          },
+        });
+        const customer = await this.CustomerModel.findByPk(availableJob.customer_id);
+        const jobRes = {
+          id: availableJob.id,
+          description: availableJob.description,
+          client_charge: availableJob.client_charge,
+          staff_payment: availableJob.staff_charge,
+          customer: {
+            id: availableJob.customer_id,
+            first_name: customer?.first_name,
+            last_name: customer?.last_name,
+            email: customer?.email,
+          },
           facility: {
             id: facility.id,
             name: facility.name,
@@ -174,40 +185,36 @@ class UserService {
             },
           },
           schedule: [],
+          assigned_staffs: [],
         };
-        const relatedSchedules = await this.ScheduleModel.findAll({
-          where: {
-            job_id: relatedJob.id,
-          },
-        });
-        var scheduleRes = [];
-        for (const iSchedule of relatedSchedules) {
-          const latestRelatedJobOperation =
-            await this.JobOperationsModel.findOrCreate({
-              where: {
-                staff_id: assignment.staff_id,
-                schedule_id: iSchedule.id,
-              },
-              defaults: {
-                staff_id: assignment.staff_id,
-                schedule_id: iSchedule.id,
-              },
-            });
+        const scheduleRes = [];
+        const staffsRes = [];
+        for (const relatedSchedule of relatedSchedules) {
           scheduleRes.push({
-            id: iSchedule.id,
-            start_time: iSchedule.start_time,
-            end_time: iSchedule.end_time,
-            check_in_date: iSchedule.check_in_date,
-            schedule_length: iSchedule.schedule_length,
-            operations: {
-              id: latestRelatedJobOperation[0].id,
-              checked_in: latestRelatedJobOperation[0].checked_in,
-              checked_out: latestRelatedJobOperation[0].checked_out,
+            id: relatedSchedule.id,
+            start_time: relatedSchedule.start_time,
+            end_time: relatedSchedule.end_time,
+            check_in_date: relatedSchedule.check_in_date,
+            schedule_length: relatedSchedule.schedule_length,
+          });
+        }
+        for (const assignment of assignedStaffs) {
+          const staff = await this.UserModel.findByPk(assignment.staff_id);
+          staffsRes.push({
+            id: staff.id,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            gender: staff.gender,
+            assignment: {
+              id: assignment.id,
+              accept: assignment.accept_assignment,
             },
           });
         }
-        currentJob.schedule = [...scheduleRes];
-        jobs.push(currentJob);
+        jobRes.assigned_staffs = staffsRes;
+        jobRes.schedule = scheduleRes;
+        jobs.push(jobRes);
       }
       return jobs;
     } catch (error) {
@@ -306,7 +313,9 @@ class UserService {
     if (relatedAssignment.accept_assignment === false && !accept)
       throw new ConflictError("You have already declined this job");
     if (relatedAssignment.accept_assignment === true && !accept)
-      throw new ConflictError("You can't accept a job that you previously accepted");
+      throw new ConflictError(
+        "You can't decline a job that you previously accepted"
+      );
     relatedAssignment.update({
       accept_assignment: accept,
     });
@@ -314,7 +323,7 @@ class UserService {
   }
 
   async checkIn(obj) {
-    var { operation_id, check_in } =
+    var { operation_id, check_in, latitude, longitude } =
       await jobUtil.verifyCheckinData.validateAsync(obj);
     var job_operation = await this.JobOperationsModel.findByPk(operation_id);
     if (job_operation == null) throw new NotFoundError("Schedule not found");
@@ -331,12 +340,22 @@ class UserService {
           "You must check in first before checking out"
         );
       } else if (check_in === true && job_operation.checked_in == null) {
+        const createdCoordinates = await this.CoordinatesModel.create({
+          longitude,
+          latitude,
+        });
         job_operation.update({
           checked_in: new Date(),
+          check_in_coordinates_id: createdCoordinates.id,
         });
       } else if (check_in === false && job_operation.checked_out == null) {
+        const createdCoordinates = await this.CoordinatesModel.create({
+          longitude,
+          latitude,
+        });
         job_operation.update({
           checked_out: new Date(),
+          check_out_coordinates_id: createdCoordinates.id,
         });
       } else {
         throw new BadRequestError("Unable to process request");

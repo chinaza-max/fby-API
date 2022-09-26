@@ -33,6 +33,8 @@ class JobUtil {
   public verifyCheckinData = Joi.object().keys({
     operation_id: Joi.number().min(1),
     check_in: Joi.boolean().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required()
   });
 
   public verifyAcceptDeclineData = Joi.object().keys({

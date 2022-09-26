@@ -15,6 +15,7 @@ class UserRoutes extends UserController {
 
   private routes(): void {
     this.router.put("/", uploads.single("image"), this.update);
+    this.router.get("/getAllStaff", this.getAllStaff);
   }
 }
 
