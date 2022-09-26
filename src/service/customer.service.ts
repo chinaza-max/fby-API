@@ -19,7 +19,7 @@ interface DecodedToken {
   expired: boolean | string | Error;
 }
 
-class AuthenticationService {
+class CustomerService {
   private UserModel = Customer;
   private LocationModel = Location;
   private CoordinatesModel = Coordinates;
@@ -67,13 +67,14 @@ class AuthenticationService {
       password: hashedPassword,
       location_id: createdLocation.id,
     });
+    console.log(sites);
     if (sites?.length) {
       const coordinates = [];
-      sites.forEach(async (site) => {
-        coordinates.push({
-          longitude: site.longitude,
-          latitude: site.latitude,
-        });
+      for (const site of sites) {
+        // coordinates.push({
+        //   longitude: site.longitude,
+        //   latitude: site.latitude,
+        // });
         const createdCoordinates = await this.CoordinatesModel.create({
           longitude: site.longitude,
           latitude: site.latitude,
@@ -90,7 +91,7 @@ class AuthenticationService {
           name: site.address,
           client_charge: site.amount,
         });
-      });
+      }
       // const createdCoordinates = await this.CoordinatesModel.bulkCreate(
       //   coordinates
       // );
@@ -224,7 +225,7 @@ class AuthenticationService {
           );
           if(facilityLocation == null) {
             console.log("Null Facility Detected");
-            await facility.destroy();
+            // await facility.destroy();
             continue;
           }
           var coordinates = await this.getCurrentFacilityLocationCoordinates(
@@ -232,8 +233,8 @@ class AuthenticationService {
           );
           if(coordinates == null) {
             console.log("Null Coordinates Detected");
-            facility.destroy();
-            facilityLocation.destroy();
+            // facility.destroy();
+            // facilityLocation.destroy();
             continue;
           }
           sites.push({
@@ -275,4 +276,4 @@ class AuthenticationService {
   }
 }
 
-export default new AuthenticationService();
+export default new CustomerService();

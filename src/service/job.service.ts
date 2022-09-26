@@ -9,8 +9,8 @@ import {
   Job,
   JobOperations,
 } from "../db/models";
-import { NotFoundError, SystemError } from "../errors";
-import { fn, col, Op } from "sequelize";
+import { ConflictError, NotFoundError, SystemError } from "../errors";
+import { fn, col, Op, QueryError } from "sequelize";
 import Schedule from "../db/models/schedule.model";
 import jobUtil from "../utils/job.util";
 import { JobStatus } from "../interfaces/types.interface";
@@ -70,6 +70,10 @@ class UserService {
           job_type: relatedJob.job_type,
           accepted: assignment.accept_assignment,
           status: getStaffJobStatus(),
+          statistics: {
+            hours_worked: 0.0,
+            payment: 0.0,
+          },
           facility: {
             id: facility.id,
             name: facility.name,
@@ -271,6 +275,40 @@ class UserService {
       console.log(error);
       throw new SystemError(error.toString());
     }
+  }
+
+  async checkIn(id, check_in, coordinates){
+    // var job_operation = await this.JobOperationsModel.findByPk(id);
+    // if(job_operation == null) throw new NotFoundError('Schedule not found');
+    // else {
+    //     // if(this.isSameDay(new Date(relatedSchedule.check_in_date), new Date()) && relatedSchedule.start_time < ){
+    //     //     if
+    //     // }
+    //     if(check_in && job_operation.checked_in != null){
+    //         throw new ConflictError('You have already checked in');
+    //     } else if(check_in === false && job_operation.checked_out)
+    // }
+  }
+
+  isSameDay(date1, date2){
+    if (
+        date1.getFullYear() === date2.getFullYear() &&
+        date1.getMonth() === date2.getMonth() &&
+        date1.getDate() === date2.getDate()
+      ) {
+        return true;
+      }else{
+        return false;
+      }
+  }
+
+  checkTime(time1, time2){
+    var time1Times = time1.split(':');
+    var time2Times = time2.split(':');
+    var time1Total = Number(time1Times[0]) + Number(time1Times[1]);
+    var time2Total = Number(time2Times[0]) + Number(time2Times[1]);
+    var difference = time2Total - time1Total;
+    // if(difference == 20){}
   }
 
   async updateJob(data: any): Promise<any> {}
