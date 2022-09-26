@@ -9,7 +9,12 @@ import {
   Job,
   JobOperations,
 } from "../db/models";
-import { ConflictError, NotFoundError, SystemError } from "../errors";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+  SystemError,
+} from "../errors";
 import { fn, col, Op, QueryError } from "sequelize";
 import Schedule from "../db/models/schedule.model";
 import jobUtil from "../utils/job.util";
@@ -59,10 +64,11 @@ class UserService {
         );
         if (coodinates == null) continue;
         let getStaffJobStatus = () => {
-            if(relatedJob.job_status == "COMPLETED") return relatedJob.job_status;
-            else if(assignment.accept_assignment === true) return "ACTIVE";
-            else if(assignment.accept_assignment === null) return "PENDING";
-        }
+          if (relatedJob.job_status == "COMPLETED")
+            return relatedJob.job_status;
+          else if (assignment.accept_assignment === true) return "ACTIVE";
+          else if (assignment.accept_assignment === null) return "PENDING";
+        };
         const currentJob = {
           id: relatedJob.id,
           description: relatedJob.description,
@@ -131,6 +137,7 @@ class UserService {
       const jobs = [];
       const relatedAssignments = await this.AssignedStaffsModel.findAll();
       for (const assignment of relatedAssignments) {
+        if (assignment.accept_assignment === false) continue;
         const relatedJobs = await this.JobModel.findAll({
           where: {
             id: assignment.job_id,
@@ -277,34 +284,81 @@ class UserService {
     }
   }
 
-  async checkIn(id, check_in, coordinates){
-    // var job_operation = await this.JobOperationsModel.findByPk(id);
-    // if(job_operation == null) throw new NotFoundError('Schedule not found');
-    // else {
-    //     // if(this.isSameDay(new Date(relatedSchedule.check_in_date), new Date()) && relatedSchedule.start_time < ){
-    //     //     if
-    //     // }
-    //     if(check_in && job_operation.checked_in != null){
-    //         throw new ConflictError('You have already checked in');
-    //     } else if(check_in === false && job_operation.checked_out)
-    // }
+  async acceptDeclineJob(req) {
+    var { job_id, accept } =
+      await jobUtil.verifyAcceptDeclineData.validateAsync(req.body);
+    var relatedAssignment = await this.AssignedStaffsModel.findOne({
+      where: {
+        staff_id: req.user.id,
+        job_id,
+      },
+    });
+    if (relatedAssignment == null)
+      throw new NotFoundError(
+        "No Assignment was found for you.\nIt may not exist anymore"
+      );
+    if (relatedAssignment.accept_assignment === false && accept)
+      throw new ConflictError(
+        "You can't accept a job that you previously declined"
+      );
+    if (relatedAssignment.accept_assignment === true && accept)
+      throw new ConflictError("You have already accepted this job");
+    if (relatedAssignment.accept_assignment === false && !accept)
+      throw new ConflictError("You have already declined this job");
+    if (relatedAssignment.accept_assignment === true && !accept)
+      throw new ConflictError("You can't accept a job that you previously accepted");
+    relatedAssignment.update({
+      accept_assignment: accept,
+    });
+    return relatedAssignment;
   }
 
-  isSameDay(date1, date2){
-    if (
-        date1.getFullYear() === date2.getFullYear() &&
-        date1.getMonth() === date2.getMonth() &&
-        date1.getDate() === date2.getDate()
-      ) {
-        return true;
-      }else{
-        return false;
+  async checkIn(obj) {
+    var { operation_id, check_in } =
+      await jobUtil.verifyCheckinData.validateAsync(obj);
+    var job_operation = await this.JobOperationsModel.findByPk(operation_id);
+    if (job_operation == null) throw new NotFoundError("Schedule not found");
+    else {
+      // if(this.isSameDay(new Date(relatedSchedule.check_in_date), new Date()) && relatedSchedule.start_time < ){
+      //     if
+      // }
+      if (check_in && job_operation.checked_in != null) {
+        throw new ConflictError("You have already checked in");
+      } else if (check_in === false && job_operation.checked_out) {
+        throw new ConflictError("You have already checked out");
+      } else if (check_in === false && job_operation.checked_in == null) {
+        throw new BadRequestError(
+          "You must check in first before checking out"
+        );
+      } else if (check_in === true && job_operation.checked_in == null) {
+        job_operation.update({
+          checked_in: new Date(),
+        });
+      } else if (check_in === false && job_operation.checked_out == null) {
+        job_operation.update({
+          checked_out: new Date(),
+        });
+      } else {
+        throw new BadRequestError("Unable to process request");
       }
+    }
   }
 
-  checkTime(time1, time2){
-    var time1Times = time1.split(':');
-    var time2Times = time2.split(':');
+  isSameDay(date1, date2) {
+    if (
+      date1.getFullYear() === date2.getFullYear() &&
+      date1.getMonth() === date2.getMonth() &&
+      date1.getDate() === date2.getDate()
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  checkTime(time1, time2) {
+    var time1Times = time1.split(":");
+    var time2Times = time2.split(":");
     var time1Total = Number(time1Times[0]) + Number(time1Times[1]);
     var time2Total = Number(time2Times[0]) + Number(time2Times[1]);
     var difference = time2Total - time1Total;

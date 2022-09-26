@@ -29,6 +29,16 @@ class JobUtil {
 
   public verifyJobUpdateData = Joi.object().keys({
   });
+
+  public verifyCheckinData = Joi.object().keys({
+    operation_id: Joi.number().min(1),
+    check_in: Joi.boolean().required(),
+  });
+
+  public verifyAcceptDeclineData = Joi.object().keys({
+    job_id: Joi.number().min(1),
+    accept: Joi.boolean().required(),
+  });
 }
 
 export default new JobUtil();

@@ -3,6 +3,44 @@ import jobService from "../../service/job.service";
 
 export default class JobController {
 
+  protected async checkInCheckOut(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await jobService.checkIn(data);
+
+      return res.status(200).json({
+        status: 200,
+        message: `Check ${data.check_in ? 'in' : 'out'} successful`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  protected async acceptDeclineJob(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await jobService.acceptDeclineJob(req);
+
+      return res.status(200).json({
+        status: 200,
+        message: `Job ${data.accept ? 'accepted' : 'declined'} successful`,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   protected async createJob(
     req: Request,
     res: Response,
