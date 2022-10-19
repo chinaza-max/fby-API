@@ -15,12 +15,32 @@ import JobOperations, {
 import AssignedStaffs, {
   init as initAssignedStaffs,
 } from "./assigned_staffs.model";
-import Schedule, {
-  init as initSchedule,
-} from "./schedule.model";
-import Statistics, {
-  init as initStatistics,
-} from "./statistics.model";
+import Schedule, { init as initSchedule } from "./schedule.model";
+import Statistics, { init as initStatistics } from "./statistics.model";
+import PasswordReset, {
+  init as initPasswordReset,
+} from "./password_reset.model";
+import ScanOperations, {
+  init as initScanOperations,
+} from "./scan_operations.model";
+import LocationCheckOperations, {
+  init as initLocationCheckOperations,
+} from "./location_check_operations.model";
+import JobLogs, { init as initLogs } from "./job_logs.model";
+import DeletedUploads, {
+  init as initDeletedUploads,
+} from "./deleted_uploads.model";
+import Agendas, { init as initAgendas } from "./agendas.model";
+import AgendaOperations, {
+  init as initAgendaOperations,
+} from "./agenda_operations.model";
+import JobReports, { init as initJobReports } from "./job_reports.model";
+import JobReportAttachments, {
+  init as initJobReportAttachments,
+} from "./job_report_attachments.model";
+import JobSecurityCode, {
+  init as initJobSecurityCode,
+} from "./job_security_code.model";
 
 function associate() {
   // User Favorite Relationships
@@ -40,13 +60,193 @@ function associate() {
     },
     as: "job",
   });
-  AssignedStaffs.belongsTo(Staff, {
+  AssignedStaffs.belongsTo(Admin, {
     foreignKey: {
       allowNull: false,
       name: "staff_id",
       field: "staff_id",
     },
     as: "staff",
+  });
+  Customer.belongsTo(Location, {
+    foreignKey: {
+      allowNull: false,
+      name: "location_id",
+      field: "location_id",
+    },
+    as: "location",
+  });
+  FacilityLocation.belongsTo(Coordinates, {
+    foreignKey: {
+      allowNull: false,
+      name: "coordinates_id",
+      field: "coordinates_id",
+    },
+    as: "coordinates",
+  });
+  Facility.belongsTo(FacilityLocation, {
+    foreignKey: {
+      allowNull: false,
+      name: "facility_location_id",
+      field: "facility_location_id",
+    },
+    as: "facility_location",
+  });
+  Facility.belongsTo(Customer, {
+    foreignKey: {
+      allowNull: false,
+      name: "customer_id",
+      field: "customer_id",
+    },
+    as: "customer",
+  });
+  Customer.hasMany(Facility, {
+    as: "facilities",
+  });
+  JobOperations.belongsTo(Coordinates, {
+    foreignKey: {
+      allowNull: false,
+      name: "check_in_coordinates_id",
+      field: "check_in_coordinates_id",
+    },
+    as: "check_in_coordinates",
+  });
+  JobOperations.belongsTo(Coordinates, {
+    foreignKey: {
+      allowNull: false,
+      name: "check_out_coordinates_id",
+      field: "check_out_coordinates_id",
+    },
+    as: "check_out_coordinates",
+  });
+  JobOperations.belongsTo(Schedule, {
+    foreignKey: {
+      allowNull: false,
+      name: "schedule_id",
+      field: "schedule_id",
+    },
+    as: "schedule",
+  });
+  Job.belongsTo(Customer, {
+    foreignKey: {
+      allowNull: false,
+      name: "customer_id",
+      field: "customer_id",
+    },
+    as: "customer",
+  });
+  Job.belongsTo(Facility, {
+    foreignKey: {
+      allowNull: false,
+      name: "facility_id",
+      field: "facility_id",
+    },
+    as: "facility",
+  });
+  Schedule.belongsTo(Job, {
+    foreignKey: {
+      allowNull: false,
+      name: "job_id",
+      field: "job_id",
+    },
+    as: "job",
+  });
+  Job.hasMany(Schedule);
+  PasswordReset.belongsTo(Admin, {
+    foreignKey: {
+      allowNull: false,
+      name: "user_id",
+      field: "user_id",
+    },
+    as: "user",
+  });
+  ScanOperations.belongsTo(JobOperations, {
+    foreignKey: {
+      allowNull: false,
+      name: "job_operations_id",
+      field: "job_operations_id",
+    },
+    as: "job_operations",
+  });
+  ScanOperations.belongsTo(Coordinates, {
+    foreignKey: {
+      allowNull: false,
+      name: "coordinates_id",
+      field: "coordinates_id",
+    },
+    as: "coordinates",
+  });
+  LocationCheckOperations.belongsTo(JobOperations, {
+    foreignKey: {
+      allowNull: false,
+      name: "job_operations_id",
+      field: "job_operations_id",
+    },
+    as: "job_operations",
+  });
+  LocationCheckOperations.belongsTo(Coordinates, {
+    foreignKey: {
+      allowNull: false,
+      name: "coordinates_id",
+      field: "coordinates_id",
+    },
+    as: "coordinates",
+  });
+  JobLogs.belongsTo(Staff, {
+    foreignKey: {
+      allowNull: false,
+      name: "staff_id",
+      field: "staff_id",
+    },
+    as: "staff",
+  });
+  JobLogs.belongsTo(Coordinates, {
+    foreignKey: {
+      allowNull: false,
+      name: "coordinates_id",
+      field: "coordinates_id",
+    },
+    as: "coordinates",
+  });
+  Agendas.belongsTo(Schedule, {
+    foreignKey: {
+      allowNull: false,
+      name: "schedule_id",
+      field: "schedule_id",
+    },
+    as: "schedule",
+  });
+  AgendaOperations.belongsTo(Agendas, {
+    foreignKey: {
+      allowNull: false,
+      name: "agenda_id",
+      field: "agenda_id",
+    },
+    as: "agenda",
+  });
+  JobReports.belongsTo(Coordinates, {
+    foreignKey: {
+      allowNull: false,
+      name: "coordinates_id",
+      field: "coordinates_id",
+    },
+    as: "coordinates",
+  });
+  JobReportAttachments.belongsTo(Coordinates, {
+    foreignKey: {
+      allowNull: false,
+      name: "coordinates_id",
+      field: "coordinates_id",
+    },
+    as: "coordinates",
+  });
+  JobSecurityCode.belongsTo(Coordinates, {
+    foreignKey: {
+      allowNull: false,
+      name: "coordinates_id",
+      field: "coordinates_id",
+    },
+    as: "coordinates",
   });
 }
 
@@ -62,7 +262,17 @@ export {
   JobOperations,
   AssignedStaffs,
   Schedule,
-  Statistics
+  Statistics,
+  PasswordReset,
+  ScanOperations,
+  LocationCheckOperations,
+  JobLogs,
+  DeletedUploads,
+  Agendas,
+  AgendaOperations,
+  JobReports,
+  JobReportAttachments,
+  JobSecurityCode,
 };
 
 export function init(connection: Sequelize) {
@@ -78,6 +288,16 @@ export function init(connection: Sequelize) {
   initSchedule(connection);
   initJobOperations(connection);
   initAssignedStaffs(connection);
+  initPasswordReset(connection);
+  initScanOperations(connection);
+  initLocationCheckOperations(connection);
+  initLogs(connection);
+  initDeletedUploads(connection);
+  initAgendas(connection);
+  initAgendaOperations(connection);
+  initJobReports(connection);
+  initJobReportAttachments(connection);
+  initJobSecurityCode(connection);
 
-  // associate();
+  associate();
 }

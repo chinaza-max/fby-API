@@ -110,7 +110,7 @@ import IAdmin from "../../interfaces/admin.interface";
         },
       },
       {
-        tableName: "admin",
+        tableName: "users",
         timestamps: true, underscored: true,
         sequelize: connection,
       }

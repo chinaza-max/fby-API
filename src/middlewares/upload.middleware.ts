@@ -9,10 +9,21 @@ Cloudinary.config({
   api_secret: serverConfig.CLOUDINARY_API_SECRET,
 });
 
-const storage = new CloudinaryStorage({
+const uStorage = new CloudinaryStorage({
   cloudinary: Cloudinary,
+  params: {
+    folder: "files",
+  } as any
 });
 
-const uploads = multer({ storage });
+const aStorage = new CloudinaryStorage({
+  cloudinary: Cloudinary,
+  params: {
+    folder: "avatars",
+  } as any
+});
 
-export default uploads;
+const uploads = multer({ storage: uStorage });
+const avatars = multer({ storage: aStorage });
+
+export default {uploads, avatars};

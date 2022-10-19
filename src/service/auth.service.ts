@@ -1,12 +1,18 @@
 import jwt from "jsonwebtoken";
-import { Admin, Location } from "../db/models";
+import { Admin, Location, PasswordReset } from "../db/models";
 import serverConfig from "../config/server.config";
 import authUtil from "../utils/auth.util";
 import IAdmin from "../interfaces/admin.interface";
 import bcrypt from "bcrypt";
-import { ConflictError, SystemError } from "../errors";
+import {
+  ConflictError,
+  NotFoundError,
+  ServerError,
+  SystemError,
+} from "../errors";
 import utilService from "./util.service";
-import { Op } from "sequelize";
+import { DatabaseError, Op } from "sequelize";
+import mailService from "./mail.service";
 
 interface DecodedToken {
   payload: IAdmin | null;
@@ -16,6 +22,7 @@ interface DecodedToken {
 class AuthenticationService {
   private UserModel = Admin;
   private LocationModel = Location;
+  private PasswordResetModel = PasswordReset;
 
   async handleUserAuthentication(data): Promise<any> {
     const { email, password } = data;
@@ -23,17 +30,18 @@ class AuthenticationService {
       where: {
         email: email,
         role: {
-          [Op.eq]: null,
+          [Op.eq]: "GUARD",
         },
       },
     });
     if (!(await bcrypt.compare(password, user.password))) return null;
 
     var relatedLocation = await this.LocationModel.findByPk(user.location_id);
+    user.last_logged_in = new Date();
 
     var transfromedUserObj = await this.transformUserForResponse(
       user,
-      relatedLocation?.address
+      relatedLocation
     );
     await utilService.updateStat("GUARD_SIGNIN");
     return transfromedUserObj;
@@ -47,10 +55,11 @@ class AuthenticationService {
     if (user.role != "ADMIN") return -1;
 
     var relatedLocation = await this.LocationModel.findByPk(user.location_id);
+    user.last_logged_in = new Date();
 
     var transfromedUserObj = await this.transformUserForResponse(
       user,
-      relatedLocation?.address
+      relatedLocation
     );
     await utilService.updateStat("STAFF_SIGNIN");
     return transfromedUserObj;
@@ -84,7 +93,7 @@ class AuthenticationService {
     if (existingUser != null)
       throw new ConflictError("A user with this email already exists");
     var createdLocation = await this.LocationModel.create({
-      address: address,
+      address,
     });
     console.log(createdLocation.id);
     const user = await this.UserModel.create({
@@ -96,10 +105,20 @@ class AuthenticationService {
       gender,
       password: hashedPassword,
       location_id: createdLocation.id,
+      role: "GUARD",
     });
-    var transfromedUserObj = await this.transformUserForResponse(user, address);
+    var transfromedUserObj = await this.transformUserForResponse(user, createdLocation);
     await utilService.updateStat("GUARD_SIGNUP");
     return transfromedUserObj;
+  }
+
+  async handleBulkUserCreaton(data): Promise<any> {
+    let createdUsers = [];
+    for(const user of data){
+      let createdUser = await this.handleUserCreation(user);
+      createdUsers.push(createdUser);
+    }
+    return createdUsers;
   }
 
   async handleAdminCreation(data: object): Promise<any> {
@@ -130,7 +149,7 @@ class AuthenticationService {
     if (existingUser != null)
       throw new ConflictError("A user with this email already exists");
     var createdLocation = await this.LocationModel.create({
-      address: address,
+      address,
     });
     console.log(createdLocation.id);
     const user = await this.UserModel.create({
@@ -144,9 +163,79 @@ class AuthenticationService {
       location_id: createdLocation.id,
       role: "ADMIN",
     });
-    var transfromedUserObj = await this.transformUserForResponse(user, address);
+    var transfromedUserObj = await this.transformUserForResponse(user, createdLocation);
     await utilService.updateStat("STAFF_SIGNUP");
     return transfromedUserObj;
+  }
+
+  async handlePasswordResetEmail(data) {
+    var { email } = await authUtil.validateUserEmail.validateAsync(data);
+    var matchedUser = await this.UserModel.findOne({
+      where: {
+        email,
+      },
+    });
+    if (matchedUser == null)
+      throw new NotFoundError("This email does not correspond to any user");
+    var keyExpirationMillisecondsFromEpoch =
+      new Date().getTime() + 30 * 60 * 1000;
+    var generatedKey = this.generatePassword(true);
+    var relatedPasswordReset = await this.PasswordResetModel.findOrCreate({
+      where: {
+        user_id: matchedUser.id,
+      },
+      defaults: {
+        user_id: matchedUser.id,
+        reset_key: generatedKey,
+        expires_in: new Date(keyExpirationMillisecondsFromEpoch),
+      },
+    });
+    relatedPasswordReset[0]?.update({
+      user_id: matchedUser.id,
+      reset_key: generatedKey,
+      expires_in: new Date(keyExpirationMillisecondsFromEpoch),
+    });
+    await mailService.sendMail({
+      to: matchedUser.email,
+      subject: "Reset Password",
+      templateName: "reset_password",
+      variables: {
+        resetLink: `http://localhost:4200/auth/reset-password/${generatedKey}_${keyExpirationMillisecondsFromEpoch}`,
+      },
+    });
+  }
+
+  async handlePasswordReset(data) {
+    var { email, password, reset_password_key } =
+      await authUtil.validatePasswordReset.validateAsync(data);
+    var relatedPasswordReset = await this.PasswordResetModel.findOne({
+      where: {
+        reset_key: reset_password_key,
+      },
+    });
+    if (relatedPasswordReset == null)
+      throw new NotFoundError("Invalid reset link");
+    else if (relatedPasswordReset.expires_in.getTime() < new Date().getTime())
+      throw new NotFoundError("Reset link expired");
+    var relatedUser = await this.UserModel.findOne({
+      where: { id: relatedPasswordReset.user_id },
+    });
+    if (relatedUser == null)
+      throw new NotFoundError("Selected user cannot be found");
+    try {
+      var hashedPassword = await bcrypt.hash(
+        password,
+        Number(serverConfig.SALT_ROUNDS)
+      );
+      relatedUser.update({
+        password: hashedPassword,
+      });
+      relatedPasswordReset.update({
+        expires_in: new Date(),
+      });
+    } catch (error) {
+      throw new ServerError("Failed to update password");
+    }
   }
 
   async generateToken(user: Admin) {
@@ -165,7 +254,7 @@ class AuthenticationService {
 
   transformUserForResponse(
     data: Admin,
-    address: String
+    locationObj: Location
   ): { transfromedUser; data: Admin } {
     try {
       var {
@@ -188,7 +277,7 @@ class AuthenticationService {
         last_name,
         email,
         // Added Location
-        address,
+        address: locationObj.address,
         date_of_birth,
         gender,
         created_at,
@@ -233,10 +322,11 @@ class AuthenticationService {
     }
   }
 
-  generatePassword(): string {
-    var chars =
-      "0123456789abcdefghijklmnopqrstuvwxyz!@#$%^&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    var passwordLength = 12;
+  generatePassword(omitSpecial = false, passwordLength = 12): string {
+    var chars = omitSpecial
+      ? "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+      : "0123456789abcdefghijklmnopqrstuvwxyz!@#$%^&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    // var passwordLength = 12;
     var password = "";
     for (var i = 0; i <= passwordLength; i++) {
       var randomNumber = Math.floor(Math.random() * chars.length);

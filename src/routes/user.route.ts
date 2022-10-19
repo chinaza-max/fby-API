@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   UserController,
 } from "../controllers/user/index";
-import uploads from "../middlewares/upload.middleware";
+import uploadHandler from "../middlewares/upload.middleware";
 
 class UserRoutes extends UserController {
   public router: Router;
@@ -14,7 +14,7 @@ class UserRoutes extends UserController {
   }
 
   private routes(): void {
-    this.router.put("/", uploads.single("image"), this.update);
+    this.router.put("/updateProfile", uploadHandler.avatars.single("image"), this.update);
     this.router.get("/getAllStaff", this.getAllStaff);
   }
 }

@@ -20,9 +20,19 @@ class AuthRoutes extends AuthController {
       "/admin/login",
       this.loginAdmin
     );
+    this.router.post(
+      "/send-password-reset-link",
+      this.resetPasswordEmail
+    );
+    this.router.post(
+      "/reset-password",
+      this.resetPassword
+    );
 
     this.router.get("/", authMiddleware.validateUserToken, this.whoAmI);
-    this.router.post("/register", this.signup);
+    this.router.post("/register", this.signupGuard);
+    this.router.post("/registerBulk", this.signupGuardBulk);
+    this.router.post("/admin/register", this.signupAdmin);
   }
 }
 

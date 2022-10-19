@@ -55,7 +55,7 @@ class CustomerService {
     if (existingUser != null)
       throw new ConflictError("A user with this email already exists");
     var createdLocation = await this.LocationModel.create({
-      address: address,
+      address,
     });
     console.log(createdLocation.id);
     const user = await this.UserModel.create({
@@ -82,14 +82,17 @@ class CustomerService {
         });
         const createdFacilityLocation = await this.FacilityLocationModel.create(
           {
-            address: site.site_name,
+            address: site.address,
             coordinates_id: createdCoordinates.id,
+            operations_area_constraint: site.operations_area_constraint,
+            operations_area_constraint_active:
+              site.operations_area_constraint_active,
           }
         );
         const createdFacility = await this.FacilityModel.create({
           customer_id: user.id,
           facility_location_id: createdFacilityLocation.id,
-          name: site.address,
+          name: site.site_name,
           client_charge: site.amount,
         });
       }
@@ -124,21 +127,86 @@ class CustomerService {
       sites
     );
     transfromedUserObj.transfromedUser.password = password;
-    utilService.updateStat('CUSTOMER_SIGNUP');
-    return transfromedUserObj;
+    utilService.updateStat("CUSTOMER_SIGNUP");
+    return transfromedUserObj.transfromedUser;
+  }
+
+  async handleCustomerCreationBulk(data: any): Promise<any> {
+    let res = [];
+    for (const customer of data) {
+      let val = await this.handleCustomerCreation(customer);
+      res.push(val);
+    }
+    return res;
   }
 
   async handleCustomerGetAll(): Promise<any> {
     try {
-      return await this.parseUsers();
+      var allCustomers = await Customer.findAll({
+        include: [
+          {
+            model: Location,
+            as: "location",
+          },
+          {
+            model: Facility,
+            as: "facilities",
+            include: [
+              {
+                model: FacilityLocation,
+                as: "facility_location",
+                include: [
+                  {
+                    model: Coordinates,
+                    as: "coordinates",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+      let tempCustomers = [];
+      allCustomers?.forEach((customer: any) => {
+        let tempCustomer = {
+          id: customer.id,
+          image: customer.image,
+          full_name: `${customer.first_name} ${customer.last_name}`,
+          first_name: customer.first_name,
+          last_name: customer.last_name,
+          address: customer.location.address,
+          email: customer.email,
+          gender: customer.gender,
+          date_of_birth: customer.date_of_birth,
+        };
+        let sites = [];
+        customer.facilities?.forEach((facility) => {
+          sites.push({
+            id: facility.id,
+            site_name: facility.name,
+            amount: facility.client_charge,
+            address: facility.facility_location.address,
+            latitude: facility.facility_location.coordinates.latitude,
+            longitude: facility.facility_location.coordinates.longitude,
+            operations_area_constraint:
+              facility.facility_location.operations_area_constraint,
+            operations_area_constraint_active:
+              facility.facility_location.operations_area_constraint_active,
+          });
+        });
+        tempCustomer["sites"] = sites;
+        tempCustomers.push(tempCustomer);
+      });
+      return tempCustomers;
     } catch (error) {
+      console.log(error);
       return error;
     }
   }
 
   transformCustomerForResponse(
     data: Customer,
-    address: String,
+    address,
     sites
   ): { transfromedUser; data: Customer } {
     try {
@@ -225,7 +293,7 @@ class CustomerService {
           var facilityLocation = await this.getCurrentFacilityLocation(
             facility.id
           );
-          if(facilityLocation == null) {
+          if (facilityLocation == null) {
             console.log("Null Facility Detected");
             // await facility.destroy();
             continue;
@@ -233,7 +301,7 @@ class CustomerService {
           var coordinates = await this.getCurrentFacilityLocationCoordinates(
             facilityLocation.id
           );
-          if(coordinates == null) {
+          if (coordinates == null) {
             console.log("Null Coordinates Detected");
             // facility.destroy();
             // facilityLocation.destroy();

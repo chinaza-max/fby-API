@@ -22,6 +22,11 @@ class CustomerRoutes extends CustomerController {
       authMiddleware.validateUserToken,
       this.createCustomer 
     );
+    this.router.post(
+      "/bulk",
+      authMiddleware.validateUserToken,
+      this.createCustomerBulk
+    );
     this.router.get(
       "/test",
       authMiddleware.validateUserToken,

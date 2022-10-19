@@ -25,6 +25,16 @@ class JobUtil {
     assigned_staffs: Joi.array().min(1).required().items({
       staff_id: Joi.required(),
     }),
+    tasks: Joi.array().required().items({
+      title: Joi.string().required(),
+      description: Joi.string().required(),
+    }),
+    agendas: Joi.array().required().items({
+      title: Joi.string().required(),
+      description: Joi.string().required(),
+      start_time: Joi.string().required(),
+    }),
+    use_security_code: Joi.boolean().required(),
   });
 
   public verifyJobUpdateData = Joi.object().keys({

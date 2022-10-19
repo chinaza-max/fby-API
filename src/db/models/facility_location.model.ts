@@ -16,6 +16,8 @@ class FacilityLocation
   declare id: CreationOptional<number>;
   declare address: string;
   declare coordinates_id: number;
+  declare operations_area_constraint: number;
+  declare operations_area_constraint_active: boolean;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
   declare is_archived: CreationOptional<boolean>;
@@ -31,6 +33,14 @@ export function init(connection: Sequelize) {
       },
       address: {
         type: DataTypes.STRING,
+        allowNull: false,
+      },
+      operations_area_constraint: {
+        type: DataTypes.NUMBER,
+        allowNull: false,
+      },
+      operations_area_constraint_active: {
+        type: DataTypes.BOOLEAN,
         allowNull: false,
       },
       coordinates_id: {

@@ -18,6 +18,8 @@ class Server {
 
   private corsOptions: cors.CorsOptions;
 
+  socketBytes = new Map();
+
   constructor() {
     this.app = express();
     this.port =
@@ -48,7 +50,9 @@ class Server {
       this.app.use(cors(this.corsOptions));
     }
     this.app.use((req: Request, res: Response, next: NextFunction) => {
-        express.json()(req, res, next); 
+      (req as any).socketProgress = this.getSocketProgress(req.socket);
+      console.log((req as any).socketProgress);
+      express.json()(req, res, next);
     });
     this.app.use(express.urlencoded({ extended: false }));
     this.app.use(helmet());
@@ -66,6 +70,18 @@ class Server {
         `server running on http://localhost:${this.port} in ${serverConfig.NODE_ENV} mode.\npress CTRL-C to stop`
       );
     });
+  }
+
+  private getSocketProgress(socket) {
+    const currBytesRead = socket.bytesRead;
+    let prevBytesRead;
+    if (!this.socketBytes.has(socket)) {
+      prevBytesRead = 0;
+    } else {
+      prevBytesRead = this.socketBytes.get(socket).prevBytesRead;
+    }
+    this.socketBytes.set(socket, { prevBytesRead: currBytesRead });
+    return (currBytesRead - prevBytesRead) / 1024;
   }
 }
 

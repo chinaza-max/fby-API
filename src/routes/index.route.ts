@@ -5,6 +5,7 @@ import authRoute from "./auth.route";
 import userRoute from "./user.route";
 import customerRoute from "./customer.route";
 import jobRoute from "./job.route";
+import utilRoute from "./util.route";
 
 class Routes {
   public router: Router;
@@ -28,6 +29,8 @@ class Routes {
     });
 
     this.router.use(`${rootAPI}/auth`, authRoute);
+
+    this.router.use(`${rootAPI}/util`, utilRoute);
 
     this.router.use(authMiddleware.validateUserToken);
 

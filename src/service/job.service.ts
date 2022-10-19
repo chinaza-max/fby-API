@@ -8,6 +8,8 @@ import {
   Location,
   Job,
   JobOperations,
+  Agendas,
+  JobSecurityCode,
 } from "../db/models";
 import {
   BadRequestError,
@@ -19,6 +21,8 @@ import { fn, col, Op, QueryError } from "sequelize";
 import Schedule from "../db/models/schedule.model";
 import jobUtil from "../utils/job.util";
 import { JobStatus } from "../interfaces/types.interface";
+import { IJobSecurityCode } from "../interfaces/job_security_code.interface";
+import authService from "./auth.service";
 
 class UserService {
   private UserModel = Admin;
@@ -31,6 +35,8 @@ class UserService {
   private CoordinatesModel = Coordinates;
   private FacilityModel = Facility;
   private FacilityLocationModel = FacilityLocation;
+  private AgendasModel = Agendas;
+  private JobSecurityModel = JobSecurityCode;
 
   async getJobsForStaff(staffId: number): Promise<any[]> {
     try {
@@ -163,14 +169,18 @@ class UserService {
             job_id: availableJob.id,
           },
         });
-        const customer = await this.CustomerModel.findByPk(availableJob.customer_id);
+        const customer = await this.CustomerModel.findByPk(
+          availableJob.customer_id
+        );
         const jobRes = {
           id: availableJob.id,
           description: availableJob.description,
           client_charge: availableJob.client_charge,
           staff_payment: availableJob.staff_charge,
+          status: availableJob.job_status,
           customer: {
             id: availableJob.customer_id,
+            full_name: `${customer?.first_name} ${customer?.last_name}`,
             first_name: customer?.first_name,
             last_name: customer?.last_name,
             email: customer?.email,
@@ -234,6 +244,9 @@ class UserService {
         job_type,
         schedule,
         assigned_staffs,
+        tasks,
+        agendas,
+        use_security_code,
       } = await jobUtil.verifyJobCreationData.validateAsync(data);
 
       var currentFacility = await this.FacilityModel.findOne({
@@ -242,6 +255,22 @@ class UserService {
         },
       });
       console.log("t: " + currentFacility);
+
+      var agendasToCreateUnscheduled = [];
+      tasks.forEach((task) => {
+        agendasToCreateUnscheduled.push({
+          title: task.title,
+          description: task.description,
+          agenda_type: "TASK",
+        });
+      });
+      agendas.forEach((agenda) => {
+        agendasToCreateUnscheduled.push({
+          title: agenda.title,
+          description: agenda.description,
+          agenda_type: "AGENDA",
+        });
+      });
 
       var createdJob = await this.JobModel.create({
         description,
@@ -252,7 +281,6 @@ class UserService {
         staff_charge: amount,
         job_type,
       });
-      console.log("s: " + createdJob);
       const schedules = [];
       for (let index = 0; index < schedule.length; index++) {
         const element = schedule[index];
@@ -263,12 +291,26 @@ class UserService {
           job_id: createdJob.id,
           schedule_length: job_type == "PERMANENT" ? "CONTINUOUS" : "LIMITED",
         });
-        console.log(schedules);
       }
-      console.log("done");
 
       try {
-        var createdSchedule = await this.ScheduleModel.bulkCreate(schedules);
+        let createdSchedule = await this.ScheduleModel.bulkCreate(schedules);
+        let securityCodesToCreate = [];
+        let agendasToCreateScheduled = [];
+        createdSchedule.forEach((scheduleItem) => {
+          if (use_security_code) {
+            securityCodesToCreate.push({
+              job_id: createdJob.id,
+              security_code: authService.generatePassword(true, 19),
+            });
+          }
+          agendasToCreateUnscheduled.forEach((agenda) => {
+            agenda.schedule_id = scheduleItem.id;
+          });
+        });
+        this.JobSecurityModel.bulkCreate(securityCodesToCreate);
+        this.AgendasModel.bulkCreate(agendasToCreateScheduled);
+
         console.log("u: " + createdSchedule);
       } catch (error) {
         console.log(error);

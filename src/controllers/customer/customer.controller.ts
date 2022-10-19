@@ -6,6 +6,28 @@ import mailService from "../../service/mail.service";
 
 export default class CustomerController {
 
+
+  protected async createCustomerBulk(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await customerService.handleCustomerCreationBulk(data);
+
+      return res.status(200).json({
+        status: 200,
+        message: "Customers registered successfully",
+        data: obj
+      });
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  }
+
   protected async createCustomer(
     req: Request,
     res: Response,
@@ -22,7 +44,7 @@ export default class CustomerController {
             to: "turboburstenvironment@gmail.com",
             subject: "Welcome to FBY Security",
             templateName: "welcome",
-            variables: { userRole: "Customer", website: "https://fby-security.com", email: obj.transfromedUser.email, password: data.password },
+            variables: { userRole: "Customer", website: "https://fbysecuritysvs.com", email: obj.transfromedUser.email, password: obj.transfromedUser.password },
           });
         }
       } catch (error) {
@@ -38,6 +60,31 @@ export default class CustomerController {
     }
   }
 
+  protected async resetCustomerPassword(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await customerService.handleCustomerGetAll();
+      if(obj?.length === null){
+        return res.status(400).json({
+          status: 400,
+          data: obj ?? "Failed to process request",
+        });
+      }
+
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   protected async testEmail(
     req: Request,
     res: Response,
@@ -46,9 +93,9 @@ export default class CustomerController {
     try {
       await mailService.sendMail({
         to: "turboburstenvironment@gmail.com",
-        subject: "Welcome to FBY Security",
-        templateName: "welcome",
-        variables: { userRole: "Customer", website: "https://fby-security.com", email: "test@test.com", password: "IneZSVz2vrpFuRU9VjJq"},
+        subject: "Reset Password",
+        templateName: "reset_password",
+        variables: { resetLink: "https://fbysecurity.web.app/auth/login"},
       });
       return res.status(200).json({
         status: 200,

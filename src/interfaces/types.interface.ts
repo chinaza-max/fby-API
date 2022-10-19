@@ -18,3 +18,7 @@ export type StatTypes =
   | "JOB"
   | "JOB_REQUEST"
   | "TRANSACTION";
+
+export type AgendaTypes = 'TASK' | 'AGENDA';
+
+export type JobReportPriorityTypes = "LOW" | "MEDIUM" | "HIGH" | "VERY HIGH";
