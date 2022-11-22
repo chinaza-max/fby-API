@@ -34,6 +34,7 @@ class AuthenticationService {
         },
       },
     });
+   
     if (!(await bcrypt.compare(password, user.password))) return null;
 
     var relatedLocation = await this.LocationModel.findByPk(user.location_id);

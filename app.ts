@@ -66,6 +66,8 @@ class Server {
   // Class Method to initiate app listening
   public start(): void {
     this.app.listen(this.port, () => {
+
+     // console.log(process.env.DB_USERNAME)
       DEBUG(
         `server running on http://localhost:${this.port} in ${serverConfig.NODE_ENV} mode.\npress CTRL-C to stop`
       );
