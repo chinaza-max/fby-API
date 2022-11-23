@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { func } from "joi";
 import {
   UserController,
 } from "../controllers/user/index";
@@ -14,7 +15,7 @@ class UserRoutes extends UserController {
   }
 
   private routes(): void {
-    this.router.put("/updateProfile", uploadHandler.avatars.single("image"), this.update);
+    this.router.put("/updateProfile" ,uploadHandler.avatars.single("image"), this.update);
     this.router.get("/getAllStaff", this.getAllStaff);
   }
 }

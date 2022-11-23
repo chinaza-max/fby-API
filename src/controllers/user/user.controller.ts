@@ -8,9 +8,15 @@ export default class UserController {
     next: NextFunction
   ): Promise<Response> {
     try {
+
+      //console.log(req)
+
       const { id } = req.user;
       const data = req.body;
+
       const { file } = req;
+     
+
 
       const user = await userService.updateUser(id, data, file);
 
@@ -30,7 +36,16 @@ export default class UserController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const users = await userService.getAllStaff();
+      console.log(req.query)
+      const data = req.body;
+
+      const myData={
+        limit:Number(req.query.limit),
+        offset:Number(req.query.offset),
+        role:req.query.role
+      }
+
+      const users = await userService.getAllStaff(myData);
 
       return res.status(200).json({
         status: 200,

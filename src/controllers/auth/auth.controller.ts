@@ -99,7 +99,7 @@ export default class AuthenticationController {
             subject: "Welcome to FBY Security",
             templateName: "welcome",
             variables: {
-              userRole: "Staff",
+              userRole: "Guard",
               website: "https://fbysecuritysvs.com",
               email: obj.transfromedUser.email,
               password: data.password,
@@ -123,7 +123,7 @@ export default class AuthenticationController {
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<Response> {
+  ): Promise<Response> {   
     try {
       const data = req.body;
 

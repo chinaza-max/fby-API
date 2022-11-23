@@ -41,36 +41,83 @@ class UserService {
     return user;
   }
 
-  async getAllStaff() {
-    var staffs = await this.UserModel.findAll({
-      where: {
-        role: {
-          [Op.eq]: "GUARD",
+  async getAllStaff(data: any) {
+
+      console.log(data.role)
+
+    if(data.role=="ADMIN"){
+      var staffs = await this.UserModel.findAll({
+        limit: data.limit,
+        offset: data.offset,
+        where: {
+          role: {
+            [Op.eq]: "ADMIN",
+          },
         },
-      },
-      include: {
-        model: Location,
-        as: "location",
-      },
-    });
-    if (staffs == null) return [];
-    var staffRes = [];
-    for (let index = 0; index < staffs.length; index++) {
-      const staff = staffs[index];
-      const staffData = {
-        id: staff.id,
-        image: staff.image,
-        full_name: `${staff.first_name} ${staff.last_name}`,
-        first_name: staff.first_name,
-        last_name: staff.last_name,
-        email: staff.email,
-        date_of_birth: staff.date_of_birth,
-        gender: staff.gender,
-        address: (staff.location as any)?.address,
-      };
-      staffRes.push(staffData);
+        include: {
+          model: Location,
+          as: "location",
+        },
+        order: [
+          ['created_at', 'DESC'],
+      ]
+      });
+      if (staffs == null) return [];
+      var staffRes = [];
+      for (let index = 0; index < staffs.length; index++) {
+        const staff = staffs[index];
+        const staffData = {
+          id: staff.id,
+          image: staff.image,
+          full_name: `${staff.first_name} ${staff.last_name}`,
+          first_name: staff.first_name,
+          last_name: staff.last_name,
+          email: staff.email,
+          date_of_birth: staff.date_of_birth,
+          gender: staff.gender,
+          address: (staff.location as any)?.address,
+        };
+        staffRes.push(staffData);
+      }
+      return staffRes;
     }
-    return staffRes;
+    else if(data.role=="GUARD"){
+      var staffs = await this.UserModel.findAll({
+        limit: data.limit,
+        offset: data.offset,
+        where: {
+          role: {
+            [Op.eq]: "GUARD",
+          },
+        },
+        include: {
+          model: Location,
+          as: "location",
+        },
+        order: [
+          ['created_at', 'DESC'],
+      ]
+      });
+      if (staffs == null) return [];
+      var staffRes = [];
+      for (let index = 0; index < staffs.length; index++) {
+        const staff = staffs[index];
+        const staffData = {
+          id: staff.id,
+          image: staff.image,
+          full_name: `${staff.first_name} ${staff.last_name}`,
+          first_name: staff.first_name,
+          last_name: staff.last_name,
+          email: staff.email,
+          date_of_birth: staff.date_of_birth,
+          gender: staff.gender,
+          address: (staff.location as any)?.address,
+        };
+        staffRes.push(staffData);
+      }
+      return staffRes;
+    }
+
   }
 }
 

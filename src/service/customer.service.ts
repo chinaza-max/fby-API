@@ -67,7 +67,8 @@ class CustomerService {
       gender,
       password: hashedPassword,
       location_id: createdLocation.id,
-    });
+    })
+    
     console.log(sites);
     if (sites?.length) {
       const coordinates = [];
@@ -140,68 +141,219 @@ class CustomerService {
     return res;
   }
 
-  async handleCustomerGetAll(): Promise<any> {
-    try {
-      var allCustomers = await Customer.findAll({
-        include: [
-          {
-            model: Location,
-            as: "location",
-          },
-          {
-            model: Facility,
-            as: "facilities",
-            include: [
-              {
-                model: FacilityLocation,
-                as: "facility_location",
-                include: [
-                  {
-                    model: Coordinates,
-                    as: "coordinates",
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      });
-      let tempCustomers = [];
-      allCustomers?.forEach((customer: any) => {
-        let tempCustomer = {
-          id: customer.id,
-          image: customer.image,
-          full_name: `${customer.first_name} ${customer.last_name}`,
-          first_name: customer.first_name,
-          last_name: customer.last_name,
-          address: customer.location.address,
-          email: customer.email,
-          gender: customer.gender,
-          date_of_birth: customer.date_of_birth,
-        };
-        let sites = [];
-        customer.facilities?.forEach((facility) => {
-          sites.push({
-            id: facility.id,
-            site_name: facility.name,
-            amount: facility.client_charge,
-            address: facility.facility_location.address,
-            latitude: facility.facility_location.coordinates.latitude,
-            longitude: facility.facility_location.coordinates.longitude,
-            operations_area_constraint:
-              facility.facility_location.operations_area_constraint,
-            operations_area_constraint_active:
-              facility.facility_location.operations_area_constraint_active,
-          });
+  async handleGetSingleCustomer(data: any): Promise<any> {
+
+      try {
+
+        var allCustomers = await Customer.findOne({
+          where: { id: data },
+          include: [
+            {
+              model: Location,
+              as: "location",
+            },
+            {
+              model: Facility,
+              as: "facilities",
+              include: [
+                {
+                  model: FacilityLocation,
+                  as: "facility_location",
+                  include: [
+                    {
+                      model: Coordinates,
+                      as: "coordinates",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+      
         });
-        tempCustomer["sites"] = sites;
-        tempCustomers.push(tempCustomer);
-      });
-      return tempCustomers;
-    } catch (error) {
-      console.log(error);
-      return error;
+        let tempCustomers = [];
+
+        console.log(allCustomers)
+        /*
+        allCustomers?.forEach((customer: any) => {
+          let tempCustomer = {
+            id: customer.id,
+            image: customer.image,
+            full_name: `${customer.first_name} ${customer.last_name}`,
+            first_name: customer.first_name,
+            last_name: customer.last_name,
+            address: customer.location.address,
+            email: customer.email,
+            gender: customer.gender,
+            date_of_birth: customer.date_of_birth,
+          };
+          let sites = [];
+          customer.facilities?.forEach((facility) => {
+            sites.push({
+              id: facility.id,
+              site_name: facility.name,
+              amount: facility.client_charge,
+              address: facility.facility_location.address,
+              latitude: facility.facility_location.coordinates.latitude,
+              longitude: facility.facility_location.coordinates.longitude,
+              operations_area_constraint:
+                facility.facility_location.operations_area_constraint,
+              operations_area_constraint_active:
+                facility.facility_location.operations_area_constraint_active,
+            });
+          });
+          tempCustomer["sites"] = sites;
+          tempCustomers.push(tempCustomer);
+        });
+        */
+        return tempCustomers;
+      } catch (error) {
+        console.log(error);
+        return error;
+      }
+    
+   
+  }
+
+  async handleCustomerGetAll(data: any): Promise<any> {
+
+    if(data=="all"){
+      try {
+        var allCustomers = await Customer.findAll({
+          include: [
+            {
+              model: Location,
+              as: "location",
+            },
+            {
+              model: Facility,
+              as: "facilities",
+              include: [
+                {
+                  model: FacilityLocation,
+                  as: "facility_location",
+                  include: [
+                    {
+                      model: Coordinates,
+                      as: "coordinates",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          
+        });
+        let tempCustomers = [];
+        allCustomers?.forEach((customer: any) => {
+          let tempCustomer = {
+            id: customer.id,
+            image: customer.image,
+            full_name: `${customer.first_name} ${customer.last_name}`,
+            first_name: customer.first_name,
+            last_name: customer.last_name,
+            address: customer.location.address,
+            email: customer.email,
+            gender: customer.gender,
+            date_of_birth: customer.date_of_birth,
+          };
+          let sites = [];
+          customer.facilities?.forEach((facility) => {
+            sites.push({
+              id: facility.id,
+              site_name: facility.name,
+              amount: facility.client_charge,
+              address: facility.facility_location.address,
+              latitude: facility.facility_location.coordinates.latitude,
+              longitude: facility.facility_location.coordinates.longitude,
+              operations_area_constraint:
+                facility.facility_location.operations_area_constraint,
+              operations_area_constraint_active:
+                facility.facility_location.operations_area_constraint_active,
+            });
+          });
+          tempCustomer["sites"] = sites;
+          tempCustomers.push(tempCustomer);
+        });
+        return tempCustomers;
+      } catch (error) {
+        console.log(error);
+        return error;
+      }
     }
+    else{
+      try {
+
+        console.log( data.limit, data.offset)
+        console.log( data)
+
+        var allCustomers = await Customer.findAll({
+          limit: data.limit,
+          offset: data.offset,
+          include: [
+            {
+              model: Location,
+              as: "location",
+            },
+            {
+              model: Facility,
+              as: "facilities",
+              include: [
+                {
+                  model: FacilityLocation,
+                  as: "facility_location",
+                  include: [
+                    {
+                      model: Coordinates,
+                      as: "coordinates",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+          order: [
+            ['created_at', 'DESC'],
+        ]
+        });
+        let tempCustomers = [];
+        allCustomers?.forEach((customer: any) => {
+          let tempCustomer = {
+            id: customer.id,
+            image: customer.image,
+            full_name: `${customer.first_name} ${customer.last_name}`,
+            first_name: customer.first_name,
+            last_name: customer.last_name,
+            address: customer.location.address,
+            email: customer.email,
+            gender: customer.gender,
+            date_of_birth: customer.date_of_birth,
+          };
+          let sites = [];
+          customer.facilities?.forEach((facility) => {
+            sites.push({
+              id: facility.id,
+              site_name: facility.name,
+              amount: facility.client_charge,
+              address: facility.facility_location.address,
+              latitude: facility.facility_location.coordinates.latitude,
+              longitude: facility.facility_location.coordinates.longitude,
+              operations_area_constraint:
+                facility.facility_location.operations_area_constraint,
+              operations_area_constraint_active:
+                facility.facility_location.operations_area_constraint_active,
+            });
+          });
+          tempCustomer["sites"] = sites;
+          tempCustomers.push(tempCustomer);
+        });
+        return tempCustomers;
+      } catch (error) {
+        console.log(error);
+        return error;
+      }
+    }
+   
   }
 
   transformCustomerForResponse(

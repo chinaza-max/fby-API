@@ -41,7 +41,7 @@ export default class CustomerController {
       try {
         if (obj != null) {
           await mailService.sendMail({
-            to: "turboburstenvironment@gmail.com",
+            to: "mosesogbonna68@gmail.com",
             subject: "Welcome to FBY Security",
             templateName: "welcome",
             variables: { userRole: "Customer", website: "https://fbysecuritysvs.com", email: obj.transfromedUser.email, password: obj.transfromedUser.password },
@@ -68,7 +68,7 @@ export default class CustomerController {
     try {
       const data = req.body;
 
-      const obj = await customerService.handleCustomerGetAll();
+      const obj = await customerService.handleCustomerGetAll("all");
       if(obj?.length === null){
         return res.status(400).json({
           status: 400,
@@ -106,7 +106,7 @@ export default class CustomerController {
       next(error);
     }
   }
-
+  
   protected async getAllCustomers(
     req: Request,
     res: Response,
@@ -114,8 +114,41 @@ export default class CustomerController {
   ): Promise<Response> {
     try {
       const data = req.body;
+      const myData={
+        limit:Number(req.query.limit),
+        offset:Number(req.query.offset) 
+      }
 
-      const obj = await customerService.handleCustomerGetAll();
+      const obj = await customerService.handleCustomerGetAll(myData);
+      if(obj?.length === null){
+        return res.status(400).json({
+          status: 400,
+          data: obj ?? "Failed to process request",
+        });
+      }
+
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+  protected async getSingleCustomer(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+
+      const data = req.body;
+      const userId=req.query.id
+
+
+      const obj = await customerService.handleGetSingleCustomer(userId)
       if(obj?.length === null){
         return res.status(400).json({
           status: 400,

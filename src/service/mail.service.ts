@@ -21,7 +21,6 @@ class MailService {
   })
 
   async sendMail(options: MailOptionsI) {
-    return;
     const filePath = `./src/resources/mailTemplates/${options.templateName}.html`;
     const source = fs.readFileSync(filePath, "utf-8").toString();
     const template = Handlebars.compile(source);

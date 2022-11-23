@@ -14,8 +14,13 @@ class CustomerRoutes extends CustomerController {
   private routes(): void {
     this.router.get(
         "/",
-        authMiddleware.validateUserToken,
+       authMiddleware.validateUserToken,
         this.getAllCustomers 
+      );
+      this.router.get(
+        "/one",
+      // authMiddleware.validateUserToken,
+        this.getSingleCustomer
       );
     this.router.post(
       "/",
