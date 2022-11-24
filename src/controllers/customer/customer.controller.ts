@@ -27,7 +27,67 @@ export default class CustomerController {
       next(error);
     }
   }
+  
 
+
+  protected async createFacility(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await customerService.handleCreateFacility(data);
+
+    
+      return res.status(200).json({
+        status: 200,
+        message: "Site registered successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+  protected async deleteFacility(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await customerService.handleDeleteFacility(data);
+      
+      return res.status(200).json({
+        status: 200,
+        message: "Site deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  protected async updateFacility(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await customerService.handleUpdateFacility(data);
+
+    
+      return res.status(200).json({
+        status: 200,
+        message: "Site updatered successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
   protected async createCustomer(
     req: Request,
     res: Response,

@@ -1,6 +1,37 @@
 import Joi from "joi";
 
 class CustomerUtil {
+  
+
+  
+
+  
+  public verifyDeleteFacility = Joi.object().keys({
+    site_id: Joi.number().required(),
+  });
+
+  public verifyUpdateFacility = Joi.object().keys({
+    guard_charge: Joi.number().required(),
+    site_name: Joi.string().required(),
+    client_charge: Joi.number().required(),
+    site_id: Joi.number().required(),
+    operations_area_constraint: Joi.number().required(),
+    facility_location_id: Joi.number().required(),
+  });
+
+
+  public verifyFacilityCreation = Joi.object().keys({
+        site_name: Joi.string().required(),
+        email: Joi.string().required(),
+        guard_charge: Joi.number().required(),
+        client_charge: Joi.number().required(),
+        address: Joi.string().required(),
+        latitude: Joi.number().required(),
+        customer_id: Joi.number().required(),
+        longitude: Joi.number().required(),
+        operations_area_constraint: Joi.number().required(),
+  });
+
   public verifyUserCreationData = Joi.object().keys({
     first_name: Joi.string().required(),
     last_name: Joi.string().required(),

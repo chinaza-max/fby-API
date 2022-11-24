@@ -19,13 +19,28 @@ class CustomerRoutes extends CustomerController {
       );
       this.router.get(
         "/one",
-      // authMiddleware.validateUserToken,
+      authMiddleware.validateUserToken,
         this.getSingleCustomer
       );
     this.router.post(
       "/",
       authMiddleware.validateUserToken,
       this.createCustomer 
+    );
+    this.router.post(
+      "/createFacility",
+      //authMiddleware.validateUserToken,
+      this.createFacility 
+    );
+    this.router.post(
+      "/updateFacility",
+      authMiddleware.validateUserToken,
+      this.updateFacility 
+    );
+    this.router.post(
+      "/deleteFacility",
+      //authMiddleware.validateUserToken,
+      this.deleteFacility 
     );
     this.router.post(
       "/bulk",

@@ -19,6 +19,7 @@ import IJob from "../../interfaces/job.interface";
     declare facility_location_id: number;
     declare name: string;
     declare client_charge: number;
+    declare guard_charge: number;
     declare customer_id: number;
     declare created_at: CreationOptional<Date>;
     declare updated_at: CreationOptional<Date>;
@@ -42,6 +43,11 @@ import IJob from "../../interfaces/job.interface";
           allowNull: false,
         },
         client_charge: {
+          type: DataTypes.INTEGER,
+          defaultValue: 0,
+          allowNull: false,
+        },
+        guard_charge: {
           type: DataTypes.INTEGER,
           defaultValue: 0,
           allowNull: false,

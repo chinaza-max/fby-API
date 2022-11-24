@@ -10,7 +10,7 @@ import serverConfig from "../config/server.config";
 import customerUtil from "../utils/customer.util";
 import IAdmin from "../interfaces/admin.interface";
 import bcrypt from "bcrypt";
-import { ConflictError, SystemError } from "../errors";
+import { ConflictError, SystemError, NotFoundError } from "../errors";
 import authService from "./auth.service";
 import ICustomer from "../interfaces/customer.interface";
 import utilService from "./util.service";
@@ -26,6 +26,142 @@ class CustomerService {
   private CoordinatesModel = Coordinates;
   private FacilityModel = Facility;
   private FacilityLocationModel = FacilityLocation;
+
+
+
+
+  async handleCreateFacility(data: object): Promise<any> {
+    const {
+      longitude,
+      latitude,
+      operations_area_constraint,
+      client_charge,
+      guard_charge,
+      address,
+      site_name,
+      email,
+      customer_id
+    } = await customerUtil.verifyFacilityCreation.validateAsync(data);
+  
+    console.log("passed1")
+    var existingUser = await this.getUserByEmail(email);
+    if (existingUser != null){
+      console.log("passed2")
+
+      var existingSite = await this.getsitebyName(site_name);
+
+      if (existingSite != null){
+        console.log("passed3")
+
+        throw new ConflictError("Site name exists");
+      }
+      else{
+        console.log("passed4")
+        
+        var createdLocation = await this.LocationModel.create({
+          address,
+        });
+        console.log(createdLocation.id);
+            const createdCoordinates = await this.CoordinatesModel.create({
+              longitude,
+              latitude,
+            });
+            const createdFacilityLocation = await this.FacilityLocationModel.create(
+              {
+                address:address,
+                coordinates_id: createdCoordinates.id,
+                operations_area_constraint:operations_area_constraint,
+                operations_area_constraint_active:true,
+              }
+            );
+            const createdFacility = await this.FacilityModel.create({
+              customer_id,
+              facility_location_id: createdFacilityLocation.id,
+              name:site_name,
+              client_charge,
+              guard_charge,
+            });
+    
+        return createdFacility;
+      
+      }
+
+    }else{
+      throw new ConflictError("A user with this email does not exists");
+    }
+   
+  }
+  
+
+  async handleUpdateFacility(data: object): Promise<any> {
+    const {
+      operations_area_constraint,
+      client_charge,
+      guard_charge,
+      site_name,
+      facility_location_id,
+      site_id
+    } = await customerUtil.verifyUpdateFacility.validateAsync(data);
+
+
+    await this.FacilityModel.update(
+    
+      {
+        client_charge,
+        guard_charge,
+        name: site_name,
+      },
+      {
+          where:{
+              id: site_id
+          },
+      }
+    )
+
+    await this.FacilityLocationModel.update(
+      {
+        operations_area_constraint,
+      },
+      {
+          where:{
+              id: facility_location_id
+          },
+      }
+    )
+   
+  }
+
+  
+
+  async handleDeleteFacility(data: object): Promise<any> {
+    const {
+      site_id
+    } = await customerUtil.verifyDeleteFacility.validateAsync(data);
+
+
+    //let lo=await this.FacilityLocationModel.findOne({ where: { id:156} });
+    //console.log(lo)
+
+    this.FacilityModel.destroy({
+        where: {
+            id: site_id
+        }
+    })
+    .then(function (deletedRecord) {
+        if(deletedRecord === 1){
+          return "Deleted successfully"
+        }
+        else
+        {
+          throw new NotFoundError("record not found");
+        }
+    })
+    
+    .catch(function (error){
+      throw new NotFoundError(error);
+    });
+   
+  }
 
   async handleCustomerCreation(data: object): Promise<any> {
     const {
@@ -56,7 +192,7 @@ class CustomerService {
       throw new ConflictError("A user with this email already exists");
     var createdLocation = await this.LocationModel.create({
       address,
-    });
+    })
     console.log(createdLocation.id);
     const user = await this.UserModel.create({
       first_name,
@@ -145,7 +281,7 @@ class CustomerService {
 
       try {
 
-        var allCustomers = await Customer.findOne({
+        var allCustomers = await Customer.findAll({
           where: { id: data },
           include: [
             {
@@ -174,8 +310,8 @@ class CustomerService {
         let tempCustomers = [];
 
         console.log(allCustomers)
-        /*
-        allCustomers?.forEach((customer: any) => {
+        
+        allCustomers?.forEach((customer : any) => {
           let tempCustomer = {
             id: customer.id,
             image: customer.image,
@@ -189,23 +325,27 @@ class CustomerService {
           };
           let sites = [];
           customer.facilities?.forEach((facility) => {
+
+            console.log(facility)
             sites.push({
               id: facility.id,
               site_name: facility.name,
-              amount: facility.client_charge,
+              facility_location_id:facility.facility_location_id,
+              client_charge: facility.client_charge,
+              guard_charge: facility.guard_charge,
               address: facility.facility_location.address,
               latitude: facility.facility_location.coordinates.latitude,
               longitude: facility.facility_location.coordinates.longitude,
               operations_area_constraint:
-                facility.facility_location.operations_area_constraint,
+              facility.facility_location.operations_area_constraint,
               operations_area_constraint_active:
-                facility.facility_location.operations_area_constraint_active,
+              facility.facility_location.operations_area_constraint_active,
             });
           });
           tempCustomer["sites"] = sites;
           tempCustomers.push(tempCustomer);
         });
-        */
+      
         return tempCustomers;
       } catch (error) {
         console.log(error);
@@ -496,6 +636,14 @@ class CustomerService {
   async getUserByEmail(email: string): Promise<Customer> {
     return await this.UserModel.findOne({ where: { email: email } });
   }
+
+  async getsitebyName(name: string): Promise<Facility> {
+
+    return await this.FacilityModel.findOne({ where: { name:name} });
+  }
+
+
+
 }
 
 export default new CustomerService();
