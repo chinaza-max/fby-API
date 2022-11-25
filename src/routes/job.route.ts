@@ -13,6 +13,7 @@ class JobRoutes extends JobController {
   private routes(): void {
     this.router.post("/check-in", this.checkInCheckOut);
     this.router.post("/accept-decline-job", this.acceptDeclineJob);
+    this.router.post("/add_shedule_data_", this.createJob);
     this.router.get("/allJobs", this.getAllJobs);
     this.router.get("/myJobs", this.getMyJobs);
     this.router.post("/", this.createJob);

@@ -1,6 +1,51 @@
 import Joi from "joi";
 
 class JobUtil {
+
+
+
+  public verifyJobCreationData = Joi.object().keys({
+    description: Joi.string().trim().min(1),
+    customer_id: Joi.number().required(),
+    site_id: Joi.number().required(),
+    job_status: Joi.string()
+      .valid("ACTIVE", "PENDING", "COMPLETED"),
+    staff_charge: Joi.number().required(),
+    client_charge: Joi.number().required(),
+    job_type: Joi.string().required()
+      .valid("INSTANT", "ONGOING", "TEMPORAL", "PERMANENT"),
+      payment_status: Joi.string().required()
+    
+   
+    
+  });
+
+  public verifyJobUpdateData = Joi.object().keys({
+  });
+
+  public verifyCheckinData = Joi.object().keys({
+    operation_id: Joi.number().min(1),
+    check_in: Joi.boolean().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required()
+  });
+
+  public verifyAcceptDeclineData = Joi.object().keys({
+    job_id: Joi.number().min(1),
+    accept: Joi.boolean().required(),
+  });
+}
+
+export default new JobUtil();
+
+
+
+/*
+
+
+import Joi from "joi";
+
+class JobUtil {
   public verifyJobCreationData = Joi.object().keys({
     description: Joi.string().trim().min(1),
     customer_id: Joi.number().required(),
@@ -54,3 +99,4 @@ class JobUtil {
 }
 
 export default new JobUtil();
+*/

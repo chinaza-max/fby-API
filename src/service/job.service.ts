@@ -138,14 +138,53 @@ class UserService {
     }
   }
 
-  async getAllJobsAdmin(): Promise<any[]> {
+  async getAllJobsAdmin(data: any): Promise<any[]> {
+
+     console.log(data.query)
+    let mytype=data.query.type
+
+   
+
     try {
       const jobs = [];
-      const availableJobs = await this.JobModel.findAll({
-        where: {
-          is_deleted: false,
-        } as any,
-      });
+      let availableJobs;
+
+
+      if(data.query.type=='ACTIVE'){
+         availableJobs = await this.JobModel.findAll({
+          where: {
+            is_deleted: false,
+            job_status:'ACTIVE',
+          } as any,
+        });
+      }
+      else if(data.query.type=='PENDING'){
+         availableJobs = await this.JobModel.findAll({
+          where: {
+            is_deleted: false,
+            job_status:'PENDING',
+          } as any,
+        });
+      }
+      else if(data.query.type=='COMPLETED'){
+         availableJobs = await this.JobModel.findAll({
+          where: {
+            is_deleted: false,
+            job_status:'COMPLETED',
+          } as any,
+        });
+      }
+      else{
+        availableJobs = await this.JobModel.findAll({
+          where: {
+            is_deleted: false,
+          } as any,
+        });
+      }
+
+
+
+
 
       for (const availableJob of availableJobs) {
         const facility = await this.FacilityModel.findByPk(
@@ -231,9 +270,43 @@ class UserService {
       console.log(error);
       return null;
     }
+
+
+
   }
 
   async createJob(data: any): Promise<any> {
+    try {
+      const {
+        description,
+        customer_id,
+        site_id,
+        client_charge,
+        staff_charge,
+        payment_status,
+        job_status,
+        job_type
+      } = await jobUtil.verifyJobCreationData.validateAsync(data);
+
+      await this.JobModel.create({
+        description,
+        customer_id,
+        facility_id: site_id,
+        client_charge,
+        staff_charge,
+        payment_status,
+        job_status,
+        job_type
+      })
+
+    } catch (error) {
+      console.log(error);
+      throw new SystemError(error.toString());
+    }
+  }
+
+
+  /*  async createJob(data: any): Promise<any> {
     try {
       const {
         description,
@@ -281,6 +354,7 @@ class UserService {
         staff_charge: amount,
         job_type,
       });
+      
       const schedules = [];
       for (let index = 0; index < schedule.length; index++) {
         const element = schedule[index];
@@ -331,7 +405,7 @@ class UserService {
       console.log(error);
       throw new SystemError(error.toString());
     }
-  }
+  } */
 
   async acceptDeclineJob(req) {
     var { job_id, accept } =

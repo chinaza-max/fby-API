@@ -21,6 +21,7 @@ import IJob from "../../interfaces/job.interface";
     declare job_status: JobStatus;
     declare client_charge: number;
     declare staff_charge: number;
+    declare payment_status: string;
     declare job_type: JobTypes;
     declare created_at: CreationOptional<Date>;
     declare updated_at: CreationOptional<Date>;
@@ -49,10 +50,9 @@ import IJob from "../../interfaces/job.interface";
         },
         job_status: {
           type: DataTypes.ENUM(
+            'ACTIVE',
             'PENDING',
-            'ONGOING',
-            'COMPLETED',
-            'CANCELED'
+            'COMPLETED'
           ),
           allowNull: false,
         },
@@ -71,6 +71,10 @@ import IJob from "../../interfaces/job.interface";
             'TEMPORAL',
             'PERMANENT'
           ),
+          allowNull: false,
+        },
+        payment_status:{
+          type: DataTypes.STRING,
           allowNull: false,
         },
         created_at: {

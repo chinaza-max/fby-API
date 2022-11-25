@@ -29,7 +29,7 @@ class CustomerRoutes extends CustomerController {
     );
     this.router.post(
       "/createFacility",
-      //authMiddleware.validateUserToken,
+      authMiddleware.validateUserToken,
       this.createFacility 
     );
     this.router.post(
@@ -39,7 +39,7 @@ class CustomerRoutes extends CustomerController {
     );
     this.router.post(
       "/deleteFacility",
-      //authMiddleware.validateUserToken,
+      authMiddleware.validateUserToken,
       this.deleteFacility 
     );
     this.router.post(

@@ -43,20 +43,15 @@ class CustomerService {
       customer_id
     } = await customerUtil.verifyFacilityCreation.validateAsync(data);
   
-    console.log("passed1")
     var existingUser = await this.getUserByEmail(email);
     if (existingUser != null){
-      console.log("passed2")
 
       var existingSite = await this.getsitebyName(site_name);
 
       if (existingSite != null){
-        console.log("passed3")
-
         throw new ConflictError("Site name exists");
       }
       else{
-        console.log("passed4")
         
         var createdLocation = await this.LocationModel.create({
           address,
@@ -153,12 +148,12 @@ class CustomerService {
         }
         else
         {
-          throw new NotFoundError("record not found");
+         // throw new NotFoundError("record not found");
         }
     })
     
     .catch(function (error){
-      throw new NotFoundError(error);
+      //throw new NotFoundError(error);
     });
    
   }
@@ -302,10 +297,10 @@ class CustomerService {
                     },
                   ],
                 },
-              ],
+              ]
+             
             },
-          ],
-      
+          ]
         });
         let tempCustomers = [];
 
@@ -342,7 +337,7 @@ class CustomerService {
               facility.facility_location.operations_area_constraint_active,
             });
           });
-          tempCustomer["sites"] = sites;
+          tempCustomer["sites"] = sites.reverse();
           tempCustomers.push(tempCustomer);
         });
       
@@ -382,7 +377,9 @@ class CustomerService {
               ],
             },
           ],
-          
+          order: [
+            ['created_at', 'DESC'],
+        ]
         });
         let tempCustomers = [];
         allCustomers?.forEach((customer: any) => {

@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { link } from "joi";
 import { Location } from "../../db/models";
 import authService from "../../service/auth.service";
 import customerService from "../../service/customer.service";
@@ -174,10 +175,17 @@ export default class CustomerController {
   ): Promise<Response> {
     try {
       const data = req.body;
-      const myData={
-        limit:Number(req.query.limit),
-        offset:Number(req.query.offset) 
+      let myData;
+
+      if(Object.keys(req.query).length === 0){
+        myData="all" 
+      }else{
+        myData={
+          limit:Number(req.query.limit),
+          offset:Number(req.query.offset) 
+        }
       }
+     
 
       const obj = await customerService.handleCustomerGetAll(myData);
       if(obj?.length === null){

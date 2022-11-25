@@ -68,7 +68,7 @@ export default class JobController {
     try {
       const data = req.body;
 
-      const obj = await jobService.getAllJobsAdmin();
+      const obj = await jobService.getAllJobsAdmin(req);
       console.log(obj?.length);
       if(obj?.length != 0 && obj?.length == null){
         return res.status(400).json({
