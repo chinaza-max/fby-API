@@ -16,12 +16,17 @@ class Agendas
   declare id: CreationOptional<number>;
   declare title: string;
   declare description: string;
-  declare schedule_id: number;
+  declare job_id: number;
   declare agenda_type: AgendaTypes;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
   declare start_time?: Date;
   declare end_time?: Date;
+  declare check_in_date?: Date;
+  declare time?: Date;
+
+  
+
 }
 
 export function init(connection: Sequelize) {
@@ -34,19 +39,19 @@ export function init(connection: Sequelize) {
       },
       title: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       description: {
         type: DataTypes.STRING,
         defaultValue: "",
         allowNull: false,
       },
-      schedule_id: {
+      job_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
       },
       agenda_type: {
-        type: DataTypes.ENUM("TASK", "AGENDA"),
+        type: DataTypes.ENUM("TASK", "INSTRUCTION"),
         allowNull: false,
       },
       created_at: {
@@ -59,13 +64,14 @@ export function init(connection: Sequelize) {
         defaultValue: new Date(),
         allowNull: false,
       },
-      start_time: {
+      time: {
         type: DataTypes.DATE,
         allowNull: true,
       },
-      end_time: {
+      check_in_date: {
         type: DataTypes.DATE,
-        allowNull: true,
+        defaultValue: new Date(),
+        allowNull: false,
       },
     },
     {

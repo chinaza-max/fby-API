@@ -6,6 +6,8 @@ export default interface ISchedule {
     end_time: string;
     check_in_date: Date;
     job_id: number;
+    guard_id: number;
+    status_per_staff: string;
     schedule_length: ScheduleLengthTypes;
     created_at?: Date;
     updated_at?: Date;

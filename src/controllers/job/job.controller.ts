@@ -40,7 +40,28 @@ export default class JobController {
       next(error);
     }
   }
+  
 
+
+
+  protected async sheduleDate(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await jobService.sheduleDate(data);
+
+      return res.status(200).json({
+        status: 200,
+        message: "Job created successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
   protected async createJob(
     req: Request,
     res: Response,

@@ -18,6 +18,7 @@ import {
   SystemError,
 } from "../errors";
 import { fn, col, Op, QueryError } from "sequelize";
+import moment from "moment";
 import Schedule from "../db/models/schedule.model";
 import jobUtil from "../utils/job.util";
 import { JobStatus } from "../interfaces/types.interface";
@@ -274,7 +275,76 @@ class UserService {
 
 
   }
+  
 
+
+  async sheduleDate(data: any): Promise<any> {
+    try {
+      const {
+        date_time_staff_shedule
+      } = await jobUtil.verifysheduleDateCreation.validateAsync(data);
+
+
+      //GETTING ALL THE THE JOBS SPECIFIC TO THE SHEDULE
+      let myShedule=await this.ScheduleModel.findAll({
+          where: { job_id:date_time_staff_shedule[0].job_id }
+      });
+
+
+
+     // console.log(date_time_staff_shedule)
+
+
+      //CHECK FOR DUBPLICATE
+      let cleanShedule=[]
+
+        if(myShedule.length!=0){
+          
+          for(let i=0;  i<date_time_staff_shedule.length; i++){
+            let obj=date_time_staff_shedule[i]
+          for(let j=0;  j<myShedule.length; j++){
+            let obj2=myShedule[j]
+  
+           // console.log("start check")
+            let newDate= moment( new Date(obj.check_in_date));
+            let dateNowFormatted1 = newDate.format('YYYY-MM-DD');
+
+           // console.log(dateNowFormatted1)
+            let oldDate= moment( new Date(obj2.check_in_date));
+            let dateNowFormatted2 = oldDate.format('YYYY-MM-DD');
+            //console.log(dateNowFormatted2)
+            console.log("end check")
+
+          
+            console.log(dateNowFormatted1==dateNowFormatted2)
+           // console.log()
+
+
+            if((dateNowFormatted1==dateNowFormatted2)&&(obj.guard_id==obj2.guard_id)){
+              break;
+            }
+          
+            if(j==myShedule.length-1){
+              date_time_staff_shedule[i].status_per_staff=myShedule[0].status_per_staff
+              cleanShedule.push(date_time_staff_shedule[i])
+            }
+          }
+          if(i==date_time_staff_shedule.length-1){
+              await this.ScheduleModel.bulkCreate(cleanShedule);
+          }
+          }
+        }
+        else{
+          await this.ScheduleModel.bulkCreate(date_time_staff_shedule);
+
+        }
+       
+      
+    } catch (error) {
+      console.log(error);
+      throw new SystemError(error.toString());
+    }
+  }
   async createJob(data: any): Promise<any> {
     try {
       const {

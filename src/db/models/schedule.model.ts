@@ -16,8 +16,10 @@ class Schedule
   declare id: CreationOptional<number>;
   declare start_time: string;
   declare end_time: string;
+  declare status_per_staff: string;
   declare check_in_date: Date;
   declare job_id: number;
+  declare guard_id: number;
   declare schedule_length: ScheduleLengthTypes;
   declare max_check_in_time: number;
   declare created_at: CreationOptional<Date>;
@@ -41,18 +43,28 @@ export function init(connection: Sequelize) {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      status_per_staff: {
+        type: DataTypes.ENUM(
+          'ACTIVE',
+          'PENDING'
+        ),
+        allowNull: false,
+      },
       check_in_date: {
         type: DataTypes.DATE,
-        defaultValue: new Date(),
         allowNull: false,
       },
       job_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
       },
+      guard_id: {
+        type: DataTypes.NUMBER,
+        allowNull: false,
+      },
       schedule_length: {
         type: DataTypes.ENUM("LIMITED", "CONTINUOUS"),
-        allowNull: false,
+        defaultValue:"LIMITED",
       },
       max_check_in_time: {
         type: DataTypes.NUMBER,

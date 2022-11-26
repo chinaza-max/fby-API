@@ -3,6 +3,22 @@ import Joi from "joi";
 class JobUtil {
 
 
+  
+  public verifysheduleDateCreation = Joi.object().keys({
+    date_time_staff_shedule: Joi.array().min(1).required().items({
+      guard_id: Joi.number().required(),
+      job_id: Joi.number().required(),
+      start_time: Joi.required(),
+      end_time: Joi.string(),
+      status_per_staff: Joi.string().required(),
+      schedule_length: Joi.string().required(),
+      max_check_in_time:Joi.number(),
+      check_in_date:Joi.date()
+      .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
+      .required(),
+      
+    })
+  });
 
   public verifyJobCreationData = Joi.object().keys({
     description: Joi.string().trim().min(1),
@@ -15,9 +31,6 @@ class JobUtil {
     job_type: Joi.string().required()
       .valid("INSTANT", "ONGOING", "TEMPORAL", "PERMANENT"),
       payment_status: Joi.string().required()
-    
-   
-    
   });
 
   public verifyJobUpdateData = Joi.object().keys({

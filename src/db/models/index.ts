@@ -93,6 +93,7 @@ function associate() {
     as: "facility_location",
   });
   Facility.belongsTo(Customer, {
+    onDelete: 'cascade',
     foreignKey: {
       allowNull: false,
       name: "customer_id",
@@ -144,6 +145,7 @@ function associate() {
     as: "facility",
   });
   Schedule.belongsTo(Job, {
+    onDelete: 'cascade',
     foreignKey: {
       allowNull: false,
       name: "job_id",
