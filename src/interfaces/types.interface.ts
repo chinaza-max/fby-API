@@ -1,6 +1,6 @@
 export type GenderTypes = "MALE" | "FEMALE" | "NOT_SPECIFIED";
 
-export type JobStatus = "PENDING" | "ONGOING" | "COMPLETED" | "CANCELED";
+export type JobStatus = "ACTIVE" | "PENDING" | "COMPLETED" | "CANCELED";
 
 export type JobTypes = "INSTANT" | "ONGOING" | "TEMPORAL" | "PERMANENT";
 
@@ -19,6 +19,6 @@ export type StatTypes =
   | "JOB_REQUEST"
   | "TRANSACTION";
 
-export type AgendaTypes = 'TASK' | 'AGENDA';
+export type AgendaTypes = 'TASK' | 'INSTRUCTION';
 
 export type JobReportPriorityTypes = "LOW" | "MEDIUM" | "HIGH" | "VERY HIGH";

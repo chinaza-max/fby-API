@@ -11,6 +11,9 @@ export default class JobController {
     try {
       const data = req.body;
 
+      //REMOVE THIS AFTER TEST
+      req.user = req.body.guard_id;
+
       const obj = await jobService.checkIn(data);
 
       return res.status(200).json({
@@ -30,6 +33,9 @@ export default class JobController {
     try {
       const data = req.body;
 
+      //NOTE WHEN YOU MOVE OUT OF POST MAN REMOVE THIS PART
+      req.user=req.body.guard_id;
+
       const obj = await jobService.acceptDeclineJob(req);
 
       return res.status(200).json({
@@ -37,12 +43,72 @@ export default class JobController {
         message: `Job ${data.accept ? 'accepted' : 'declined'} successful`,
       });
     } catch (error) {
+
+      console.log(error)
+      next(error);
+    }
+  }
+
+  protected async acceptDeclineJobAdmin(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await jobService.acceptDeclineJobAdmin(req);
+
+      return res.status(200).json({
+        status: 200,
+        message: `Job ${data.accept ? 'deleted' : 're-asigned'} successfully`,
+      });
+    } catch (error) {
+
+      console.log(error)
       next(error);
     }
   }
   
+  
+  
+  protected async deleteJob(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
 
+      const obj = await jobService.deleteJob(data);
 
+      return res.status(200).json({
+        status: 200,
+        message: "Job deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async sheduleAgenda(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await jobService.sheduleAgenda(data);
+
+      return res.status(200).json({
+        status: 200,
+        message: "Job created successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 
   protected async sheduleDate(
     req: Request,

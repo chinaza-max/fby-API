@@ -38,6 +38,7 @@ class CustomerService {
       client_charge,
       guard_charge,
       address,
+      google_address,
       site_name,
       email,
       customer_id
@@ -63,7 +64,8 @@ class CustomerService {
             });
             const createdFacilityLocation = await this.FacilityLocationModel.create(
               {
-                address:address,
+                address,
+                google_address,
                 coordinates_id: createdCoordinates.id,
                 operations_area_constraint:operations_area_constraint,
                 operations_area_constraint_active:true,

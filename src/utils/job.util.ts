@@ -3,6 +3,9 @@ import Joi from "joi";
 class JobUtil {
 
 
+  public verifyDeleteJob = Joi.object().keys({
+    job_id:Joi.number().required()
+  });
   
   public verifysheduleDateCreation = Joi.object().keys({
     date_time_staff_shedule: Joi.array().min(1).required().items({
@@ -12,6 +15,23 @@ class JobUtil {
       end_time: Joi.string(),
       status_per_staff: Joi.string().required(),
       schedule_length: Joi.string().required(),
+      max_check_in_time:Joi.number(),
+      check_in_date:Joi.date()
+      .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
+      .required(),
+      
+    })
+  });
+
+  public verifySheduleAgenda = Joi.object().keys({
+    shedule_agenda: Joi.array().min(1).required().items({
+      guard_id: Joi.number().required(),
+      job_id: Joi.number().required(),
+      time: Joi.string(),
+      description: Joi.string().required(),
+      title: Joi.string(),
+      status_per_staff: Joi.string().required(),
+      agenda_type: Joi.string().required(),
       max_check_in_time:Joi.number(),
       check_in_date:Joi.date()
       .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
@@ -37,7 +57,8 @@ class JobUtil {
   });
 
   public verifyCheckinData = Joi.object().keys({
-    operation_id: Joi.number().min(1),
+    job_id: Joi.number().min(1).required(),
+    guard_id: Joi.number().min(1).required(),
     check_in: Joi.boolean().required(),
     latitude: Joi.number().required(),
     longitude: Joi.number().required()
@@ -45,6 +66,7 @@ class JobUtil {
 
   public verifyAcceptDeclineData = Joi.object().keys({
     job_id: Joi.number().min(1),
+    guard_id: Joi.number().min(1),
     accept: Joi.boolean().required(),
   });
 }

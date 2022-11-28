@@ -1,9 +1,13 @@
 export interface IJobLogs {
   id: number;
-  timestamp: Date;
-  activity: string;
-  staff_id: number;
+  message: string;
+  job_id: number;
+  guard_id: number;
+  check_in_time: string;
+  check_out_time: string;
   coordinates_id: number;
   created_at: Date;
   updated_at: Date;
+  check_in_status:boolean;
+  hours_worked:number;
 }

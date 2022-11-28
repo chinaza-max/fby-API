@@ -10,6 +10,7 @@ import {
   JobOperations,
   Agendas,
   JobSecurityCode,
+  MynewAgenda
 } from "../db/models";
 import {
   BadRequestError,
@@ -37,6 +38,7 @@ class UserService {
   private FacilityModel = Facility;
   private FacilityLocationModel = FacilityLocation;
   private AgendasModel = Agendas;
+  private MyNewAgendasModel = MynewAgenda;
   private JobSecurityModel = JobSecurityCode;
 
   async getJobsForStaff(staffId: number): Promise<any[]> {
@@ -139,6 +141,8 @@ class UserService {
     }
   }
 
+
+  
   async getAllJobsAdmin(data: any): Promise<any[]> {
 
      console.log(data.query)
@@ -150,9 +154,97 @@ class UserService {
       const jobs = [];
       let availableJobs;
 
-
+      console.log(data.query.limit)
       if(data.query.type=='ACTIVE'){
          availableJobs = await this.JobModel.findAll({
+          limit: parseInt(data.query.limit),
+          offset: parseInt(data.query.offset),
+          where: {
+            is_deleted: false,
+            job_status:'ACTIVE',
+          } as any,
+          order: [
+            ['created_at', 'DESC'],
+        ],
+        });
+      }
+      else if(data.query.type=='PENDING'){
+         availableJobs = await this.JobModel.findAll({
+          limit: parseInt(data.query.limit),
+          offset: parseInt(data.query.offset),
+          where: {
+            is_deleted: false,
+            job_status:'PENDING',
+          } as any,
+          order: [
+            ['created_at', 'DESC'],
+        ],
+        });
+      }
+      else if(data.query.type=='COMPLETED'){
+         availableJobs = await this.JobModel.findAll({
+          limit: parseInt(data.query.limit),
+          offset: parseInt(data.query.offset),
+          where: {
+            is_deleted: false,
+            job_status:'COMPLETED',
+          } as any,
+          order: [
+            ['created_at', 'DESC'],
+        ],
+        });
+      }
+      else{
+        availableJobs = await this.JobModel.findAll({
+          where: {
+            is_deleted: false,
+          } as any,
+          order: [
+            ['created_at', 'DESC'],
+        ],
+        });
+      }
+
+      for (const availableJob of availableJobs) {
+    
+        const jobRes = {
+          id: availableJob.id,
+          description: availableJob.description,
+          client_charge: availableJob.client_charge,
+          staff_payment: availableJob.staff_charge,
+          status: availableJob.job_status,
+          create:availableJob.created_at
+        };
+  
+        jobs.push(jobRes);
+      }
+      
+      return jobs;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+
+
+
+  }
+  /*
+  async getAllJobsAdmin(data: any): Promise<any[]> {
+
+     console.log(data.query)
+    let mytype=data.query.type
+
+   
+
+    try {
+      const jobs = [];
+      let availableJobs;
+
+      console.log(data.query.limit)
+      if(data.query.type=='ACTIVE'){
+         availableJobs = await this.JobModel.findAll({
+          limit: parseInt(data.query.limit),
+          offset: parseInt(data.query.offset),
           where: {
             is_deleted: false,
             job_status:'ACTIVE',
@@ -161,6 +253,8 @@ class UserService {
       }
       else if(data.query.type=='PENDING'){
          availableJobs = await this.JobModel.findAll({
+          limit: parseInt(data.query.limit),
+          offset: parseInt(data.query.offset),
           where: {
             is_deleted: false,
             job_status:'PENDING',
@@ -169,6 +263,8 @@ class UserService {
       }
       else if(data.query.type=='COMPLETED'){
          availableJobs = await this.JobModel.findAll({
+          limit: parseInt(data.query.limit),
+          offset: parseInt(data.query.offset),
           where: {
             is_deleted: false,
             job_status:'COMPLETED',
@@ -212,6 +308,7 @@ class UserService {
         const customer = await this.CustomerModel.findByPk(
           availableJob.customer_id
         );
+        
         const jobRes = {
           id: availableJob.id,
           description: availableJob.description,
@@ -266,6 +363,7 @@ class UserService {
         jobRes.schedule = scheduleRes;
         jobs.push(jobRes);
       }
+      
       return jobs;
     } catch (error) {
       console.log(error);
@@ -275,7 +373,99 @@ class UserService {
 
 
   }
+  */
   
+  async deleteJob(data: any): Promise<any> {
+    try {
+      const {
+        job_id
+      } = await jobUtil.verifyDeleteJob.validateAsync(data);
+
+      this.JobModel.destroy({
+        where: {
+            id: job_id
+        }
+    })
+    .then(function (deletedRecord) {
+        if(deletedRecord === 1){
+          return "Deleted successfully"
+        }
+        else
+        {
+         // throw new NotFoundError("record not found");
+        }
+    })
+    
+    .catch(function (error){
+      //throw new NotFoundError(error);
+    });
+      
+    } catch (error) {
+      console.log(error);
+      throw new SystemError(error.toString());
+    }
+  }
+
+  
+  async sheduleAgenda(data: any): Promise<any> {
+    try {
+      const {
+        shedule_agenda
+      } = await jobUtil.verifySheduleAgenda.validateAsync(data);
+
+
+      //GETTING ALL THE THE JOBS SPECIFIC TO THE SHEDULE
+      let myShedule=await this.AgendasModel.findAll(
+        {
+          where: {[Op.and]: [{job_id:shedule_agenda[0].job_id },
+          {agenda_type:shedule_agenda[0].agenda_type }]}
+        }
+      );
+
+     console.log(shedule_agenda)
+      //CHECK FOR DUBPLICATE
+      let cleanShedule=[]
+      
+        if(myShedule.length!=0){
+          
+          for(let i=0;  i<shedule_agenda.length; i++){
+            let obj=shedule_agenda[i]
+          for(let j=0;  j<myShedule.length; j++){
+            let obj2=myShedule[j]
+  
+           // console.log("start check")
+            let newDate= moment( new Date(obj.check_in_date));
+            let dateNowFormatted1 = newDate.format('YYYY-MM-DD');
+
+           // console.log(dateNowFormatted1)
+            let oldDate= moment( new Date(obj2.check_in_date));
+            let dateNowFormatted2 = oldDate.format('YYYY-MM-DD');
+       
+            if(obj.agenda_type=="INSTRUCTION"){
+              if((dateNowFormatted1==dateNowFormatted2)&&(obj.guard_id==obj2.guard_id)&&(obj.time==obj2.time)){
+                break;
+              }
+            }
+          
+            if(j==myShedule.length-1){
+              shedule_agenda[i].status_per_staff=myShedule[0].status_per_staff
+              cleanShedule.push(shedule_agenda[i])
+            }
+          }
+          if(i==shedule_agenda.length-1){
+              await this.AgendasModel.bulkCreate(cleanShedule);
+          }
+          }
+        }
+        else{
+          await this.AgendasModel.bulkCreate(shedule_agenda);
+        }
+      
+    } catch (error) {
+      console.log(error);
+      throw new SystemError(error.toString());
+    }
+  }
 
 
   async sheduleDate(data: any): Promise<any> {
@@ -292,7 +482,7 @@ class UserService {
 
 
 
-     // console.log(date_time_staff_shedule)
+     console.log(date_time_staff_shedule)
 
 
       //CHECK FOR DUBPLICATE
@@ -317,6 +507,8 @@ class UserService {
 
           
             console.log(dateNowFormatted1==dateNowFormatted2)
+            console.log(dateNowFormatted1 ,dateNowFormatted2)
+
            // console.log()
 
 
@@ -336,7 +528,6 @@ class UserService {
         }
         else{
           await this.ScheduleModel.bulkCreate(date_time_staff_shedule);
-
         }
        
       
@@ -476,44 +667,106 @@ class UserService {
       throw new SystemError(error.toString());
     }
   } */
+  
 
-  async acceptDeclineJob(req) {
-    var { job_id, accept } =
-      await jobUtil.verifyAcceptDeclineData.validateAsync(req.body);
-    var relatedAssignment = await this.AssignedStaffsModel.findOne({
-      where: {
-        staff_id: req.user.id,
-        job_id,
-      },
-    });
+
+  async acceptDeclineJobAdmin(req) {
+
+    var { job_id, accept ,guard_id} =req.body;
+    var relatedAssignment;
+    if(accept){
+
+      relatedAssignment = await this.ScheduleModel.destroy(
+        {where: {[Op.and]: [{ guard_id}, {job_id}]} }
+      )
+                    
+      await this.AgendasModel.destroy(
+        {where: {[Op.and]: [{ guard_id }, {job_id}]}}
+      )
+
+    }
+    else{
+      relatedAssignment = await this.ScheduleModel.update(
+        {
+          status_per_staff:accept ? 'ACTIVE' : 'PENDING',
+        },
+        {
+        where: {[Op.and]: [{ guard_id}, {job_id}]}
+      });
+                    
+      await this.AgendasModel.update(
+        {
+          status_per_staff:accept ? 'ACTIVE' : 'PENDING',
+        },
+        {
+        where: {[Op.and]: [{ guard_id }, {job_id}]}
+        })
+    }
+
+
+      console.log(relatedAssignment)
+
     if (relatedAssignment == null)
       throw new NotFoundError(
         "No Assignment was found for you.\nIt may not exist anymore"
       );
-    if (relatedAssignment.accept_assignment === false && accept)
-      throw new ConflictError(
-        "You can't accept a job that you previously declined"
-      );
-    if (relatedAssignment.accept_assignment === true && accept)
-      throw new ConflictError("You have already accepted this job");
-    if (relatedAssignment.accept_assignment === false && !accept)
-      throw new ConflictError("You have already declined this job");
-    if (relatedAssignment.accept_assignment === true && !accept)
-      throw new ConflictError(
-        "You can't decline a job that you previously accepted"
-      );
-    relatedAssignment.update({
-      accept_assignment: accept,
-    });
+
     return relatedAssignment;
+    
+  }
+  async acceptDeclineJob(req) {
+
+    var { job_id, accept } =req.body;
+
+    console.log(req.user)
+    console.log(accept ? 'ACTIVE' : 'DECLINE')
+
+
+    var relatedAssignment = await this.ScheduleModel.update(
+      {
+        status_per_staff:accept ? 'ACTIVE' : 'DECLINE',
+      },
+      {
+      where: {[Op.and]: [{ guard_id:req.user }, {job_id}]}
+      }
+      );
+
+     await this.AgendasModel.update(
+        {
+          status_per_staff:accept ? 'ACTIVE' : 'DECLINE',
+        },
+        {
+        where: {[Op.and]: [{ guard_id:req.user }, {job_id}]}
+        }
+        );
+
+      console.log(relatedAssignment)
+
+    if (relatedAssignment == null)
+      throw new NotFoundError(
+        "No Assignment was found for you.\nIt may not exist anymore"
+      );
+
+    return relatedAssignment;
+    
   }
 
+
+
+
+
   async checkIn(obj) {
-    var { operation_id, check_in, latitude, longitude } =
+    var { job_id,guard_id, check_in, latitude, longitude } =
       await jobUtil.verifyCheckinData.validateAsync(obj);
+
+      console.log(latitude, longitude )
+      
+
+/*
     var job_operation = await this.JobOperationsModel.findByPk(operation_id);
     if (job_operation == null) throw new NotFoundError("Schedule not found");
     else {
+
       // if(this.isSameDay(new Date(relatedSchedule.check_in_date), new Date()) && relatedSchedule.start_time < ){
       //     if
       // }
@@ -547,7 +800,15 @@ class UserService {
         throw new BadRequestError("Unable to process request");
       }
     }
+
+
+*/
+
+
   }
+
+
+
 
   isSameDay(date1, date2) {
     if (

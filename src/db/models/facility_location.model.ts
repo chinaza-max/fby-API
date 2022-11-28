@@ -14,6 +14,7 @@ class FacilityLocation
   implements IFacilityLocation
 {
   declare id: CreationOptional<number>;
+  declare google_address: string;
   declare address: string;
   declare coordinates_id: number;
   declare operations_area_constraint: number;
@@ -32,6 +33,10 @@ export function init(connection: Sequelize) {
         primaryKey: true,
       },
       address: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      google_address: {
         type: DataTypes.STRING,
         allowNull: false,
       },

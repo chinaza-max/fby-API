@@ -46,6 +46,7 @@ export function init(connection: Sequelize) {
       status_per_staff: {
         type: DataTypes.ENUM(
           'ACTIVE',
+          'DECLINE',
           'PENDING'
         ),
         allowNull: false,

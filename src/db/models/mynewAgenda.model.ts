@@ -6,47 +6,42 @@ import {
   Sequelize,
   DataTypes,
 } from "sequelize";
-import { IJobLogs } from "../../interfaces/job_logs.interface";
+import { ImynewAgenda } from "../../interfaces/mynewAgenda.interface";
+import { AgendaTypes } from "../../interfaces/types.interface";
 
-class JobLogs
-  extends Model<InferAttributes<JobLogs>, InferCreationAttributes<JobLogs>>
-  implements IJobLogs
+class MynewAgenda
+  extends Model<InferAttributes<MynewAgenda>, InferCreationAttributes<MynewAgenda>>
+  implements ImynewAgenda
 {
   declare id: CreationOptional<number>;
-  declare coordinates_id: number;
-  declare message: string;
-  declare check_in_time: string;
-  declare check_out_time: string;
+  declare title: string;
+  declare description: string;
+  declare status_per_staff: string;
   declare job_id: number;
   declare guard_id: number;
-  declare check_in_status:boolean;
-  declare hours_worked:number;
+  declare agenda_type: AgendaTypes;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
+  declare start_time?: Date;
+  declare end_time?: Date;
+  declare check_in_date?: Date;
+  declare time?: Date;
 }
 
 export function init(connection: Sequelize) {
-  JobLogs.init(
+  MynewAgenda.init(
     {
       id: {
         type: DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
         primaryKey: true,
       },
-      message: {
+      title: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
-      check_in_time: {
+      description: {
         type: DataTypes.STRING,
-        allowNull: false,
-      },
-      check_out_time: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },  
-      check_in_status: {
-        type: DataTypes.BOOLEAN,
         allowNull: false,
       },
       job_id: {
@@ -57,12 +52,21 @@ export function init(connection: Sequelize) {
         type: DataTypes.NUMBER,
         allowNull: false,
       },
-      coordinates_id: {
-        type: DataTypes.NUMBER,
+      agenda_type: {
+        type: DataTypes.ENUM("TASK", "INSTRUCTION"),
         allowNull: false,
       },
-      hours_worked: {
-        type: DataTypes.NUMBER,
+      status_per_staff: {
+        type: DataTypes.ENUM("PENDING", "ACTIVE" , "DECLINE"),
+        allowNull: false,
+      },
+      time: {
+        type: DataTypes.DATE,
+        allowNull: true,
+      },
+      check_in_date: {
+        type: DataTypes.DATE,
+        defaultValue: new Date(),
         allowNull: false,
       },
       created_at: {
@@ -77,11 +81,12 @@ export function init(connection: Sequelize) {
       },
     },
     {
-      tableName: "job_logs",
-      timestamps: false,
+      tableName: "mynewagenda",
+      timestamps: true,
+      underscored: true,
       sequelize: connection,
     }
   );
 }
 
-export default JobLogs;
+export default MynewAgenda;

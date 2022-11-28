@@ -1,6 +1,6 @@
 import { AgendaTypes } from "./types.interface";
 
-export interface IAgendas {
+export interface ImynewAgenda {
   id: number;
   title: string;
   description: string;

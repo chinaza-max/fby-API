@@ -42,6 +42,14 @@ import JobSecurityCode, {
   init as initJobSecurityCode,
 } from "./job_security_code.model";
 
+
+
+import MynewAgenda, {
+  init as initMynewAgenda,
+} from "./mynewAgenda.model";
+
+
+
 function associate() {
   // User Favorite Relationships
   Admin.belongsTo(Location, {
@@ -151,9 +159,21 @@ function associate() {
       name: "job_id",
       field: "job_id",
     },
-    as: "job",
+    as:"job",
   });
   Job.hasMany(Schedule);
+
+  MynewAgenda.belongsTo(Job, {
+    onDelete: 'cascade',
+    foreignKey: {
+      allowNull: false,
+      name: "job_id",
+      field: "job_id",
+    },
+    as:"job",
+  });
+  Job.hasMany(MynewAgenda);
+
   PasswordReset.belongsTo(Admin, {
     foreignKey: {
       allowNull: false,
@@ -194,15 +214,17 @@ function associate() {
     },
     as: "coordinates",
   });
-  JobLogs.belongsTo(Staff, {
+  JobLogs.belongsTo(Job, {
+    onDelete: 'cascade',
     foreignKey: {
       allowNull: false,
-      name: "staff_id",
-      field: "staff_id",
+      name: "job_id",
+      field: "job_id",
     },
-    as: "staff",
+    as: "job",
   });
   JobLogs.belongsTo(Coordinates, {
+    onDelete: 'cascade',
     foreignKey: {
       allowNull: false,
       name: "coordinates_id",
@@ -210,14 +232,18 @@ function associate() {
     },
     as: "coordinates",
   });
-  Agendas.belongsTo(Schedule, {
+
+  Agendas.belongsTo(Job, {
+    onDelete: 'cascade',
     foreignKey: {
       allowNull: false,
-      name: "schedule_id",
-      field: "schedule_id",
+      name: "job_id",
+      field: "job_id",
     },
-    as: "schedule",
+    as: "job",
   });
+  
+  //Job.hasMany(Agendas);
   AgendaOperations.belongsTo(Agendas, {
     foreignKey: {
       allowNull: false,
@@ -264,6 +290,7 @@ export {
   JobOperations,
   AssignedStaffs,
   Schedule,
+  MynewAgenda,
   Statistics,
   PasswordReset,
   ScanOperations,
@@ -288,6 +315,7 @@ export function init(connection: Sequelize) {
   initJob(connection);
   initStatistics(connection);
   initSchedule(connection);
+  initMynewAgenda(connection)
   initJobOperations(connection);
   initAssignedStaffs(connection);
   initPasswordReset(connection);

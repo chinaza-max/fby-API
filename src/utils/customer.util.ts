@@ -26,6 +26,7 @@ class CustomerUtil {
         guard_charge: Joi.number().required(),
         client_charge: Joi.number().required(),
         address: Joi.string().required(),
+        google_address:Joi.string().required(),
         latitude: Joi.number().required(),
         customer_id: Joi.number().required(),
         longitude: Joi.number().required(),
