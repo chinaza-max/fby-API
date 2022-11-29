@@ -18,6 +18,7 @@ import IJob from "../../interfaces/job.interface";
     declare id: CreationOptional<number>;
     declare facility_location_id: number;
     declare name: string;
+    declare time_zone:string
     declare client_charge: number;
     declare guard_charge: number;
     declare customer_id: number;
@@ -54,6 +55,10 @@ import IJob from "../../interfaces/job.interface";
         },
         customer_id: {
           type: DataTypes.NUMBER,
+          allowNull: false,
+        },
+        time_zone: {
+          type: DataTypes.STRING,
           allowNull: false,
         },
         created_at: {

@@ -17,10 +17,12 @@ class JobLogs
   declare message: string;
   declare check_in_time: string;
   declare check_out_time: string;
+  declare check_out_status:boolean;
   declare job_id: number;
   declare guard_id: number;
   declare check_in_status:boolean;
   declare hours_worked:number;
+  declare date:Date;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
 }
@@ -43,11 +45,15 @@ export function init(connection: Sequelize) {
       },
       check_out_time: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },  
       check_in_status: {
         type: DataTypes.BOOLEAN,
-        allowNull: false,
+        defaultValue:false,
+      },
+      check_out_status: {
+        type: DataTypes.BOOLEAN,
+        defaultValue:false,
       },
       job_id: {
         type: DataTypes.NUMBER,
@@ -64,6 +70,11 @@ export function init(connection: Sequelize) {
       hours_worked: {
         type: DataTypes.NUMBER,
         allowNull: false,
+        defaultValue:0
+      },
+      date: {
+        type: DataTypes.DATE,
+        allowNull: false,
       },
       created_at: {
         type: DataTypes.DATE,
@@ -78,7 +89,8 @@ export function init(connection: Sequelize) {
     },
     {
       tableName: "job_logs",
-      timestamps: false,
+      timestamps: true,
+      underscored: true,
       sequelize: connection,
     }
   );

@@ -41,7 +41,6 @@ export default class CustomerController {
 
       const obj = await customerService.handleCreateFacility(data);
 
-    
       return res.status(200).json({
         status: 200,
         message: "Site registered successfully",

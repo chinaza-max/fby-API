@@ -10,6 +10,7 @@ import {
   JobOperations,
   Agendas,
   JobSecurityCode,
+  JobLogs,
   MynewAgenda
 } from "../db/models";
 import {
@@ -17,14 +18,17 @@ import {
   ConflictError,
   NotFoundError,
   SystemError,
+  LocationError
 } from "../errors";
-import { fn, col, Op, QueryError } from "sequelize";
+import { fn, col, Op, QueryError, where } from "sequelize";
 import moment from "moment";
+import momentTimeZone from "moment-timezone";
 import Schedule from "../db/models/schedule.model";
 import jobUtil from "../utils/job.util";
 import { JobStatus } from "../interfaces/types.interface";
 import { IJobSecurityCode } from "../interfaces/job_security_code.interface";
 import authService from "./auth.service";
+import { func, number } from "joi";
 
 class UserService {
   private UserModel = Admin;
@@ -33,6 +37,7 @@ class UserService {
   private JobOperationsModel = JobOperations;
   private AssignedStaffsModel = AssignedStaffs;
   private CustomerModel = Customer;
+  private JobLogsModel = JobLogs;
   private LocationModel = Location;
   private CoordinatesModel = Coordinates;
   private FacilityModel = Facility;
@@ -48,7 +53,7 @@ class UserService {
         where: {
           staff_id: staffId,
         },
-      });
+      })
       for (const assignment of relatedAssignments) {
         const relatedJobs = await this.JobModel.findAll({
           where: {
@@ -155,7 +160,7 @@ class UserService {
       let availableJobs;
 
       console.log(data.query.limit)
-      if(data.query.type=='ACTIVE'){
+      if(mytype=='ACTIVE'){
          availableJobs = await this.JobModel.findAll({
           limit: parseInt(data.query.limit),
           offset: parseInt(data.query.offset),
@@ -168,7 +173,7 @@ class UserService {
         ],
         });
       }
-      else if(data.query.type=='PENDING'){
+      else if(mytype=='PENDING'){
          availableJobs = await this.JobModel.findAll({
           limit: parseInt(data.query.limit),
           offset: parseInt(data.query.offset),
@@ -181,7 +186,7 @@ class UserService {
         ],
         });
       }
-      else if(data.query.type=='COMPLETED'){
+      else if(mytype=='COMPLETED'){
          availableJobs = await this.JobModel.findAll({
           limit: parseInt(data.query.limit),
           offset: parseInt(data.query.offset),
@@ -567,108 +572,6 @@ class UserService {
   }
 
 
-  /*  async createJob(data: any): Promise<any> {
-    try {
-      const {
-        description,
-        customer_id,
-        site_id,
-        status,
-        amount,
-        job_type,
-        schedule,
-        assigned_staffs,
-        tasks,
-        agendas,
-        use_security_code,
-      } = await jobUtil.verifyJobCreationData.validateAsync(data);
-
-      var currentFacility = await this.FacilityModel.findOne({
-        where: {
-          id: site_id,
-        },
-      });
-      console.log("t: " + currentFacility);
-
-      var agendasToCreateUnscheduled = [];
-      tasks.forEach((task) => {
-        agendasToCreateUnscheduled.push({
-          title: task.title,
-          description: task.description,
-          agenda_type: "TASK",
-        });
-      });
-      agendas.forEach((agenda) => {
-        agendasToCreateUnscheduled.push({
-          title: agenda.title,
-          description: agenda.description,
-          agenda_type: "AGENDA",
-        });
-      });
-
-      var createdJob = await this.JobModel.create({
-        description,
-        customer_id,
-        facility_id: site_id,
-        job_status: status,
-        client_charge: currentFacility.client_charge,
-        staff_charge: amount,
-        job_type,
-      });
-      
-      const schedules = [];
-      for (let index = 0; index < schedule.length; index++) {
-        const element = schedule[index];
-        schedules.push({
-          check_in_date: element.check_in_date,
-          start_time: element.start_time,
-          end_time: element.end_time,
-          job_id: createdJob.id,
-          schedule_length: job_type == "PERMANENT" ? "CONTINUOUS" : "LIMITED",
-        });
-      }
-
-      try {
-        let createdSchedule = await this.ScheduleModel.bulkCreate(schedules);
-        let securityCodesToCreate = [];
-        let agendasToCreateScheduled = [];
-        createdSchedule.forEach((scheduleItem) => {
-          if (use_security_code) {
-            securityCodesToCreate.push({
-              job_id: createdJob.id,
-              security_code: authService.generatePassword(true, 19),
-            });
-          }
-          agendasToCreateUnscheduled.forEach((agenda) => {
-            agenda.schedule_id = scheduleItem.id;
-          });
-        });
-        this.JobSecurityModel.bulkCreate(securityCodesToCreate);
-        this.AgendasModel.bulkCreate(agendasToCreateScheduled);
-
-        console.log("u: " + createdSchedule);
-      } catch (error) {
-        console.log(error);
-      }
-      var assignedStaffs = [];
-      for (const staff of assigned_staffs) {
-        assignedStaffs.push({
-          job_id: createdJob.id,
-          staff_id: staff.staff_id,
-        });
-      }
-
-      var createdAssignedStaffs = await this.AssignedStaffsModel.bulkCreate(
-        assignedStaffs
-      );
-      return createdAssignedStaffs;
-    } catch (error) {
-      console.log(error);
-      throw new SystemError(error.toString());
-    }
-  } */
-  
-
 
   async acceptDeclineJobAdmin(req) {
 
@@ -756,59 +659,312 @@ class UserService {
 
 
   async checkIn(obj) {
-    var { job_id,guard_id, check_in, latitude, longitude } =
-      await jobUtil.verifyCheckinData.validateAsync(obj);
-
-      console.log(latitude, longitude )
+    var { job_id,
+      guard_id,
+       check_in, 
+       latitude, 
+       longitude,
+       date,
+       time
+       }
+  
+    =  await jobUtil.verifyCheckinData.validateAsync(obj);
+     // console.log(latitude, longitude )
       
+    
+      
+     const foundItemJob =await  this.JobModel.findOne(
+      { where: {id:job_id } })
+
+      const foundItemFac =await  this.FacilityModel.findOne(
+        { where: {id:foundItemJob.facility_id } })
+      const foundItemFacLo =await  this.FacilityLocationModel.findOne(
+        { where: {id:foundItemFac.facility_location_id } })
+      const foundItemCoor =await  this.CoordinatesModel.findOne(
+        { where: {id:foundItemFacLo.coordinates_id } })
+
+
+        console.log(foundItemFac)
+
 
 /*
-    var job_operation = await this.JobOperationsModel.findByPk(operation_id);
-    if (job_operation == null) throw new NotFoundError("Schedule not found");
-    else {
+        let date = momentTimeZone.tz().format('YY-MM-DD')
+        let time = momentTimeZone.tz().format('hh:mm:ss a')
 
-      // if(this.isSameDay(new Date(relatedSchedule.check_in_date), new Date()) && relatedSchedule.start_time < ){
-      //     if
-      // }
-      if (check_in && job_operation.checked_in != null) {
-        throw new ConflictError("You have already checked in");
-      } else if (check_in === false && job_operation.checked_out) {
-        throw new ConflictError("You have already checked out");
-      } else if (check_in === false && job_operation.checked_in == null) {
-        throw new BadRequestError(
-          "You must check in first before checking out"
-        );
-      } else if (check_in === true && job_operation.checked_in == null) {
-        const createdCoordinates = await this.CoordinatesModel.create({
-          longitude,
-          latitude,
-        });
-        job_operation.update({
-          checked_in: new Date(),
-          check_in_coordinates_id: createdCoordinates.id,
-        });
-      } else if (check_in === false && job_operation.checked_out == null) {
-        const createdCoordinates = await this.CoordinatesModel.create({
-          longitude,
-          latitude,
-        });
-        job_operation.update({
-          checked_out: new Date(),
-          check_out_coordinates_id: createdCoordinates.id,
-        });
-      } else {
-        throw new BadRequestError("Unable to process request");
-      }
-    }
-
+        console.log("start")
+        console.log(date)
+        console.log(time)
+        console.log("end")
 
 */
 
 
+      let objLatLog={
+        latitude:foundItemCoor.latitude,
+        longitude:foundItemCoor.longitude,
+        radius:foundItemFacLo.operations_area_constraint
+      }
+
+      if(this.isInlocation(latitude, longitude, objLatLog)){
+
+        if(check_in){
+         let foundItem =await this.JobLogsModel.findOne(
+            {
+              where: {[Op.and]: [{job_id },
+              {guard_id} , {check_in_status:true},{date}]}
+            }
+          )
+              
+              if (!foundItem) {
+                let coordinates_res=await this.CoordinatesModel.create({
+                  longitude,
+                  latitude
+                })
+
+                let obj={
+                  message:"in location",
+                  check_in_time:time,
+                  check_in_status:true,
+                  job_id,
+                  guard_id,
+                  coordinates_id:coordinates_res.id,
+                  date
+                }
+
+                this.JobLogsModel.create(obj).then((myRes)=>{
+                  console.log(myRes)
+                })
+              }
+              else{
+                throw new LocationError("you have check in already");
+              }
+
+        }
+        else{
+       
+          const foundItem =await   this.JobLogsModel.findOne(
+            {
+              where: {[Op.and]: [{job_id },
+              {guard_id} , {check_in_status:true},{date}]}
+            }
+          )
+          if (!foundItem) {
+            throw new LocationError("you have not check in yet");
+
+          }
+          else{
+
+
+            const foundItem2 =await this.JobLogsModel.findOne(
+              {
+                where: {[Op.and]: [{job_id},
+                {guard_id},{date},{check_out_status:true}]}
+              }
+            )
+
+                if (!foundItem2) {
+                
+                  let foundItemShedule =await this.ScheduleModel.findOne(
+                    {
+                      where: {[Op.and]: [{job_id },
+                      {guard_id} ,{check_in_date:date}]}
+                    }
+                  )
+
+                  if(!foundItemShedule){
+                    throw new LocationError("No shedule was found cant clock out");
+                  }
+                  else{
+
+/*
+                  console.log(foundItemShedule.start_time)
+                  console.log(foundItemShedule.end_time)
+                  console.log(foundItem.check_in_time)
+                  console.log(time)*/
+                  //console.log(foundItem)
+                 // console.log(time)
+                 let my_job_H;
+                 let my_job_H_worked;
+                 my_job_H=this.calculateHoursSetToWork(foundItemShedule.start_time,  foundItemShedule.end_time)
+                 my_job_H_worked=this.calculateHoursSetToWork(foundItem.check_in_time, time)
+                 
+                
+
+                  if(this.timePosition(time ,foundItemShedule.end_time)){
+                    my_job_H_worked=this.calculateHoursSetToWork(foundItem.check_in_time, time)
+
+                      let obj={
+                        check_out_time:time,
+                        hours_worked:my_job_H_worked,
+                        check_out_status:true
+                      }
+                        /*
+                      let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{date}]}
+                      
+                      this.JobLogsModel.update(obj,{
+                      where:whereOptions})
+
+                      */
+                    }
+                    else{
+
+                      my_job_H_worked=this.calculateHoursSetToWork(foundItem.check_in_time, foundItemShedule.end_time)
+                      
+                      let obj={
+                        check_out_time:foundItemShedule.end_time,
+                        hours_worked:my_job_H_worked,
+                        check_out_status:true
+                      }
+                        /*
+                      let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{date}]}
+                      
+                      this.JobLogsModel.update(obj,{
+                      where:whereOptions})
+
+                      */
+                      
+                    }
+
+
+
+              
+
+
+           
+                  }
+                  }
+                    else{
+                      throw new LocationError("you have check out already");
+                    }
+              
+
+          }
+          
+
+          
+        }
+
+
+      }
+      else{
+        let coordinates_res=await this.CoordinatesModel.create({
+          longitude,
+          latitude
+        })
+
+        let obj={
+          message:"not in location",
+          check_in_time:time,
+          check_in_status:false,
+          job_id,
+          guard_id,
+          coordinates_id:coordinates_res.id,
+          date
+        }
+        await this.JobLogsModel.create(obj)
+        throw new LocationError( "You are not in location" );
+      }
+
+
+      
+  }
+
+
+  timePosition(val ,val2){
+    
+      let startTime1 = moment(val, 'HH:mm:ss a');
+      let startTime2 = moment(val2, 'HH:mm:ss a');
+
+      return startTime1.isSameOrBefore(startTime2)
+
+  }
+  isInlocation(latitude,longitude,objLatLog){
+
+
+    class CircularGeofenceRegion {
+      
+      latitude:number;
+      longitude:number;
+      radius:number;
+
+      constructor(opts) {
+        Object.assign(this, opts)
+        
+      }
+    
+      inside(lat2, lon2) {
+        const lat1 = this.latitude
+        const lon1 = this.longitude
+            const R = 63710; // Earth's radius in m
+    
+        return Math.acos(Math.sin(lat1)*Math.sin(lat2) + 
+                         Math.cos(lat1)*Math.cos(lat2) *
+                         Math.cos(lon2-lon1)) * R < this.radius;
+      }
+    }
+
+    const fenceA = new CircularGeofenceRegion(objLatLog);
+    const fenceB = new CircularGeofenceRegion(objLatLog);
+
+    const fences = [fenceA, fenceB]
+    const options = {}
+
+    
+    for (const fence of fences) {
+      const lat = latitude
+      const lon =longitude
+      console.log(lat)
+      console.log(lon)
+  
+  
+      if (fence.inside(lat, lon)) {
+        // do some logic
+        console.log("i am in location")
+        return true
+      }
+      else{
+        console.log("am out of location")
+        return true
+      }
+    }
   }
 
 
 
+  calculateHoursSetToWork(val ,val2){
+
+    var startTime = moment(val, 'HH:mm:ss a');
+      var endTime = moment(val2, 'HH:mm:ss a');
+
+      // calculate total duration
+      var duration = moment.duration(endTime.diff(startTime));
+
+      // duration in hours
+      var hours  : number = +duration.asHours();
+      // duration in minutes
+      var minutes : number= +duration.asMinutes() % 60;
+
+      console.log(hours+ (minutes/60))
+
+      return hours+ (minutes/60)
+  }
+  calculateHoursWorked(val ,val2){
+
+    var startTime = moment(val, 'HH:mm:ss a');
+      var endTime = moment(val2, 'HH:mm:ss a');
+
+      // calculate total duration
+      var duration = moment.duration(endTime.diff(startTime));
+
+      // duration in hours
+      var hours  : number = +duration.asHours();
+      // duration in minutes
+      var minutes : number= +duration.asMinutes() % 60;
+
+      console.log(hours+ (minutes/60))
+
+      return hours+ (minutes/60)
+  }
 
   isSameDay(date1, date2) {
     if (

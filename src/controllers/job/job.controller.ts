@@ -16,10 +16,14 @@ export default class JobController {
 
       const obj = await jobService.checkIn(data);
 
+
+      console.log(obj)
+      
       return res.status(200).json({
         status: 200,
         message: `Check ${data.check_in ? 'in' : 'out'} successful`,
       });
+      
     } catch (error) {
       next(error);
     }

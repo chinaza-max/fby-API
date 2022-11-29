@@ -48,6 +48,14 @@ export class ServerError extends SystemError {
   }
 }
 
+export class LocationError extends SystemError {
+  constructor(message?: string) {
+    super("location-error", message); // 'Error' breaks prototype chain here
+    this.name = "LocationError";
+    Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
+  }
+}
+
 export class ConflictError extends SystemError {
   constructor(message?: string) {
     super("conflict-error", message); // 'Error' breaks prototype chain here

@@ -6,6 +6,7 @@ import {
   FacilityLocation,
   Location,
 } from "../db/models";
+import axios from "axios";
 import serverConfig from "../config/server.config";
 import customerUtil from "../utils/customer.util";
 import IAdmin from "../interfaces/admin.interface";
@@ -14,6 +15,9 @@ import { ConflictError, SystemError, NotFoundError } from "../errors";
 import authService from "./auth.service";
 import ICustomer from "../interfaces/customer.interface";
 import utilService from "./util.service";
+import { fn, col, Op, QueryError, where } from "sequelize";
+import { date, string } from "joi";
+import moment from "moment"
 
 interface DecodedToken {
   payload: ICustomer | null;
@@ -47,12 +51,15 @@ class CustomerService {
     var existingUser = await this.getUserByEmail(email);
     if (existingUser != null){
 
-      var existingSite = await this.getsitebyName(site_name);
+      var existingSite = await this.getsitebyName(site_name,customer_id);
 
       if (existingSite != null){
         throw new ConflictError("Site name exists");
       }
       else{
+
+        
+       let get_time_zone= await this.getTimeZone(latitude ,longitude)
         
         var createdLocation = await this.LocationModel.create({
           address,
@@ -71,12 +78,15 @@ class CustomerService {
                 operations_area_constraint_active:true,
               }
             );
+
+
             const createdFacility = await this.FacilityModel.create({
               customer_id,
               facility_location_id: createdFacilityLocation.id,
               name:site_name,
               client_charge,
               guard_charge,
+              time_zone:get_time_zone,
             });
     
         return createdFacility;
@@ -636,9 +646,32 @@ class CustomerService {
     return await this.UserModel.findOne({ where: { email: email } });
   }
 
-  async getsitebyName(name: string): Promise<Facility> {
+  async getsitebyName(name: string,customer_id:number): Promise<Facility> {
 
-    return await this.FacilityModel.findOne({ where: { name:name} });
+    return await this.FacilityModel.findOne(
+      {
+        where: {[Op.and]: [{name },
+        {customer_id}]}
+      }
+      );
+  }
+
+  async getTimeZone(lat: number,log:number) {
+    
+
+    let timestamp =moment(new Date()).unix();
+    try {
+      let response = await axios.get(
+        `https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${log}&timestamp=${timestamp}&key=AIzaSyAqoyaPtHf5BcoTX_iNvCzXjVj6BpGl2do`,
+      );
+      // console.log(response.data.url);
+      // console.log(response.data.explanation);
+
+      return response.data.timeZoneId;
+    } catch (error) {
+      console.log(error);
+      throw new NotFoundError("Failed to resolve query");
+    }
   }
 
 
