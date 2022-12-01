@@ -11,5 +11,7 @@ export interface IJobLogs {
   updated_at: Date;
   check_in_status:boolean;
   hours_worked:number;
-  date:Date
+  check_in_date:Date;
+  check_out_date:Date;
+  project_check_in_date:Date;
 }

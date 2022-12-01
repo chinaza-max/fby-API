@@ -18,6 +18,8 @@ import {
   ConflictError,
   NotFoundError,
   SystemError,
+  TimeError,
+  DateSheduleError,
   LocationError
 } from "../errors";
 import { fn, col, Op, QueryError, where } from "sequelize";
@@ -486,50 +488,54 @@ class UserService {
       });
 
 
-
-     console.log(date_time_staff_shedule)
-
-
       //CHECK FOR DUBPLICATE
       let cleanShedule=[]
 
         if(myShedule.length!=0){
           
-          for(let i=0;  i<date_time_staff_shedule.length; i++){
-            let obj=date_time_staff_shedule[i]
-          for(let j=0;  j<myShedule.length; j++){
-            let obj2=myShedule[j]
-  
-           // console.log("start check")
-            let newDate= moment( new Date(obj.check_in_date));
-            let dateNowFormatted1 = newDate.format('YYYY-MM-DD');
+            for(let i=0;  i<date_time_staff_shedule.length; i++){
+              let obj=date_time_staff_shedule[i]
 
-           // console.log(dateNowFormatted1)
-            let oldDate= moment( new Date(obj2.check_in_date));
-            let dateNowFormatted2 = oldDate.format('YYYY-MM-DD');
-            //console.log(dateNowFormatted2)
-            console.log("end check")
+              for(let j=0;  j<myShedule.length; j++){
+                let obj2=myShedule[j]
+      
+                let newDate= moment(new Date(obj.check_in_date));
+                let newDate2= moment(new Date(obj.check_out_date));
+                let dateNowFormatted1 = newDate.format('YYYY-MM-DD');
+                let dateNowFormatted2 = newDate2.format('YYYY-MM-DD');
 
-          
-            console.log(dateNowFormatted1==dateNowFormatted2)
-            console.log(dateNowFormatted1 ,dateNowFormatted2)
+                let oldDate= moment( new Date(obj2.check_in_date));
+                let oldDate2= moment( new Date(obj2.check_out_date));
+                let dateNowFormatted3 = oldDate.format('YYYY-MM-DD');
+                let dateNowFormatted4 = oldDate2.format('YYYY-MM-DD');
+                //console.log(dateNowFormatted2)
 
-           // console.log()
+                console.log("in : ",dateNowFormatted1,"out : ",dateNowFormatted2,"in : ",dateNowFormatted3 ,"out : ",dateNowFormatted4)
+                console.log((dateNowFormatted1==dateNowFormatted3)&&(dateNowFormatted2==dateNowFormatted4)&&(obj.guard_id==obj2.guard_id))
 
 
-            if((dateNowFormatted1==dateNowFormatted2)&&(obj.guard_id==obj2.guard_id)){
-              break;
+                if((dateNowFormatted1==dateNowFormatted3)&&(dateNowFormatted2==dateNowFormatted4)&&(obj.guard_id==obj2.guard_id)){
+                  break;
+                }
+              
+                if(j==myShedule.length-1){
+                  date_time_staff_shedule[i].status_per_staff=myShedule[0].status_per_staff
+                  cleanShedule.push(date_time_staff_shedule[i])
+                }
+              }
+              if(i==date_time_staff_shedule.length-1){
+                  if(cleanShedule.length!=0){
+                    console.log("ooooooooooooooooooooooooooooo")
+                    //console.log(cleanShedule)
+
+
+                    await this.ScheduleModel.bulkCreate(cleanShedule);
+                  }else{
+                    throw new DateSheduleError("no new shedule was created dublicate found");
+
+                  }
+              }
             }
-          
-            if(j==myShedule.length-1){
-              date_time_staff_shedule[i].status_per_staff=myShedule[0].status_per_staff
-              cleanShedule.push(date_time_staff_shedule[i])
-            }
-          }
-          if(i==date_time_staff_shedule.length-1){
-              await this.ScheduleModel.bulkCreate(cleanShedule);
-          }
-          }
         }
         else{
           await this.ScheduleModel.bulkCreate(date_time_staff_shedule);
@@ -664,8 +670,7 @@ class UserService {
        check_in, 
        latitude, 
        longitude,
-       date,
-       time
+       
        }
   
     =  await jobUtil.verifyCheckinData.validateAsync(obj);
@@ -684,21 +689,22 @@ class UserService {
         { where: {id:foundItemFacLo.coordinates_id } })
 
 
-        console.log(foundItemFac)
+        let my_time_zone=foundItemFac.time_zone||"Africa/Lagos"||"America/Tijuana"
 
+          console.log(my_time_zone)
 
-/*
-        let date = momentTimeZone.tz().format('YY-MM-DD')
-        let time = momentTimeZone.tz().format('hh:mm:ss a')
+        let con_fig_time_zone = momentTimeZone.tz(my_time_zone)
+        let date =new Date(con_fig_time_zone.format('YYYY-MM-DD'))
+        let time = String(con_fig_time_zone.format('hh:mm:ss a'))
+        let full_date=con_fig_time_zone.format('YYYY-MM-DD hh:mm:ss a')
+
 
         console.log("start")
         console.log(date)
         console.log(time)
         console.log("end")
 
-*/
-
-
+        
       let objLatLog={
         latitude:foundItemCoor.latitude,
         longitude:foundItemCoor.longitude,
@@ -708,142 +714,205 @@ class UserService {
       if(this.isInlocation(latitude, longitude, objLatLog)){
 
         if(check_in){
-         let foundItem =await this.JobLogsModel.findOne(
+
+          const foundItemS =await   this.ScheduleModel.findOne(
+
             {
               where: {[Op.and]: [{job_id },
-              {guard_id} , {check_in_status:true},{date}]}
+              {guard_id},{check_in_date:date}]}
             }
           )
-              
-              if (!foundItem) {
-                let coordinates_res=await this.CoordinatesModel.create({
-                  longitude,
-                  latitude
-                })
 
-                let obj={
-                  message:"in location",
-                  check_in_time:time,
-                  check_in_status:true,
-                  job_id,
-                  guard_id,
-                  coordinates_id:coordinates_res.id,
-                  date
-                }
+          //  console.log(foundItemS)
 
-                this.JobLogsModel.create(obj).then((myRes)=>{
-                  console.log(myRes)
-                })
-              }
-              else{
-                throw new LocationError("you have check in already");
-              }
-
-        }
-        else{
-       
-          const foundItem =await   this.JobLogsModel.findOne(
-            {
-              where: {[Op.and]: [{job_id },
-              {guard_id} , {check_in_status:true},{date}]}
-            }
-          )
-          if (!foundItem) {
-            throw new LocationError("you have not check in yet");
-
-          }
-          else{
-
-
-            const foundItem2 =await this.JobLogsModel.findOne(
-              {
-                where: {[Op.and]: [{job_id},
-                {guard_id},{date},{check_out_status:true}]}
-              }
-            )
-
-                if (!foundItem2) {
+            if(foundItemS){
+                //CHECK IF IT IS TIME TO START 
                 
-                  let foundItemShedule =await this.ScheduleModel.findOne(
+              let storedDate=foundItemS.check_in_date +" "+ foundItemS.start_time
+              let retrivedate=full_date
+
+              //let storedDate='2022-01-07 08:30:00 am'    
+              //let retrivedate='2022-01-07 08:50:00 am'
+             // console.log(new Date(retrivedate))
+             // console.log("na here")
+             // console.log(moment(new Date(retrivedate)).format("YYYY-MM-DD hh:mm:ss A Z"));
+              //console.log(retrivedate)
+                
+                if(moment(new Date(retrivedate),'YYYY-MM-DD  HH:mm:ss a').isSameOrAfter(new Date(storedDate)) ){
+                
+
+                  //THIS HELPS TO GET max_check_in_time
+                  const foundItemS =await   this.ScheduleModel.findOne(
                     {
-                      where: {[Op.and]: [{job_id },
-                      {guard_id} ,{check_in_date:date}]}
+                      where: {[Op.and]: 
+                        [{check_in_date: {[Op.lte]: date} },
+                        {check_out_date: {[Op.gte]: date} },
+                        {job_id},
+                        {guard_id }
+                        ]}
                     }
                   )
 
-                  if(!foundItemShedule){
-                    throw new LocationError("No shedule was found cant clock out");
-                  }
-                  else{
-
-/*
-                  console.log(foundItemShedule.start_time)
-                  console.log(foundItemShedule.end_time)
-                  console.log(foundItem.check_in_time)
-                  console.log(time)*/
-                  //console.log(foundItem)
-                 // console.log(time)
-                 let my_job_H;
-                 let my_job_H_worked;
-                 my_job_H=this.calculateHoursSetToWork(foundItemShedule.start_time,  foundItemShedule.end_time)
-                 my_job_H_worked=this.calculateHoursSetToWork(foundItem.check_in_time, time)
-                 
                 
 
-                  if(this.timePosition(time ,foundItemShedule.end_time)){
-                    my_job_H_worked=this.calculateHoursSetToWork(foundItem.check_in_time, time)
-
-                      let obj={
-                        check_out_time:time,
-                        hours_worked:my_job_H_worked,
-                        check_out_status:true
+                    let foundItemJL =await this.JobLogsModel.findOne(
+                      {
+                        where: {[Op.and]: [{job_id },
+                        {guard_id} , {check_in_status:true},{check_in_date:date}]}
                       }
-                        /*
-                      let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{date}]}
+                    )
+                  if(!foundItemJL){
+                    if (this.checkIfGuardIsLate(storedDate,retrivedate,foundItemS.max_check_in_time)) {
                       
-                      this.JobLogsModel.update(obj,{
-                      where:whereOptions})
-
-                      */
+                      let coordinates_res=await this.CoordinatesModel.create({
+                        longitude,
+                        latitude
+                      })
+      
+                      let obj={
+                        message:"in location",
+                        check_in_time:time,
+                        check_in_status:true,
+                        job_id,
+                        guard_id,
+                        coordinates_id:coordinates_res.id,
+                        check_in_date:date,
+                        project_check_in_date:foundItemS.check_in_date
+                      }
+      
+                      this.JobLogsModel.create(obj).then((myRes)=>{
+                        console.log(myRes)
+                      })
                     }
                     else{
-
-                      my_job_H_worked=this.calculateHoursSetToWork(foundItem.check_in_time, foundItemShedule.end_time)
-                      
-                      let obj={
-                        check_out_time:foundItemShedule.end_time,
-                        hours_worked:my_job_H_worked,
-                        check_out_status:true
-                      }
-                        /*
-                      let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{date}]}
-                      
-                      this.JobLogsModel.update(obj,{
-                      where:whereOptions})
-
-                      */
-                      
+                      throw new LocationError("you are late cant check in");
                     }
 
-
-
-              
-
-
-           
                   }
+                  else{
+                   
+                    throw new LocationError("you have check in already");
+
                   }
-                    else{
-                      throw new LocationError("you have check out already");
-                    }
-              
+                }
+                else{
+                  throw new LocationError("not yet time to check");
+                }
 
-          }
-          
+            }
+            else{
+              throw new LocationError("you have not check in yet");
+            }
 
-          
         }
 
+        else{
+
+          const foundItemS =await   this.ScheduleModel.findOne(
+            {
+              where: {[Op.and]: 
+                [{check_in_date: {[Op.lte]: date} },
+                {check_out_date: {[Op.gte]: date} },
+                {job_id},
+                {guard_id }
+                ]}
+            }
+          )
+
+
+          if(foundItemS){
+
+            const foundItemJL =await   this.JobLogsModel.findOne(
+              {
+                where: {[Op.and]: [{job_id },
+                {guard_id},{check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
+              }
+            )
+            if (!foundItemJL) {
+              throw new LocationError("you have not check in yet");
+  
+            }
+            else{
+
+
+                  if (!foundItemJL.check_out_status) {
+                  
+        
+                  
+                    let fullDatecheckStore=foundItemJL.check_out_date +" "+ foundItemJL.check_out_time
+                    let fullDatecheckStore2=foundItemJL.check_in_date +" "+ foundItemJL.check_in_time
+                    let storedDate=foundItemJL.check_in_date +" "+ foundItemJL.check_in_time
+                    let fulldatefromShedule=foundItemS.check_out_date +" "+ foundItemS.end_time
+
+                    let retrivedate=full_date
+
+
+                    console.log(full_date)
+                            /*           
+                     retrivedate='2022-01-07 08:00:00 am'    
+                      storedDate='2022-01-10 11:40:00 pm'*/
+
+                                    
+                    
+
+                      console.log(storedDate)
+                      console.log(retrivedate)
+
+                      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkk")
+
+                    let my_job_H_worked=this.calculateHoursSetToWork(storedDate,retrivedate )
+                    console.log(my_job_H_worked)
+
+                    
+                    if(this.timePositionForCheckOut(full_date ,fullDatecheckStore)){
+                      my_job_H_worked=this.calculateHoursSetToWork(fullDatecheckStore2, fullDatecheckStore)
+  
+                        let obj={
+                          check_out_time:time,
+                          hours_worked:my_job_H_worked,
+                          check_out_status:true,
+                          check_out_date:new Date(full_date)
+                        }
+                          
+                        let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
+                        
+                        this.JobLogsModel.update(obj,{
+                        where:whereOptions})
+  
+                        
+                      }
+                      else{    
+  
+                        my_job_H_worked=this.calculateHoursSetToWork(fullDatecheckStore2, fulldatefromShedule)
+                        
+                        let obj={
+                          check_out_time:foundItemS.end_time,
+                          hours_worked:my_job_H_worked,
+                          check_out_status:true,
+                          check_out_date:foundItemS.check_out_date
+                        }
+                          
+                        let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
+                        
+                        this.JobLogsModel.update(obj,{
+                        where:whereOptions})
+  
+                                            
+                      }
+  
+                    
+                    }
+                    else{
+                      throw new LocationError("you have check out already");
+                    }   
+            }
+          }
+          else{
+            throw new LocationError("cant check out no shift available");
+          }
+
+      
+        }
 
       }
       else{
@@ -869,15 +938,36 @@ class UserService {
       
   }
 
+ 
+ checkIfGuardIsLate(val1,val2,added_time){
 
-  timePosition(val ,val2){
+    console.log(added_time)
+    let stored_time = moment(new Date(val1) ,'YYYY-MM-DD HH:mm:ss a').add(added_time, 'minutes')
+    let my_check_in_time = moment(new Date(val2)  ,'YYYY-MM-DD HH:mm:ss a');
+    return my_check_in_time.isSameOrBefore(stored_time)
+  
+}
+
+  timePositionForCheckOut(val1 ,val2){        
     
-      let startTime1 = moment(val, 'HH:mm:ss a');
-      let startTime2 = moment(val2, 'HH:mm:ss a');
+      let startTime1 =moment(new Date(val1)  ,'YYYY-MM-DD HH:mm:ss a');
+      let startTime2 = moment(new Date(val2)  ,'YYYY-MM-DD HH:mm:ss a');
 
       return startTime1.isSameOrBefore(startTime2)
 
   }
+
+/*
+  timePositionForCheckIn(val ,val2){
+    
+    let startTime1 = moment(val, 'HH:mm:ss a');
+    let startTime2 = moment(val2, 'HH:mm:ss a');
+
+    return startTime1.isSameOrBefore(startTime2)
+
+}
+
+*/
   isInlocation(latitude,longitude,objLatLog){
 
 
@@ -933,38 +1023,19 @@ class UserService {
 
   calculateHoursSetToWork(val ,val2){
 
-    var startTime = moment(val, 'HH:mm:ss a');
-      var endTime = moment(val2, 'HH:mm:ss a');
+    var startTime = moment(val, 'YYYY-MM-DD HH:mm:ss a');
+      var endTime = moment(val2, 'YYYY-MM-DD HH:mm:ss a');
 
       // calculate total duration
       var duration = moment.duration(endTime.diff(startTime));
 
       // duration in hours
       var hours  : number = +duration.asHours();
-      // duration in minutes
-      var minutes : number= +duration.asMinutes() % 60;
+    
 
-      console.log(hours+ (minutes/60))
-
-      return hours+ (minutes/60)
+      return hours
   }
-  calculateHoursWorked(val ,val2){
 
-    var startTime = moment(val, 'HH:mm:ss a');
-      var endTime = moment(val2, 'HH:mm:ss a');
-
-      // calculate total duration
-      var duration = moment.duration(endTime.diff(startTime));
-
-      // duration in hours
-      var hours  : number = +duration.asHours();
-      // duration in minutes
-      var minutes : number= +duration.asMinutes() % 60;
-
-      console.log(hours+ (minutes/60))
-
-      return hours+ (minutes/60)
-  }
 
   isSameDay(date1, date2) {
     if (
@@ -991,3 +1062,6 @@ class UserService {
 }
 
 export default new UserService();
+
+
+//https://stackoverflow.com/questions/30452977/sequelize-query-compare-dates-in-two-columns

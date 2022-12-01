@@ -22,7 +22,9 @@ class JobLogs
   declare guard_id: number;
   declare check_in_status:boolean;
   declare hours_worked:number;
-  declare date:Date;
+  declare check_in_date:Date;
+  declare check_out_date:Date;
+  declare project_check_in_date:Date;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
 }
@@ -72,8 +74,16 @@ export function init(connection: Sequelize) {
         allowNull: false,
         defaultValue:0
       },
-      date: {
-        type: DataTypes.DATE,
+      check_in_date: {
+        type: DataTypes.DATEONLY(),
+        allowNull: false,
+      },
+      check_out_date: {
+        type: DataTypes.DATEONLY(),
+        allowNull: true,
+      },
+      project_check_in_date: {
+        type: DataTypes.DATEONLY(),
         allowNull: false,
       },
       created_at: {

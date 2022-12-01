@@ -72,10 +72,29 @@ export class BadRequestError extends SystemError {
   }
 }
 
+
+
+export class TimeError extends SystemError {
+  constructor(message?: string) {
+    super("time-error", message); // 'Error' breaks prototype chain here
+    this.name = "TimeError";
+    Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
+  }
+}
+
 export class TooManyRequestsError extends SystemError {
   constructor(message?: string) {
     super("too-many-requests-error", message); // 'Error' breaks prototype chain here
     this.name = "TooManyRequestsError";
+    Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
+  }
+}
+
+
+export class DateSheduleError extends SystemError {
+  constructor(message?: string) {
+    super("dublicate_found_on_shedule", message); // 'Error' breaks prototype chain here
+    this.name = "DateSheduleError";
     Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
   }
 }

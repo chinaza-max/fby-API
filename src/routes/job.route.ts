@@ -19,6 +19,7 @@ class JobRoutes extends JobController {
     this.router.post("/delete_job", this.deleteJob);
     this.router.get("/allJobs", this.getAllJobs);
     this.router.get("/myJobs", this.getMyJobs);
+   // this.router.get("/myJobsAdminDetail", this.getMyJobsAdminDetail);
     this.router.post("/", this.createJob);
   }
 }

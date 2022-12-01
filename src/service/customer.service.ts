@@ -666,6 +666,7 @@ class CustomerService {
       );
       // console.log(response.data.url);
       // console.log(response.data.explanation);
+        console.log(response.data);
 
       return response.data.timeZoneId;
     } catch (error) {

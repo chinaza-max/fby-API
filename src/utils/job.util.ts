@@ -15,11 +15,13 @@ class JobUtil {
       end_time: Joi.string(),
       status_per_staff: Joi.string().required(),
       schedule_length: Joi.string().required(),
-      max_check_in_time:Joi.number(),
       check_in_date:Joi.date()
       .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
       .required(),
-      
+      check_out_date:Joi.date()
+      .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
+      .required(),
+
     })
   });
 
@@ -32,7 +34,6 @@ class JobUtil {
       title: Joi.string(),
       status_per_staff: Joi.string().required(),
       agenda_type: Joi.string().required(),
-      max_check_in_time:Joi.number(),
       check_in_date:Joi.date()
       .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
       .required(),
