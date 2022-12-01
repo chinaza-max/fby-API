@@ -487,6 +487,7 @@ class UserService {
           where: { job_id:date_time_staff_shedule[0].job_id }
       });
 
+      console.log(myShedule)
 
       //CHECK FOR DUBPLICATE
       let cleanShedule=[]
@@ -498,7 +499,11 @@ class UserService {
 
               for(let j=0;  j<myShedule.length; j++){
                 let obj2=myShedule[j]
-      
+
+
+              //  console.log(moment(new Date(obj.check_in_date)).format('YYYY-MM-DD hh:mm:ss a'))
+
+
                 let newDate= moment(new Date(obj.check_in_date));
                 let newDate2= moment(new Date(obj.check_out_date));
                 let dateNowFormatted1 = newDate.format('YYYY-MM-DD');
@@ -538,6 +543,8 @@ class UserService {
             }
         }
         else{
+          console.log(date_time_staff_shedule)
+
           await this.ScheduleModel.bulkCreate(date_time_staff_shedule);
         }
        
@@ -694,7 +701,7 @@ class UserService {
           console.log(my_time_zone)
 
         let con_fig_time_zone = momentTimeZone.tz(my_time_zone)
-        let date =new Date(con_fig_time_zone.format('YYYY-MM-DD'))
+        let date =new Date(con_fig_time_zone.format('YYYY-MM-DD hh:mm:ss a'))
         let time = String(con_fig_time_zone.format('hh:mm:ss a'))
         let full_date=con_fig_time_zone.format('YYYY-MM-DD hh:mm:ss a')
 
@@ -728,7 +735,7 @@ class UserService {
             if(foundItemS){
                 //CHECK IF IT IS TIME TO START 
                 
-              let storedDate=foundItemS.check_in_date +" "+ foundItemS.start_time
+              let storedDate=foundItemS.check_in_date
               let retrivedate=full_date
 
               //let storedDate='2022-01-07 08:30:00 am'    
@@ -843,8 +850,11 @@ class UserService {
                     let fullDatecheckStore2=foundItemJL.check_in_date +" "+ foundItemJL.check_in_time
                     let storedDate=foundItemJL.check_in_date +" "+ foundItemJL.check_in_time
                     let fulldatefromShedule=foundItemS.check_out_date +" "+ foundItemS.end_time
-
-                    let retrivedate=full_date
+                    
+                    let my_log_date_check_in=foundItemJL.check_in_date
+                    let my_date_now_check_out=full_date
+                    let my_shedule_date_check_in=foundItemS.check_in_date
+                    let my_shedule_date_check_out=foundItemS.check_out_date
 
 
                     console.log(full_date)
@@ -852,20 +862,15 @@ class UserService {
                      retrivedate='2022-01-07 08:00:00 am'    
                       storedDate='2022-01-10 11:40:00 pm'*/
 
-                                    
-                    
-
-                      console.log(storedDate)
-                      console.log(retrivedate)
-
+                                  
                       console.log("kkkkkkkkkkkkkkkkkkkkkkkkkk")
 
-                    let my_job_H_worked=this.calculateHoursSetToWork(storedDate,retrivedate )
+                    let my_job_H_worked=this.calculateHoursSetToWork(my_date_now_check_out,my_log_date_check_in )
                     console.log(my_job_H_worked)
 
                     
-                    if(this.timePositionForCheckOut(full_date ,fullDatecheckStore)){
-                      my_job_H_worked=this.calculateHoursSetToWork(fullDatecheckStore2, fullDatecheckStore)
+                    if(this.timePositionForCheckOut(my_date_now_check_out ,my_shedule_date_check_out)){
+                      my_job_H_worked=this.calculateHoursSetToWork(my_date_now_check_out, my_log_date_check_in)
   
                         let obj={
                           check_out_time:time,
@@ -883,7 +888,7 @@ class UserService {
                       }
                       else{    
   
-                        my_job_H_worked=this.calculateHoursSetToWork(fullDatecheckStore2, fulldatefromShedule)
+                        my_job_H_worked=this.calculateHoursSetToWork(my_shedule_date_check_out, my_log_date_check_in)
                         
                         let obj={
                           check_out_time:foundItemS.end_time,
