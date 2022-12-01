@@ -2,7 +2,16 @@ import Joi from "joi";
 
 class JobUtil {
 
+  
+  public verifygetGuardPerJob = Joi.object().keys({
+    job_id: Joi.number().required(),
+  });
 
+  public verifyRemoveGuardShedule = Joi.object().keys({
+      guard_id: Joi.number().required(),
+      job_id: Joi.number().required(),
+  
+  });
   public verifyDeleteJob = Joi.object().keys({
     job_id:Joi.number().required()
   });

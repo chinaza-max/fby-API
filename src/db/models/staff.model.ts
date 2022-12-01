@@ -20,6 +20,7 @@ class Staff
   declare first_name: string;
   declare last_name: string;
   declare email: string;
+  declare tel: number;
   declare password: CreationOptional<string>;
   declare date_of_birth: Date;
   declare gender: GenderTypes;
@@ -44,6 +45,10 @@ export function init(connection: Sequelize) {
       },
       first_name: {
         type: DataTypes.STRING,
+        allowNull: false,
+      },
+      tel: {
+        type: DataTypes.NUMBER,
         allowNull: false,
       },
       last_name: {

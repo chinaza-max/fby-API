@@ -75,15 +75,15 @@ export function init(connection: Sequelize) {
         defaultValue:0
       },
       check_in_date: {
-        type: DataTypes.DATEONLY(),
+        type: DataTypes.DATE(),
         allowNull: false,
       },
       check_out_date: {
-        type: DataTypes.DATEONLY(),
+        type: DataTypes.DATE(),
         allowNull: true,
       },
       project_check_in_date: {
-        type: DataTypes.DATEONLY(),
+        type: DataTypes.DATE(),
         allowNull: false,
       },
       created_at: {

@@ -3,6 +3,62 @@ import jobService from "../../service/job.service";
 
 export default class JobController {
 
+
+
+
+
+  
+  protected async getGuardPerJob(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      //REMOVE THIS AFTER TEST
+      req.user = req.body.guard_id;
+
+      const obj = await jobService.getGuardPerJob(data);
+
+
+      console.log(obj)
+      
+      return res.status(200).json({
+        status: 200,
+        message: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  protected async RemoveGuardShedule(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      //REMOVE THIS AFTER TEST
+      req.user = req.body.guard_id;
+
+      const obj = await jobService.RemoveGuardShedule(data);
+
+
+      console.log(obj)
+      
+      return res.status(200).json({
+        status: 200,
+        message: `Guard has been removed successfully`,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
   protected async checkInCheckOut(
     req: Request,
     res: Response,

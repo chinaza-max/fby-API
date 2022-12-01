@@ -630,6 +630,8 @@ class UserService {
     return relatedAssignment;
     
   }
+
+
   async acceptDeclineJob(req) {
 
     var { job_id, accept } =req.body;
@@ -668,8 +670,86 @@ class UserService {
   }
 
 
+  
+    
+  async getGuardPerJob(obj) {
+    var { job_id,
+    }
+  
+    =  await jobUtil.verifygetGuardPerJob.validateAsync(obj);
+      
+    
+      
+     const  foundS =await  this.ScheduleModel.findAll({
+      where: {job_id}
+      })
+
+    let all_guard_id=[]
+      
 
 
+
+     
+   if(foundS){
+        for(let i=0;i<foundS.length;i++ ){
+
+          if(all_guard_id.includes(foundS[i].guard_id)){
+              continue
+          }
+          else{
+            all_guard_id.push(foundS[i].guard_id)
+          }
+        if(i==foundS.length-1){
+
+
+          let foundG=  await this.getGuardDetail(all_guard_id,job_id)
+          let job=    await this.getJobDetail(job_id)
+          let site=    await this.getSiteDetail(job.facility_id)
+
+          let detail={
+              guard:foundG,
+              job,
+              site
+          }
+
+          return detail
+        }
+      }
+   }
+
+
+
+      
+  }
+  
+  async RemoveGuardShedule(obj) {
+    var { job_id,
+      guard_id,
+    }
+  
+    =  await jobUtil.verifyRemoveGuardShedule.validateAsync(obj);
+      
+    
+      
+     const item1 =await  this.ScheduleModel.destroy({
+      where: {[Op.and]: 
+        [{job_id},
+        {guard_id }
+        ]}
+    })
+
+    const item2 =await  this.AgendasModel.destroy({
+      where: {[Op.and]: 
+        [{job_id},
+        {guard_id }
+        ]}
+    })
+
+
+
+
+      
+  }
 
   async checkIn(obj) {
     var { job_id,
@@ -723,14 +803,17 @@ class UserService {
         if(check_in){
 
           const foundItemS =await   this.ScheduleModel.findOne(
-
             {
-              where: {[Op.and]: [{job_id },
-              {guard_id},{check_in_date:date}]}
+              where: {[Op.and]: 
+                [{check_in_date: {[Op.lte]: date} },
+                {check_out_date: {[Op.gte]: date} },
+                {job_id},
+                {guard_id }
+                ]}
             }
           )
 
-          //  console.log(foundItemS)
+           console.log(foundItemS)
 
             if(foundItemS){
                 //CHECK IF IT IS TIME TO START 
@@ -760,14 +843,19 @@ class UserService {
                     }
                   )
 
-                
-
                     let foundItemJL =await this.JobLogsModel.findOne(
                       {
                         where: {[Op.and]: [{job_id },
-                        {guard_id} , {check_in_status:true},{check_in_date:date}]}
+                        {guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
                       }
                     )
+                      console.log(date)
+                      console.log("kkkkkkkkkkkkkkkkkkkkooooooooooooooooooo")
+                      console.log(foundItemJL)
+                      console.log(foundItemS.check_in_date)
+
+                      
+
                   if(!foundItemJL){
                     if (this.checkIfGuardIsLate(storedDate,retrivedate,foundItemS.max_check_in_time)) {
                       
@@ -808,23 +896,29 @@ class UserService {
 
             }
             else{
-              throw new LocationError("you have not check in yet");
+              throw new LocationError("no shift available for check in");
             }
 
         }
 
         else{
 
+          //FOR ALLOWING LATE CHECK OUT 30
+          let con_fig_time_zone2 = momentTimeZone.tz(my_time_zone).subtract(60, 'minutes')
+          let date2=new Date(con_fig_time_zone2.format('YYYY-MM-DD hh:mm:ss a'))
+
           const foundItemS =await   this.ScheduleModel.findOne(
             {
               where: {[Op.and]: 
                 [{check_in_date: {[Op.lte]: date} },
-                {check_out_date: {[Op.gte]: date} },
+                {check_out_date:{ [Op.or]: [{[Op.gte]: date2},{[Op.gte]: date}]  } },
                 {job_id},
                 {guard_id }
                 ]}
             }
           )
+
+          console.log(foundItemS)
 
 
           if(foundItemS){
@@ -844,13 +938,6 @@ class UserService {
 
                   if (!foundItemJL.check_out_status) {
                   
-        
-                  
-                    let fullDatecheckStore=foundItemJL.check_out_date +" "+ foundItemJL.check_out_time
-                    let fullDatecheckStore2=foundItemJL.check_in_date +" "+ foundItemJL.check_in_time
-                    let storedDate=foundItemJL.check_in_date +" "+ foundItemJL.check_in_time
-                    let fulldatefromShedule=foundItemS.check_out_date +" "+ foundItemS.end_time
-                    
                     let my_log_date_check_in=foundItemJL.check_in_date
                     let my_date_now_check_out=full_date
                     let my_shedule_date_check_in=foundItemS.check_in_date
@@ -921,6 +1008,7 @@ class UserService {
 
       }
       else{
+
         let coordinates_res=await this.CoordinatesModel.create({
           longitude,
           latitude
@@ -933,7 +1021,8 @@ class UserService {
           job_id,
           guard_id,
           coordinates_id:coordinates_res.id,
-          date
+          check_in_date: date,
+          project_check_in_date:date
         }
         await this.JobLogsModel.create(obj)
         throw new LocationError( "You are not in location" );
@@ -975,7 +1064,44 @@ class UserService {
 */
   isInlocation(latitude,longitude,objLatLog){
 
+    function getDistanceBetween(lat1, long1, lat2, long2) {
+      var R = 6371; // Radius of the earth in km
+      var dLat = deg2rad(lat2-lat1); // deg2rad below
+      var dLon = deg2rad(long2-long1);
+      var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2) ;
+      var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      var d = R * c; // Distance in km
+      d = d*1000 //Distance in meters
+      return d;
+    }
+    function deg2rad(deg) {
+      return deg * (Math.PI/180)
+    }
 
+
+    console.log(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude))
+
+    if(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude)>objLatLog.radius){
+      return true
+    }
+    else{
+      return true
+    }
+
+
+        /*
+    if (fence.inside(lat, lon)) {
+      // do some logic
+      console.log("i am in location")
+      return true
+    }
+    else{
+      console.log("am out of location")
+      return true
+    }
+*/
+
+    /*
     class CircularGeofenceRegion {
       
       latitude:number;
@@ -1022,8 +1148,113 @@ class UserService {
         return true
       }
     }
+*/
+
+
   }
 
+
+
+
+ async getGuardDetail(val,job_id){
+
+
+  let guard_detail=[]
+
+  console.log("pppppssssssssss")
+
+  console.log(val)
+
+
+  for(let i=0;i<val.length;i++ ){
+
+      const  foundU =await  this.UserModel.findOne({
+        where: {id:val[i]}
+      })
+
+      const  foundJL =await  this.JobLogsModel.findAll({
+        where: {[Op.and]: 
+          [{check_in_status:true},
+          {check_out_status: true},
+          {job_id},
+          {guard_id:val[i]}
+          ]}
+        })
+
+
+       console.log(foundJL)
+        let money_earned=0
+
+        if(foundJL.length==0){
+          let guard={
+            first_name:foundU.first_name,
+            last_name:foundU.last_name,
+            image:foundU.image,
+            email:foundU.email,
+            money_earned,
+            guard_id:foundU.id
+          }
+          guard_detail.push(guard)
+        }else{
+          for(let j=0;j<foundJL.length;j++ ){
+
+            money_earned+=foundJL[j].hours_worked
+            if(j==foundJL.length-1){
+                
+                let guard={
+                  first_name:foundU.first_name,
+                  last_name:foundU.last_name,
+                  image:foundU.image,
+                  email:foundU.email,
+                  money_earned,
+                  guard_id:foundU.id
+                }
+                guard_detail.push(guard)
+            }
+          }
+        }
+
+
+  if(i==val.length-1){
+
+      return guard_detail
+
+  }
+}
+
+
+  }
+
+
+  async getJobDetail(val){
+
+    const  foundj =await  this.JobModel.findOne({
+      where: {id:val}
+      })
+      
+     let job={
+      description:foundj.description,
+      customer_id:foundj.customer_id,
+      facility_id:foundj.facility_id,
+      guard_charge:foundj.staff_charge
+     }
+      
+     return job
+  }
+
+  async getSiteDetail(val){
+
+    const  foundF =await  this.FacilityModel.findOne({
+      where: {id:val}
+      })
+      
+     let site={
+      name:foundF.name,
+      time_zone:foundF.time_zone
+     }
+      
+     return site
+  }
 
 
   calculateHoursSetToWork(val ,val2){
