@@ -5,9 +5,59 @@ export default class JobController {
 
 
 
-
-
   
+  protected async getGeneralShift(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      //REMOVE THIS AFTER TEST
+      req.user = req.body.guard_id;
+
+      const obj = await jobService.getGeneralShift(data);
+
+
+      console.log(obj)
+      
+      return res.status(200).json({
+        status: 200,
+        message: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+  protected async getOneShedulePerGuard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      //REMOVE THIS AFTER TEST
+      req.user = req.body.guard_id;
+
+      const obj = await jobService.getOneShedulePerGuard(data);
+
+
+      console.log(obj)
+      
+      return res.status(200).json({
+        status: 200,
+        message: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
   protected async getGuardPerJob(
     req: Request,
     res: Response,

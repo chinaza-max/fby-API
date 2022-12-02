@@ -22,6 +22,7 @@ class Schedule
   declare job_id: number;
   declare guard_id: number;
   declare max_check_in_time:number;
+  declare settlement_status:boolean;
   declare schedule_length: ScheduleLengthTypes;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
@@ -42,6 +43,11 @@ export function init(connection: Sequelize) {
       },
       end_time: {
         type: DataTypes.STRING,
+        allowNull: false,
+      },
+      settlement_status: {
+        type: DataTypes.BOOLEAN,
+        defaultValue:false,
         allowNull: false,
       },
       status_per_staff: {

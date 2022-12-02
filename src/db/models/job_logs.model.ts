@@ -70,7 +70,7 @@ export function init(connection: Sequelize) {
         allowNull: false,
       },
       hours_worked: {
-        type: DataTypes.NUMBER,
+        type: DataTypes.DECIMAL(11,4),
         allowNull: false,
         defaultValue:0
       },

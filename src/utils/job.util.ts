@@ -3,6 +3,25 @@ import Joi from "joi";
 class JobUtil {
 
   
+
+
+
+
+
+
+
+
+  
+  public verifyGetgetGeneralShift = Joi.object().keys({
+    
+  });
+
+  public verifygetOneShedulePerGuard = Joi.object().keys({
+    job_id: Joi.number().required(),
+    guard_id: Joi.number().required(),
+
+  });
+
   public verifygetGuardPerJob = Joi.object().keys({
     job_id: Joi.number().required(),
   });

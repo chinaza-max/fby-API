@@ -509,6 +509,11 @@ class UserService {
                 let dateNowFormatted1 = newDate.format('YYYY-MM-DD');
                 let dateNowFormatted2 = newDate2.format('YYYY-MM-DD');
 
+                let myNewDateIn= moment(new Date(obj.check_in_date));
+                let myNewDateOut= moment(new Date(obj.check_out_date));
+               // let myNewDateFormatted1 = newDate.format('YYYY-MM-DD hh:mm:ss a');
+                //let myNewDateOutFormatted1 = newDate2.format('YYYY-MM-DD hh:mm:ss a')
+
                 let oldDate= moment( new Date(obj2.check_in_date));
                 let oldDate2= moment( new Date(obj2.check_out_date));
                 let dateNowFormatted3 = oldDate.format('YYYY-MM-DD');
@@ -518,6 +523,38 @@ class UserService {
                 console.log("in : ",dateNowFormatted1,"out : ",dateNowFormatted2,"in : ",dateNowFormatted3 ,"out : ",dateNowFormatted4)
                 console.log((dateNowFormatted1==dateNowFormatted3)&&(dateNowFormatted2==dateNowFormatted4)&&(obj.guard_id==obj2.guard_id))
 
+
+
+
+
+//THIS CODE PREVENT DATE TANGLE MENT   ONE DATE FALLING INSIDE ANOTHE DATE
+                const foundItemS =await   this.ScheduleModel.findOne(
+                  {
+                    where: {[Op.and]: 
+                      [{check_in_date: {[Op.lte]: myNewDateIn} },
+                      {check_out_date: {[Op.gte]: myNewDateIn} },
+                      {job_id:obj.job_id},
+                      {guard_id:obj.guard_id }
+                      ]}
+                  }
+                )
+                if(foundItemS){
+                  break 
+                }
+
+                const foundItemS2 =await   this.ScheduleModel.findOne(
+                  {
+                    where: {[Op.and]: 
+                      [{check_in_date: {[Op.lte]: myNewDateOut} },
+                      {check_out_date: {[Op.gte]: myNewDateOut} },
+                      {job_id:obj.job_id},
+                      {guard_id:obj.guard_id }
+                      ]}
+                  }
+                )
+                if(foundItemS2){
+                  break 
+                }
 
                 if((dateNowFormatted1==dateNowFormatted3)&&(dateNowFormatted2==dateNowFormatted4)&&(obj.guard_id==obj2.guard_id)){
                   break;
@@ -671,6 +708,162 @@ class UserService {
 
 
   
+  
+
+  async getGeneralShift(obj) {
+    var { job_id,
+      guard_id
+    }
+  
+    =  await jobUtil.verifyGetgetGeneralShift.validateAsync(obj);
+      
+    
+    const  foundS =await  this.ScheduleModel.findAll()
+
+    let all_shift=[]     
+   if(foundS.length!=0){
+        for(let i=0;i<foundS.length;i++ ){
+
+          let obj={}
+
+
+          const foundJ = await this.JobModel.findOne({
+             where: { id:foundS[i].job_id} });
+
+          const foundF = await this.FacilityModel.findOne({
+          where: { id:foundJ.facility_id} });
+
+          const foundC = await this.CustomerModel.findOne({
+            where: { id:foundJ.customer_id} });
+
+
+          const  foundJL=await  this.JobLogsModel.findOne({
+             where: {[Op.and]: 
+                [{project_check_in_date:foundS[i].check_in_date},
+                  {job_id:foundS[i].job_id},
+                  {job_id:foundS[i].job_id},
+                {check_in_status:true}
+                ]}
+          })
+
+          //obj["first_name"]= await this.getDateOnly(foundS[i].check_in_date) 
+          //obj["last_name"]=await this.getDateOnly(foundS[i].check_out_date) 
+
+          let name=await this.getSingleGuardDetail(foundS[i].guard_id)
+          let hours=await this.calculateHoursSetToWork(foundS[i].check_in_date ,foundS[i].check_out_date)
+          
+      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkooooooooooo")
+
+      console.log(hours)
+
+
+          obj["start_date"]= await this.getDateOnly(foundS[i].check_in_date) 
+          obj["end_date"]=await this.getDateOnly(foundS[i].check_out_date) 
+          obj["start_time"]=foundS[i].start_time
+          obj["end_time"]=foundS[i].end_time
+          obj["hours"]= await this.calculateHoursSetToWork( foundS[i].check_out_date, foundS[i].check_in_date)
+          obj["First_name"]= name["first_name"]
+          obj["last_name"]= name["last_name"]
+          obj["customer"]= foundC.first_name
+          obj["site"]= foundF.name
+          obj["guard_charge"]= foundF.guard_charge
+          obj["client_charge"]= foundF.client_charge
+
+
+
+          console.log("=================================")
+          console.log(foundJL)
+          console.log("=================================")
+
+
+          if(foundJL){
+            if(foundJL.check_out_status==true){
+              obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
+              obj["check_out"]=await this.getDateAndTime(foundJL.check_out_date) 
+              obj["hours_worked"]=foundJL.hours_worked
+              obj["earned"]= foundJL.hours_worked*foundF.client_charge
+            }
+            else{
+
+              obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
+              obj["check_out"]="empty" 
+              obj["hours_worked"]=0
+              obj["earned"]= 0
+            }
+          
+          }
+          else{
+            obj["check_in"]="none"
+            obj["check_out"]="none"
+            obj["hours_worked"]=0
+            obj["earned"]= 0
+          }
+                
+
+          all_shift.push(obj)
+        if(i==foundS.length-1){
+          return all_shift
+        }
+      }
+   }
+   else{
+    return []
+   }
+
+
+
+      
+  }
+    
+
+
+  async getOneShedulePerGuard(obj) {
+    var { job_id,
+      guard_id
+    }
+  
+    =  await jobUtil.verifygetOneShedulePerGuard.validateAsync(obj);
+      
+    
+    const  foundS =await  this.ScheduleModel.findAll({
+      where: {[Op.and]: 
+        [{job_id},
+        {guard_id}
+        ]}
+        , 
+        order: [
+            ['check_in_date', 'ASC'],
+            ['check_out_date', 'ASC'],
+        ],
+      })
+
+    let all_shedule=[]     
+   if(foundS){
+        for(let i=0;i<foundS.length;i++ ){
+
+          let obj={
+            check_in_date:await this.getDateOnly(foundS[i].check_in_date) ,
+            start_time:foundS[i].start_time,
+            check_out_date:await this.getDateOnly(foundS[i].check_out_date) ,
+            end_time:foundS[i].end_time,
+            hours:await this.calculateHoursSetToWork(foundS[i].check_in_date,foundS[i].check_out_date),
+
+          }
+          all_shedule.push(obj)
+          
+        if(i==foundS.length-1){
+          return all_shedule
+        }
+      }
+   }
+   else{
+    return []
+   }
+
+
+
+      
+  }
     
   async getGuardPerJob(obj) {
     var { job_id,
@@ -702,7 +895,7 @@ class UserService {
         if(i==foundS.length-1){
 
 
-          let foundG=  await this.getGuardDetail(all_guard_id,job_id)
+          let foundG=  await this.getMultipleGuardDetail(all_guard_id,job_id)
           let job=    await this.getJobDetail(job_id)
           let site=    await this.getSiteDetail(job.facility_id)
 
@@ -778,6 +971,8 @@ class UserService {
 
         let my_time_zone=foundItemFac.time_zone||"Africa/Lagos"||"America/Tijuana"
 
+        console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh")
+
           console.log(my_time_zone)
 
         let con_fig_time_zone = momentTimeZone.tz(my_time_zone)
@@ -812,8 +1007,12 @@ class UserService {
                 ]}
             }
           )
+          console.log("===========shedule==============")
 
-           console.log(foundItemS)
+          console.log(foundItemS)
+
+          console.log("===========shedule==============")
+
 
             if(foundItemS){
                 //CHECK IF IT IS TIME TO START 
@@ -828,11 +1027,11 @@ class UserService {
              // console.log(moment(new Date(retrivedate)).format("YYYY-MM-DD hh:mm:ss A Z"));
               //console.log(retrivedate)
                 
-                if(moment(new Date(retrivedate),'YYYY-MM-DD  HH:mm:ss a').isSameOrAfter(new Date(storedDate)) ){
+                if(moment(new Date(retrivedate),'YYYY-MM-DD  hh:mm:ss a').isSameOrAfter(new Date(storedDate)) ){
                 
-
+                  console.log("pass=======================================")
                   //THIS HELPS TO GET max_check_in_time
-                  const foundItemS =await   this.ScheduleModel.findOne(
+                  /*const foundItemS =await   this.ScheduleModel.findOne(
                     {
                       where: {[Op.and]: 
                         [{check_in_date: {[Op.lte]: date} },
@@ -840,8 +1039,7 @@ class UserService {
                         {job_id},
                         {guard_id }
                         ]}
-                    }
-                  )
+                    })*/
 
                     let foundItemJL =await this.JobLogsModel.findOne(
                       {
@@ -900,7 +1098,6 @@ class UserService {
             }
 
         }
-
         else{
 
           //FOR ALLOWING LATE CHECK OUT 30
@@ -952,12 +1149,12 @@ class UserService {
                                   
                       console.log("kkkkkkkkkkkkkkkkkkkkkkkkkk")
 
-                    let my_job_H_worked=this.calculateHoursSetToWork(my_date_now_check_out,my_log_date_check_in )
+                    let my_job_H_worked=await this.calculateHoursSetToWork(my_date_now_check_out,my_log_date_check_in )
                     console.log(my_job_H_worked)
 
                     
                     if(this.timePositionForCheckOut(my_date_now_check_out ,my_shedule_date_check_out)){
-                      my_job_H_worked=this.calculateHoursSetToWork(my_date_now_check_out, my_log_date_check_in)
+                      my_job_H_worked=await this.calculateHoursSetToWork(my_date_now_check_out, my_log_date_check_in)
   
                         let obj={
                           check_out_time:time,
@@ -967,7 +1164,7 @@ class UserService {
                         }
                           
                         let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
-                        
+                      
                         this.JobLogsModel.update(obj,{
                         where:whereOptions})
   
@@ -975,7 +1172,7 @@ class UserService {
                       }
                       else{    
   
-                        my_job_H_worked=this.calculateHoursSetToWork(my_shedule_date_check_out, my_log_date_check_in)
+                        my_job_H_worked=await this.calculateHoursSetToWork(my_shedule_date_check_out, my_log_date_check_in)
                         
                         let obj={
                           check_out_time:foundItemS.end_time,
@@ -985,10 +1182,10 @@ class UserService {
                         }
                           
                         let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
-                        
+                        /*
                         this.JobLogsModel.update(obj,{
                         where:whereOptions})
-  
+  */
                                             
                       }
   
@@ -1036,8 +1233,21 @@ class UserService {
  checkIfGuardIsLate(val1,val2,added_time){
 
     console.log(added_time)
-    let stored_time = moment(new Date(val1) ,'YYYY-MM-DD HH:mm:ss a').add(added_time, 'minutes')
-    let my_check_in_time = moment(new Date(val2)  ,'YYYY-MM-DD HH:mm:ss a');
+    let stored_time = moment(new Date(val1) ,'YYYY-MM-DD hh:mm:ss a')
+    let my_check_in_time = moment(new Date(val2)  ,'YYYY-MM-DD hh:mm:ss a').subtract(added_time, 'minutes');
+    
+
+    console.log("============here her here here =========")
+
+
+    let stored_time2 = moment(new Date(val1) ).format('YYYY-MM-DD hh:mm:ss a')
+    let my_check_in_time2 = moment(new Date(val2)).subtract(added_time, 'minutes').format('YYYY-MM-DD hh:mm:ss a')
+    
+    console.log(stored_time2)
+    console.log(my_check_in_time2)
+
+    
+    
     return my_check_in_time.isSameOrBefore(stored_time)
   
 }
@@ -1156,15 +1366,28 @@ class UserService {
 
 
 
- async getGuardDetail(val,job_id){
 
+  async getSingleGuardDetail(val){
+
+    let obj={}
+    const  foundU =await  this.UserModel.findOne({
+      where: {id:val}
+    })
+    if(foundU){
+      obj["first_name"]=foundU.first_name,
+      obj["last_name"]=foundU.last_name
+    }
+    else{
+      obj["first_name"]="deleted",
+      obj["last_name"]="deleted"
+    }
+
+     return obj;
+  }
+
+ async getMultipleGuardDetail(val,job_id){
 
   let guard_detail=[]
-
-  console.log("pppppssssssssss")
-
-  console.log(val)
-
 
   for(let i=0;i<val.length;i++ ){
 
@@ -1223,7 +1446,20 @@ class UserService {
 }
 
 
-  }
+ }
+
+
+
+
+ async getDateOnly(val){
+
+   return moment(val).format('YYYY-MM-DD')
+}
+
+async getDateAndTime(val){
+
+  return moment(val).format('YYYY-MM-DD hh:mm:ss a')
+}
 
 
   async getJobDetail(val){
@@ -1257,19 +1493,29 @@ class UserService {
   }
 
 
-  calculateHoursSetToWork(val ,val2){
+  async calculateHoursSetToWork(to ,from){
 
-    var startTime = moment(val, 'YYYY-MM-DD HH:mm:ss a');
-      var endTime = moment(val2, 'YYYY-MM-DD HH:mm:ss a');
-
-      // calculate total duration
-      var duration = moment.duration(endTime.diff(startTime));
-
-      // duration in hours
-      var hours  : number = +duration.asHours();
+ 
     
+    let init2 = moment(from).format('YYYY-MM-DD hh:mm:ss a');
+    let now2 = moment(to).format('YYYY-MM-DD hh:mm:ss a')
+    console.log("oooooooooooooooooooooo===============")
+    console.log(init2)
+    console.log(now2)
 
-      return hours
+    let init = moment(from, 'YYYY-MM-DD hh:mm:ss a');
+    let now = moment(to, 'YYYY-MM-DD hh:mm:ss a');
+
+   
+  
+      // calculate total duration
+      let duration = moment.duration(now.diff(init));
+      // duration in hours
+      let hours  : number = duration.asHours();
+      console.log("k+========================")
+
+    console.log(hours)
+      return Number(hours.toFixed(2)) 
   }
 
 
