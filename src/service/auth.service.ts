@@ -76,6 +76,7 @@ class AuthenticationService {
       gender,
       password,
       address,
+      phone_number
     } = await authUtil.verifyUserCreationData.validateAsync(data);
     let hashedPassword;
     if (password == null) password = this.generatePassword();
@@ -106,6 +107,7 @@ class AuthenticationService {
       gender,
       password: hashedPassword,
       location_id: createdLocation.id,
+      phone_number,
       role: "GUARD",
     });
     var transfromedUserObj = await this.transformUserForResponse(user, createdLocation);
@@ -132,6 +134,7 @@ class AuthenticationService {
       gender,
       password,
       address,
+      phone_number
     } = await authUtil.verifyUserCreationData.validateAsync(data);
     let hashedPassword;
     if (password == null) password = this.generatePassword();
@@ -146,13 +149,21 @@ class AuthenticationService {
     console.log(hashedPassword);
 
     var existingUser = await this.getUserByEmail(email);
+    console.log("==================================");
+
     console.log(existingUser);
     if (existingUser != null)
       throw new ConflictError("A user with this email already exists");
     var createdLocation = await this.LocationModel.create({
       address,
     });
+
+    console.log("==================================");
+
     console.log(createdLocation.id);
+
+    console.log("===================================");
+
     const user = await this.UserModel.create({
       first_name,
       last_name,
@@ -162,12 +173,25 @@ class AuthenticationService {
       gender,
       password: hashedPassword,
       location_id: createdLocation.id,
+      phone_number,
       role: "ADMIN",
     });
     var transfromedUserObj = await this.transformUserForResponse(user, createdLocation);
     await utilService.updateStat("STAFF_SIGNUP");
     return transfromedUserObj;
   }
+
+
+
+
+
+
+
+
+
+
+
+
 
   async handlePasswordResetEmail(data) {
     var { email } = await authUtil.validateUserEmail.validateAsync(data);

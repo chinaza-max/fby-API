@@ -5,11 +5,18 @@ class JobUtil {
   
 
 
+  
+  public verifyGetLogPerGuard = Joi.object().keys({
+    job_id: Joi.number().required(),
+    guard_id: Joi.number().required(),
 
+  });
+  
+  public verifyGetShiftPerGuard = Joi.object().keys({
+    job_id: Joi.number().required(),
+    guard_id: Joi.number().required(),
 
-
-
-
+  });
 
   
   public verifyGetgetGeneralShift = Joi.object().keys({
@@ -26,11 +33,40 @@ class JobUtil {
     job_id: Joi.number().required(),
   });
 
+
+  
+  public verifySettleSingleShift = Joi.object().keys({
+   
+    schedule_id: Joi.number().required(),
+
+});
+  
+  public verifyUpdateJobStatus = Joi.object().keys({
+    job_id: Joi.number().required(),
+    status_value: Joi.string().required(),
+});
+
+
+  public verifyRemoveGuardSheduleLog = Joi.object().keys({
+    log_id: Joi.number().required()
+  });
+
   public verifyRemoveGuardShedule = Joi.object().keys({
       guard_id: Joi.number().required(),
       job_id: Joi.number().required(),
-  
   });
+
+
+
+  
+
+  public verifyUpdateMaxCheckInTime = Joi.object().keys({
+    guard_id: Joi.number(),
+    shedule_id:Joi.number(),
+    max_check_in_time:Joi.number(),
+  });
+
+
   public verifyDeleteJob = Joi.object().keys({
     job_id:Joi.number().required()
   });
@@ -91,6 +127,19 @@ class JobUtil {
     check_in: Joi.boolean().required(),
     latitude: Joi.number().required(),
     longitude: Joi.number().required()
+  });
+
+
+  public verifyCheckInCheckOutAdmin = Joi.object().keys({
+    shedule_id: Joi.number().min(1).required(),
+    guard_id: Joi.number().min(1).required(),
+    job_id: Joi.number().min(1).required(),
+    check_in: Joi.boolean().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
+    date:Joi.date()
+      .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
+      .required(),
   });
 
   public verifyAcceptDeclineData = Joi.object().keys({

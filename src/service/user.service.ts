@@ -36,10 +36,32 @@ class UserService {
       email: data.email,
       date_of_birth: data.date_of_birth,
       gender: data.gender,
+      phone_number:data.phone_number
     });
     // await user.update();
     return user;
   }
+
+
+
+async toggleVisibilty(data: any) {
+
+    let id=data
+
+    console.log(data)
+
+    const user = await this.UserModel.findByPk(id);
+
+
+    console.log(user.availability)
+
+    await this.UserModel.update({ availability:!user.availability},{
+      where:{
+        id
+      }
+    });
+
+}
 
   async getAllStaff(data: any) {
 

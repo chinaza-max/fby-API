@@ -6,6 +6,7 @@ class UserUtil {
     last_name: Joi.string().required(),
     address: Joi.string().required(),
     email: Joi.string().required(),
+    phone_number:Joi.number().required(),
     date_of_birth: Joi.date()
       .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
       .required(),

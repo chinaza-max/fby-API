@@ -10,14 +10,10 @@ export default class UserController {
     try {
 
       //console.log(req)
-
       const { id } = req.user;
       const data = req.body;
-
       const { file } = req;
      
-
-
       const user = await userService.updateUser(id, data, file);
 
       return res.status(200).json({
@@ -29,6 +25,29 @@ export default class UserController {
       next(error);
     }
   }
+
+
+  
+  protected async toggleVisibilty(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const { id } = req.user;
+
+      const users = await userService.toggleVisibilty(id);
+
+      return res.status(200).json({
+        status: 200,
+        data: "status updated successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
 
   protected async getAllStaff(
     req: Request,

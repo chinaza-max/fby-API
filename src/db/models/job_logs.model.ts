@@ -43,7 +43,7 @@ export function init(connection: Sequelize) {
       },
       check_in_time: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
       },
       check_out_time: {
         type: DataTypes.STRING,
@@ -71,12 +71,11 @@ export function init(connection: Sequelize) {
       },
       hours_worked: {
         type: DataTypes.DECIMAL(11,4),
-        allowNull: false,
         defaultValue:0
       },
       check_in_date: {
         type: DataTypes.DATE(),
-        allowNull: false,
+        allowNull: true,
       },
       check_out_date: {
         type: DataTypes.DATE(),
@@ -84,7 +83,7 @@ export function init(connection: Sequelize) {
       },
       project_check_in_date: {
         type: DataTypes.DATE(),
-        allowNull: false,
+        allowNull: true,
       },
       created_at: {
         type: DataTypes.DATE,

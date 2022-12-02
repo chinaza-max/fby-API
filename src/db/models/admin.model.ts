@@ -20,6 +20,8 @@ import IAdmin from "../../interfaces/admin.interface";
     declare image?: CreationOptional<string>;
     declare first_name: string;
     declare last_name: string;
+    declare availability:boolean;
+    declare phone_number: number;
     declare email: string;
     declare password: CreationOptional<string>;
     declare date_of_birth: Date;
@@ -61,6 +63,10 @@ import IAdmin from "../../interfaces/admin.interface";
           allowNull: false,
           unique: true,
         },
+        phone_number: {
+          type: DataTypes.NUMBER,
+          allowNull: false,
+        },
         password: {
           type: DataTypes.STRING,
           allowNull: true,
@@ -69,6 +75,10 @@ import IAdmin from "../../interfaces/admin.interface";
           type: DataTypes.DATE,
           defaultValue: new Date(),
           allowNull: false,
+        },
+        availability:{
+          type: DataTypes.BOOLEAN,
+          defaultValue: true
         },
         gender: {
           type: DataTypes.ENUM(

@@ -48,7 +48,6 @@ export function init(connection: Sequelize) {
       settlement_status: {
         type: DataTypes.BOOLEAN,
         defaultValue:false,
-        allowNull: false,
       },
       status_per_staff: {
         type: DataTypes.ENUM(

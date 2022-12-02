@@ -235,152 +235,8 @@ class UserService {
 
 
   }
-  /*
-  async getAllJobsAdmin(data: any): Promise<any[]> {
 
-     console.log(data.query)
-    let mytype=data.query.type
-
-   
-
-    try {
-      const jobs = [];
-      let availableJobs;
-
-      console.log(data.query.limit)
-      if(data.query.type=='ACTIVE'){
-         availableJobs = await this.JobModel.findAll({
-          limit: parseInt(data.query.limit),
-          offset: parseInt(data.query.offset),
-          where: {
-            is_deleted: false,
-            job_status:'ACTIVE',
-          } as any,
-        });
-      }
-      else if(data.query.type=='PENDING'){
-         availableJobs = await this.JobModel.findAll({
-          limit: parseInt(data.query.limit),
-          offset: parseInt(data.query.offset),
-          where: {
-            is_deleted: false,
-            job_status:'PENDING',
-          } as any,
-        });
-      }
-      else if(data.query.type=='COMPLETED'){
-         availableJobs = await this.JobModel.findAll({
-          limit: parseInt(data.query.limit),
-          offset: parseInt(data.query.offset),
-          where: {
-            is_deleted: false,
-            job_status:'COMPLETED',
-          } as any,
-        });
-      }
-      else{
-        availableJobs = await this.JobModel.findAll({
-          where: {
-            is_deleted: false,
-          } as any,
-        });
-      }
-
-
-
-
-
-      for (const availableJob of availableJobs) {
-        const facility = await this.FacilityModel.findByPk(
-          availableJob.facility_id
-        );
-        if (facility == null) continue;
-        const facilityLocation = await this.FacilityLocationModel.findByPk(
-          facility.id
-        );
-        if (facilityLocation == null) continue;
-        const coodinates = await this.CoordinatesModel.findByPk(
-          facilityLocation.coordinates_id
-        );
-        const relatedSchedules = await this.ScheduleModel.findAll({
-          where: {
-            job_id: availableJob.id,
-          },
-        });
-        const assignedStaffs = await this.AssignedStaffsModel.findAll({
-          where: {
-            job_id: availableJob.id,
-          },
-        });
-        const customer = await this.CustomerModel.findByPk(
-          availableJob.customer_id
-        );
-        
-        const jobRes = {
-          id: availableJob.id,
-          description: availableJob.description,
-          client_charge: availableJob.client_charge,
-          staff_payment: availableJob.staff_charge,
-          status: availableJob.job_status,
-          customer: {
-            id: availableJob.customer_id,
-            full_name: `${customer?.first_name} ${customer?.last_name}`,
-            first_name: customer?.first_name,
-            last_name: customer?.last_name,
-            email: customer?.email,
-          },
-          facility: {
-            id: facility.id,
-            name: facility.name,
-            location: {
-              address: facilityLocation.address,
-              latitude: coodinates.latitude,
-              longitude: coodinates.longitude,
-            },
-          },
-          schedule: [],
-          assigned_staffs: [],
-        };
-        const scheduleRes = [];
-        const staffsRes = [];
-        for (const relatedSchedule of relatedSchedules) {
-          scheduleRes.push({
-            id: relatedSchedule.id,
-            start_time: relatedSchedule.start_time,
-            end_time: relatedSchedule.end_time,
-            check_in_date: relatedSchedule.check_in_date,
-            schedule_length: relatedSchedule.schedule_length,
-          });
-        }
-        for (const assignment of assignedStaffs) {
-          const staff = await this.UserModel.findByPk(assignment.staff_id);
-          staffsRes.push({
-            id: staff.id,
-            first_name: staff.first_name,
-            last_name: staff.last_name,
-            email: staff.email,
-            gender: staff.gender,
-            assignment: {
-              id: assignment.id,
-              accept: assignment.accept_assignment,
-            },
-          });
-        }
-        jobRes.assigned_staffs = staffsRes;
-        jobRes.schedule = scheduleRes;
-        jobs.push(jobRes);
-      }
-      
-      return jobs;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
-
-
-
-  }
-  */
+  
   
   async deleteJob(data: any): Promise<any> {
     try {
@@ -474,6 +330,37 @@ class UserService {
     }
   }
 
+  
+
+
+
+  async updateMaxCheckInTime(data: any): Promise<any> {
+    try {
+      const {
+        guard_id,
+        shedule_id,
+        max_check_in_time
+      } = await jobUtil.verifyUpdateMaxCheckInTime.validateAsync(data);
+
+
+
+      let schedule=await this.ScheduleModel.update({max_check_in_time},{
+        where: {[Op.and]: 
+          [
+            {guard_id},
+            {id:shedule_id}
+          ]}
+      })
+      console.log(schedule)
+   
+       
+      
+    } catch (error) {
+      console.log(error);
+      throw new SystemError(error.toString());
+    }
+  }
+
 
   async sheduleDate(data: any): Promise<any> {
     try {
@@ -509,7 +396,9 @@ class UserService {
                 let dateNowFormatted1 = newDate.format('YYYY-MM-DD');
                 let dateNowFormatted2 = newDate2.format('YYYY-MM-DD');
 
-                let myNewDateIn= moment(new Date(obj.check_in_date));
+
+
+                let myNewDateIn=new Date( moment(new Date(obj.check_in_date)).format('YYYY-MM-DD hh:mm:ss a'));
                 let myNewDateOut= moment(new Date(obj.check_out_date));
                // let myNewDateFormatted1 = newDate.format('YYYY-MM-DD hh:mm:ss a');
                 //let myNewDateOutFormatted1 = newDate2.format('YYYY-MM-DD hh:mm:ss a')
@@ -528,6 +417,9 @@ class UserService {
 
 
 //THIS CODE PREVENT DATE TANGLE MENT   ONE DATE FALLING INSIDE ANOTHE DATE
+
+
+console.log(myNewDateIn)
                 const foundItemS =await   this.ScheduleModel.findOne(
                   {
                     where: {[Op.and]: 
@@ -538,8 +430,14 @@ class UserService {
                       ]}
                   }
                 )
+
+                console.log("========================")
+
+                console.log(foundItemS)
+                console.log("=============---------------===========")
+
                 if(foundItemS){
-                  break 
+                  continue 
                 }
 
                 const foundItemS2 =await   this.ScheduleModel.findOne(
@@ -553,11 +451,11 @@ class UserService {
                   }
                 )
                 if(foundItemS2){
-                  break 
+                  continue 
                 }
 
                 if((dateNowFormatted1==dateNowFormatted3)&&(dateNowFormatted2==dateNowFormatted4)&&(obj.guard_id==obj2.guard_id)){
-                  break;
+                  continue;
                 }
               
                 if(j==myShedule.length-1){
@@ -591,6 +489,8 @@ class UserService {
       throw new SystemError(error.toString());
     }
   }
+
+
   async createJob(data: any): Promise<any> {
     try {
       const {
@@ -706,9 +606,193 @@ class UserService {
     
   }
 
+  
+  async getLogPerGuard(obj) {
+    var { job_id,
+      guard_id
+    }
+  
+    =  await jobUtil.verifyGetLogPerGuard.validateAsync(obj);
+      
+    
+    const  foundJL =await  this.JobLogsModel.findAll(
+      {
+        where: {[Op.and]: 
+           [
+             {job_id},
+             {guard_id}
+           ]}
+      }
+    )
+
+    let myLog=[]     
+   if(foundJL.length!=0){
+        for(let i=0;i<foundJL.length;i++ ){
+
+            let obj={}
+
+            let latLon =await  this.CoordinatesModel.findOne(
+              {
+                where: {id:foundJL[i].coordinates_id }
+              }
+            )
+
+
+          obj["check_in_date"]= await this.getDateOnly(foundJL[i].check_in_date) 
+          obj["check_out_date"]=foundJL[i].check_out_date ? await this.getDateOnly(foundJL[i].check_out_date) :'empty'
+          obj["check_in_time"]=foundJL[i].check_in_time ?  foundJL[i].check_in_time:"empty"
+          obj["check_out_time"]=foundJL[i].check_out_time  ?  foundJL[i].check_out_time:"empty"
+          obj["log_id"]=foundJL[i].id
+          obj["job_id"]=job_id
+          obj["guard_id"]=guard_id
+
+
+          if((foundJL[i].check_in_status==true)&&(true==foundJL[i].check_out_status)){
+            obj["hours"]= await this.calculateHoursSetToWork( foundJL[i].check_out_date, foundJL[i].check_in_date)
+          }
+          else{
+            obj["hours"]= 0
+          }
+          obj["location_message"]= foundJL[i].message
+          obj["lat"]= latLon.latitude
+          obj["log"]= latLon.longitude
+         
+
+
+          myLog.push(obj)
+
+          if(i==foundJL.length-1){
+            return myLog
+          }
+        }
+   }
+   else{
+    return []
+   }
+
+
+
+      
+  }
+  
+
+
+
 
   
+  async getShiftPerGuard(obj) {
+    var { job_id,
+      guard_id
+    }
   
+    =  await jobUtil.verifyGetShiftPerGuard.validateAsync(obj);
+      
+    
+    const  foundS =await  this.ScheduleModel.findAll(
+      {
+        where: {[Op.and]: 
+           [
+             {job_id},
+             {guard_id}
+           ]}
+     }
+    )
+
+    let all_shift=[]     
+   if(foundS.length!=0){
+        for(let i=0;i<foundS.length;i++ ){
+
+          let obj={}
+
+
+          const foundJ = await this.JobModel.findOne({
+             where: { id:foundS[i].job_id} });
+
+          const foundF = await this.FacilityModel.findOne({
+          where: { id:foundJ.facility_id} });
+
+          const foundC = await this.CustomerModel.findOne({
+            where: { id:foundJ.customer_id} });
+
+
+          const  foundJL=await  this.JobLogsModel.findOne({
+             where: {[Op.and]: 
+                [{project_check_in_date:foundS[i].check_in_date},
+                  {job_id:foundS[i].job_id},
+                  {guard_id:foundS[i].guard_id},
+                {check_in_status:true}
+                ]}
+          })
+
+          //obj["first_name"]= await this.getDateOnly(foundS[i].check_in_date) 
+          //obj["last_name"]=await this.getDateOnly(foundS[i].check_out_date) 
+
+          let name=await this.getSingleGuardDetail(foundS[i].guard_id)
+          let hours=await this.calculateHoursSetToWork(foundS[i].check_in_date ,foundS[i].check_out_date)
+          
+      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkooooooooooo")
+
+      console.log(hours)
+
+
+          obj["start_date"]= await this.getDateOnly(foundS[i].check_in_date) 
+          obj["end_date"]=await this.getDateOnly(foundS[i].check_out_date) 
+          obj["start_time"]=foundS[i].start_time
+          obj["end_time"]=foundS[i].end_time
+          obj["hours"]= await this.calculateHoursSetToWork( foundS[i].check_out_date, foundS[i].check_in_date)
+          obj["First_name"]= name["first_name"]
+          obj["last_name"]= name["last_name"]
+          obj["customer"]= foundC.first_name
+          obj["site"]= foundF.name
+          obj["guard_charge"]= foundF.guard_charge
+          obj["guard_id"]= foundS[i].guard_id
+          obj["client_charge"]= foundF.client_charge
+
+
+
+          console.log("=================================")
+          console.log(foundJL)
+          console.log("=================================")
+
+
+          if(foundJL){
+            if(foundJL.check_out_status==true){
+              obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
+              obj["check_out"]=await this.getDateAndTime(foundJL.check_out_date) 
+              obj["hours_worked"]=foundJL.hours_worked
+              obj["earned"]= (foundJL.hours_worked*foundF.client_charge).toFixed(2)
+            }
+            else{
+
+              obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
+              obj["check_out"]="empty" 
+              obj["hours_worked"]=0
+              obj["earned"]= 0
+            }
+          
+          }
+          else{
+            obj["check_in"]="none"
+            obj["check_out"]="none"
+            obj["hours_worked"]=0
+            obj["earned"]= 0
+          }
+                
+
+          all_shift.push(obj)
+        if(i==foundS.length-1){
+          return all_shift
+        }
+      }
+   }
+   else{
+    return []
+   }
+
+
+
+      
+  }
 
   async getGeneralShift(obj) {
     var { job_id,
@@ -767,6 +851,7 @@ class UserService {
           obj["customer"]= foundC.first_name
           obj["site"]= foundF.name
           obj["guard_charge"]= foundF.guard_charge
+          obj["guard_id"]= foundS[i].guard_id
           obj["client_charge"]= foundF.client_charge
 
 
@@ -781,7 +866,7 @@ class UserService {
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
               obj["check_out"]=await this.getDateAndTime(foundJL.check_out_date) 
               obj["hours_worked"]=foundJL.hours_worked
-              obj["earned"]= foundJL.hours_worked*foundF.client_charge
+              obj["earned"]= (foundJL.hours_worked*foundF.client_charge).toFixed(2)
             }
             else{
 
@@ -846,8 +931,8 @@ class UserService {
             start_time:foundS[i].start_time,
             check_out_date:await this.getDateOnly(foundS[i].check_out_date) ,
             end_time:foundS[i].end_time,
-            hours:await this.calculateHoursSetToWork(foundS[i].check_in_date,foundS[i].check_out_date),
-
+            hours:await this.calculateHoursSetToWork(foundS[i].check_out_date,foundS[i].check_in_date),
+            shedule_id:foundS[i].id
           }
           all_shedule.push(obj)
           
@@ -915,6 +1000,62 @@ class UserService {
       
   }
   
+  
+
+  
+
+  async settleSingleShift(obj) {
+    var { 
+      schedule_id
+    }
+  
+    =  await jobUtil.verifySettleSingleShift.validateAsync(obj);
+      
+
+
+    let foundS=await  this.ScheduleModel.findOne({
+      where: {id:schedule_id}
+    })
+
+    await  this.ScheduleModel.update({settlement_status:!foundS.settlement_status},{
+      where: {id:schedule_id}
+    })
+
+
+    console.log(foundS)
+
+
+  }
+  
+
+  async updateJobStatus(obj) {
+    var { job_id,
+      status_value
+    }
+  
+    =  await jobUtil.verifyUpdateJobStatus.validateAsync(obj);
+      
+      
+    await  this.JobModel.update({job_status:status_value},{
+      where: {id:job_id}
+    })
+
+
+
+  }
+
+  async RemoveGuardSheduleLog(obj) {
+    var { log_id
+    }
+  
+    =  await jobUtil.verifyRemoveGuardSheduleLog.validateAsync(obj);
+      
+      
+     const item1 =await  this.JobLogsModel.destroy({
+      where: {id:log_id}
+    })
+  }
+
   async RemoveGuardShedule(obj) {
     var { job_id,
       guard_id,
@@ -939,6 +1080,193 @@ class UserService {
     })
 
 
+
+
+      
+  }
+
+  
+  
+  async checkInCheckOutAdmin(obj) {
+    var { 
+      shedule_id,
+       check_in, 
+       latitude, 
+       longitude,
+       job_id,
+       date,
+       guard_id
+      }
+  
+    =  await jobUtil.verifyCheckInCheckOutAdmin.validateAsync(obj);
+     // console.log(latitude, longitude )
+      let time = moment(date).format('hh:mm:ss a')
+    
+        
+     const foundItemS =await  this.ScheduleModel.findOne(
+                  { where: {id:shedule_id } })
+
+      if(foundItemS){
+        const foundItemJL =await   this.JobLogsModel.findOne(
+          {
+            where: {[Op.and]: 
+              [{project_check_in_date: {[Op.eq]: foundItemS.check_in_date} },
+              {job_id},
+              {guard_id }, 
+              {check_in_status:true}
+              ]}
+          }
+        )
+        if(foundItemJL){
+
+
+
+          if(check_in){
+                        
+            const foundItemS2 =await   this.ScheduleModel.findOne(
+              {
+                where: {[Op.and]: 
+                  [{check_in_date: {[Op.lte]: date} },
+                  {check_out_date: {[Op.gt]: date} },
+                  {job_id},
+                  {guard_id }
+                  ]}
+              }
+            )
+
+              if(foundItemS2){
+
+                  if(await this.isBefore(date ,foundItemJL.check_out_date)){
+                              
+                    let obj={
+                      check_in_time:time,
+                      check_in_date:date,
+                      check_in_status:true
+                    }
+                              
+                  
+
+                    this.JobLogsModel.update(obj,{
+                    where:{id:foundItemJL.id}})
+  
+
+                }
+                else{
+                  throw new ConflictError("cant use date ")
+                }
+
+              }
+              else{
+                  throw new ConflictError("cant use date ")
+              }
+          }
+          else{
+                       
+            const foundItemS2 =await   this.ScheduleModel.findOne(
+              {
+                where: {[Op.and]: 
+                  [{check_in_date: {[Op.lte]: date} },
+                  {check_out_date: {[Op.gte]: date} },
+                  {job_id},
+                  {guard_id }
+                  ]}
+              }
+            )
+
+            if(foundItemS2){
+
+                if(await this.isAfter(date ,foundItemJL.check_in_date)){
+                              
+              
+                    let obj={
+                      check_out_time:time,
+                      check_out_date:date,
+                      check_out_status:true
+                    }
+                              
+                    this.JobLogsModel.update(obj,{
+                    where:{id:foundItemJL.id}})
+
+                }
+                else{
+                  throw new ConflictError("cant use date ")
+                }
+            }
+            else{
+              throw new ConflictError("cant use date ")
+
+            }
+
+
+
+
+
+
+          }
+     
+        }
+        else{
+
+          
+          if(check_in){
+                        
+            const foundItemS2 =await   this.ScheduleModel.findOne(
+              {
+                where: {[Op.and]: 
+                  [{check_in_date: {[Op.lte]: date} },
+                  {check_out_date: {[Op.gt]: date} },
+                  {job_id},
+                  {guard_id }
+                  ]}
+              }
+            )
+
+              if(foundItemS2){
+                          
+
+                let coordinates_res=await this.CoordinatesModel.create({
+                  longitude,
+                  latitude
+                })
+      
+      
+                let obj={
+                  message:"in location",
+                  check_in_time:time,
+                  check_in_status:true,
+                  job_id,
+                  guard_id,
+                  coordinates_id:coordinates_res.id,
+                  check_in_date:date,
+                  project_check_in_date:foundItemS.check_in_date
+                }
+      
+                this.JobLogsModel.create(obj).then((myRes)=>{
+                  console.log(myRes)
+                })
+
+
+              }
+              else{
+                  throw new ConflictError("cant use date ")
+              }
+          }
+          else{
+                       
+            throw new ConflictError("you have not check in ")
+
+          }
+
+        }
+
+
+
+      }
+      else{
+
+      }
+
+        
 
 
       
@@ -1115,9 +1443,6 @@ class UserService {
             }
           )
 
-          console.log(foundItemS)
-
-
           if(foundItemS){
 
             const foundItemJL =await   this.JobLogsModel.findOne(
@@ -1147,14 +1472,11 @@ class UserService {
                       storedDate='2022-01-10 11:40:00 pm'*/
 
                                   
-                      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkk")
-
                     let my_job_H_worked=await this.calculateHoursSetToWork(my_date_now_check_out,my_log_date_check_in )
-                    console.log(my_job_H_worked)
 
                     
-                    if(this.timePositionForCheckOut(my_date_now_check_out ,my_shedule_date_check_out)){
-                      my_job_H_worked=await this.calculateHoursSetToWork(my_date_now_check_out, my_log_date_check_in)
+                     if(this.timePositionForCheckOut(my_date_now_check_out ,my_shedule_date_check_out)){
+                       my_job_H_worked=await this.calculateHoursSetToWork(my_date_now_check_out, my_log_date_check_in)
   
                         let obj={
                           check_out_time:time,
@@ -1211,18 +1533,36 @@ class UserService {
           latitude
         })
 
-        let obj={
-          message:"not in location",
-          check_in_time:time,
-          check_in_status:false,
-          job_id,
-          guard_id,
-          coordinates_id:coordinates_res.id,
-          check_in_date: date,
-          project_check_in_date:date
+
+        if(check_in){
+          let obj={
+            message:"not in location",
+            check_in_time:time,
+            check_in_status:false,
+            job_id,
+            guard_id,
+            coordinates_id:coordinates_res.id,
+            check_in_date: date,
+            project_check_in_date:date
+          }
+          await this.JobLogsModel.create(obj)
+          throw new LocationError( "You are not in location" );
         }
-        await this.JobLogsModel.create(obj)
-        throw new LocationError( "You are not in location" );
+        else{
+          let obj={
+            message:"not in location",
+            check_out_time:time,
+            check_out_status:false,
+            job_id,
+            guard_id,
+            coordinates_id:coordinates_res.id,
+            check_out_date: date,
+            project_check_in_date:date
+          }
+          await this.JobLogsModel.create(obj)
+          throw new LocationError( "You are not in location" );
+        }
+       
       }
 
 
@@ -1261,6 +1601,30 @@ class UserService {
 
   }
 
+
+  
+  async isAfter(val1 ,val2){
+
+    let startTime1 =moment(new Date(val1)  ,'YYYY-MM-DD HH:mm:ss a');
+    let startTime2 = moment(new Date(val2)  ,'YYYY-MM-DD HH:mm:ss a');
+
+    return startTime1.isAfter(startTime2)
+
+  
+  }
+
+  async isBefore(val1 ,val2){
+
+    let startTime1 =moment(new Date(val1)  ,'YYYY-MM-DD HH:mm:ss a');
+    let startTime2 = moment(new Date(val2)  ,'YYYY-MM-DD HH:mm:ss a');
+
+    return startTime1.isBefore(startTime2)
+
+  
+  }
+
+  
+
 /*
   timePositionForCheckIn(val ,val2){
     
@@ -1292,10 +1656,10 @@ class UserService {
     console.log(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude))
 
     if(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude)>objLatLog.radius){
-      return true
+      return false
     }
     else{
-      return true
+      return false
     }
 
 

@@ -19,8 +19,9 @@ class Staff
   declare image?: CreationOptional<string>;
   declare first_name: string;
   declare last_name: string;
+  declare availability:string;
   declare email: string;
-  declare tel: number;
+  declare phone_number: number;
   declare password: CreationOptional<string>;
   declare date_of_birth: Date;
   declare gender: GenderTypes;
@@ -47,7 +48,7 @@ export function init(connection: Sequelize) {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      tel: {
+      phone_number: {
         type: DataTypes.NUMBER,
         allowNull: false,
       },
@@ -80,6 +81,10 @@ export function init(connection: Sequelize) {
       location_id: {
         type: DataTypes.STRING,
         allowNull: true,
+      },
+      availability:{
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
       },
       created_at: {
         type: DataTypes.DATE,
