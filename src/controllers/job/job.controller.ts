@@ -6,7 +6,66 @@ export default class JobController {
 
   
 
-  protected async settleSingleShift(
+
+
+
+
+
+
+
+
+  
+  protected async getAllUnsettleShiftOneGuard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      
+      const obj = await jobService.getAllUnsettleShiftOneGuard(data);
+      
+      return res.status(200).json({
+        status: 200,
+        message: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+
+
+  protected async getGeneralUnsettleShift(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const myData={
+        limit:Number(req.query.limit),
+        offset:Number(req.query.offset),
+        settlement:req.query.settlement
+      }
+
+      const obj = await jobService.getGeneralUnsettleShift(myData);
+      
+      return res.status(200).json({
+        status: 200,
+        message: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async settleShift(
     req: Request,
     res: Response,
     next: NextFunction
@@ -17,7 +76,7 @@ export default class JobController {
       //REMOVE THIS AFTER TEST
       req.user = req.body.guard_id;
 
-      const obj = await jobService.settleSingleShift(data);
+      const obj = await jobService.settleShift(data);
       
       return res.status(200).json({
         status: 200,

@@ -20,6 +20,7 @@ class JobLogs
   declare check_out_status:boolean;
   declare job_id: number;
   declare guard_id: number;
+  declare schedule_id:number;
   declare check_in_status:boolean;
   declare hours_worked:number;
   declare check_in_date:Date;
@@ -62,6 +63,10 @@ export function init(connection: Sequelize) {
         allowNull: false,
       },
       guard_id: {
+        type: DataTypes.NUMBER,
+        allowNull: false,
+      },
+      schedule_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
       },

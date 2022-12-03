@@ -14,4 +14,5 @@ export interface IJobLogs {
   check_in_date:Date;
   check_out_date:Date;
   project_check_in_date:Date;
+  schedule_id:number
 }

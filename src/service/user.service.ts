@@ -74,7 +74,7 @@ async toggleVisibilty(data: any) {
         where: {
           role: {
             [Op.eq]: "ADMIN",
-          },
+          }, 
         },
         include: {
           model: Location,

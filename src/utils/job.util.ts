@@ -34,10 +34,15 @@ class JobUtil {
   });
 
 
-  
-  public verifySettleSingleShift = Joi.object().keys({
+  public verifyGetAllUnsettleShiftOneGuard = Joi.object().keys({
+    guard_id: Joi.number().required(),
+    settlement:Joi.boolean().required()
+  });
+
+
+  public verifySettleShift = Joi.object().keys({
    
-    schedule_id: Joi.number().required(),
+    schedule_id: Joi.array().required(),
 
 });
   
