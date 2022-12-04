@@ -38,6 +38,34 @@ export default class JobController {
 
 
 
+  
+
+  protected async getGuard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+
+      const obj = await jobService.getGuard(req);
+      
+      return res.status(200).json({
+        status: 200,
+        message: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+
+
+
+
 
   protected async getGeneralUnsettleShift(
     req: Request,
@@ -140,7 +168,7 @@ export default class JobController {
       
       return res.status(200).json({
         status: 200,
-        message: obj,
+        data: obj,
       });
       
     } catch (error) {
@@ -221,7 +249,7 @@ export default class JobController {
       
       return res.status(200).json({
         status: 200,
-        message: obj,
+        data: obj,
       });
       
     } catch (error) {
@@ -246,7 +274,7 @@ export default class JobController {
       
       return res.status(200).json({
         status: 200,
-        message: obj,
+        data: obj,
       });
       
     } catch (error) {

@@ -109,6 +109,7 @@ class AuthenticationService {
       location_id: createdLocation.id,
       phone_number,
       role: "GUARD",
+      availability:true
     });
     var transfromedUserObj = await this.transformUserForResponse(user, createdLocation);
     await utilService.updateStat("GUARD_SIGNUP");

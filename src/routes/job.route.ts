@@ -32,6 +32,8 @@ class JobRoutes extends JobController {
     this.router.post("/updateJobStatus", this.updateJobStatus);
     this.router.post("/settleShift", this.settleShift);
     this.router.get("/getGeneralUnsettleShift", this.getGeneralUnsettleShift);
+    this.router.get("/getGuard", this.getGuard);
+
     this.router.post("/getAllUnsettleShiftOneGuard", this.getAllUnsettleShiftOneGuard);
 
 

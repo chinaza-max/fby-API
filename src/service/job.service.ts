@@ -214,12 +214,27 @@ class UserService {
 
       for (const availableJob of availableJobs) {
     
+        let foundC=await this.CustomerModel.findOne({
+          where:{
+            id:availableJob.customer_id
+          }
+        })
+        let foundF=await this.FacilityModel.findOne({
+          where:{
+            id:availableJob.facility_id
+          }
+        })
+
+
+
         const jobRes = {
           id: availableJob.id,
           description: availableJob.description,
           client_charge: availableJob.client_charge,
           staff_payment: availableJob.staff_charge,
           status: availableJob.job_status,
+          customer: foundC.first_name,
+          site: foundF.name,
           create:availableJob.created_at
         };
   
@@ -469,12 +484,15 @@ console.log(myNewDateIn)
                     //console.log(cleanShedule)
 
 
-                    await this.ScheduleModel.bulkCreate(cleanShedule);
+                  return  await this.ScheduleModel.bulkCreate(cleanShedule);
                   }else{
                     throw new DateSheduleError("no new shedule was created dublicate found");
 
                   }
               }
+            }
+            if(cleanShedule.length!=0){
+              await this.ScheduleModel.bulkCreate(cleanShedule);
             }
         }
         else{
@@ -697,7 +715,7 @@ console.log(myNewDateIn)
 
 
     let unSettledSucessfullShift=[]
-    if(foundS){
+    if(foundS.length!=0){
           for(let i=0; i<foundS.length; i++){
 
             let obj={}
@@ -988,7 +1006,9 @@ console.log(myNewDateIn)
       })
 
     let all_shedule=[]     
-   if(foundS){
+   if(foundS.length!=0){
+    console.log(foundS)
+
         for(let i=0;i<foundS.length;i++ ){
 
           let obj={
@@ -1007,6 +1027,7 @@ console.log(myNewDateIn)
       }
    }
    else{
+    console.log("jjjjjjjjjjjjjjjjj")
     return []
    }
 
@@ -1028,19 +1049,22 @@ console.log(myNewDateIn)
       })
 
     let all_guard_id=[]
-      
-
-
-
      
-   if(foundS){
+     console.log("lllllllllllllllllllllllll")
+     console.log(foundS.length)
+
+   if(foundS.length!=0){
+      let obj={}
         for(let i=0;i<foundS.length;i++ ){
 
           if(all_guard_id.includes(foundS[i].guard_id)){
-              continue
+              //continue
           }
           else{
+
+            console.log(foundS[i].guard_id)
             all_guard_id.push(foundS[i].guard_id)
+
           }
         if(i==foundS.length-1){
 
@@ -1055,13 +1079,15 @@ console.log(myNewDateIn)
               site
           }
 
+         
+
           return detail
         }
       }
    }
-
-
-
+   else{
+    return 
+   }
       
   }
   
@@ -1069,6 +1095,69 @@ console.log(myNewDateIn)
 
   
 
+
+
+
+  
+  async getGuard(obj) {
+
+
+    let foundG=await  this.UserModel.findAll({
+      where: {availability:true}
+    })
+
+   
+    let availabLeGuard=[]
+    if(foundG.length!=0){
+
+
+      let foundJ= await this.JobModel.findAll({where:{job_status:"ACTIVE"}})
+
+
+          for(let i=0; i<foundG.length; i++){
+
+            let obj={}
+            for(let j=0; j<foundJ.length; j++){
+
+                  
+              let foundS= await this.ScheduleModel.findOne({
+                
+                where: {[Op.and]: 
+                  [
+                    {guard_id:foundG[i].id},
+                  {job_id:foundJ[j].id }
+                  ]}
+              })
+
+
+              if(foundS){
+                break;
+              }
+
+              if(j==foundJ.length-1){
+
+                let name =await this.getSingleGuardDetail(foundG[i].id)
+
+                obj["guard_id"]=foundG[i].id
+                obj["full_name"]=name["first_name"]+" "+name["last_name"]
+                availabLeGuard.push(obj)
+
+              }
+
+            }
+
+            if(i==foundG.length-1){
+              return  availabLeGuard
+
+
+            }
+          }
+    }
+    else{
+      return "NO GUARD AVAILABLE"
+    }
+
+  }
 
   
   async getGeneralUnsettleShift(obj) {
@@ -1083,7 +1172,7 @@ console.log(myNewDateIn)
 
    
     let unSettledSucessfullShift=[]
-    if(foundS){
+    if(foundS.length!=0){
 
         
      
@@ -1119,7 +1208,7 @@ console.log(myNewDateIn)
 
             }
             else{
-              continue;
+              //continue;
             }
 
             if(i==foundS.length-1){
@@ -2132,12 +2221,13 @@ async combineUnsettleShift(val){
     let init2 = moment(from).format('YYYY-MM-DD hh:mm:ss a');
     let now2 = moment(to).format('YYYY-MM-DD hh:mm:ss a')
   
+    console.log(init2)
+    console.log(now2)
 
     let init = moment(from, 'YYYY-MM-DD hh:mm:ss a');
     let now = moment(to, 'YYYY-MM-DD hh:mm:ss a');
 
    
-  
       // calculate total duration
       let duration = moment.duration(now.diff(init));
       // duration in hours
@@ -2145,6 +2235,8 @@ async combineUnsettleShift(val){
       console.log("k+========================")
 
     console.log(hours)
+    console.log(Number(hours.toFixed(2)) )
+
       return Number(hours.toFixed(2)) 
   }
 
