@@ -26,7 +26,7 @@ class JobRoutes extends JobController {
     this.router.get("/allJobs", this.getAllJobs);
     this.router.post("/allJobs/guard", this.getGuardPerJob);
     this.router.post("/allJobs/oneShedulePerGuard", this.getOneShedulePerGuard);
-    this.router.post("/allJobs/generalshift", this.getGeneralShift);
+    this.router.get("/allJobs/generalshift", this.getGeneralShift);
     this.router.post("/allJobs/shiftPerGuard", this.getShiftPerGuard);
     this.router.post("/allJobs/logPerGuard", this.getLogPerGuard);
     this.router.post("/updateJobStatus", this.updateJobStatus);

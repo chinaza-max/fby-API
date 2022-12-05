@@ -993,12 +993,13 @@ console.log(myNewDateIn)
   }
 
   async getGeneralShift(obj) {
+    /*
     var { job_id,
       guard_id
     }
   
     =  await jobUtil.verifyGetgetGeneralShift.validateAsync(obj);
-      
+     */ 
     
     const  foundS =await  this.ScheduleModel.findAll()
 
@@ -1012,8 +1013,14 @@ console.log(myNewDateIn)
           const foundJ = await this.JobModel.findOne({
              where: { id:foundS[i].job_id} });
 
+
+          
           const foundF = await this.FacilityModel.findOne({
           where: { id:foundJ.facility_id} });
+
+
+     
+
 
           const foundC = await this.CustomerModel.findOne({
             where: { id:foundJ.customer_id} });
@@ -1048,9 +1055,10 @@ console.log(myNewDateIn)
           obj["last_name"]= name["last_name"]
           obj["customer"]= foundC.first_name
           obj["site"]= foundF.name
-          obj["guard_charge"]= foundF.guard_charge
+          obj["guard_charge"]= "$"+foundF.guard_charge
           obj["guard_id"]= foundS[i].guard_id
-          obj["client_charge"]= foundF.client_charge
+          obj["client_charge"]= "$"+foundF.client_charge
+          obj["job_status"]= foundJ.job_status
 
 
 
@@ -1064,14 +1072,14 @@ console.log(myNewDateIn)
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
               obj["check_out"]=await this.getDateAndTime(foundJL.check_out_date) 
               obj["hours_worked"]=foundJL.hours_worked
-              obj["earned"]= (foundJL.hours_worked*foundF.client_charge).toFixed(2)
+              obj["earned"]="$"+ (foundJL.hours_worked*foundF.client_charge).toFixed(2)
             }
             else{
 
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
               obj["check_out"]="empty" 
               obj["hours_worked"]=0
-              obj["earned"]= 0
+              obj["earned"]= "$"+0
             }
           
           }
@@ -1079,7 +1087,7 @@ console.log(myNewDateIn)
             obj["check_in"]="none"
             obj["check_out"]="none"
             obj["hours_worked"]=0
-            obj["earned"]= 0
+            obj["earned"]="$"+ 0
           }
                 
 
@@ -1146,9 +1154,6 @@ console.log(myNewDateIn)
     return []
    }
 
-
-
-      
   }
     
   async getGuardPerJob(obj) {
