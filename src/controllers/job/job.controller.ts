@@ -22,13 +22,25 @@ export default class JobController {
   ): Promise<Response> {
     try {
       const data = req.body;
+      const myData={
+        limit:Number(req.query.limit),
+        offset:Number(req.query.offset),
+      }
 
+
+      console.log("------------------------")
+
+      console.log(myData)
+      console.log("------------------------")
+
+
+  
       
-      const obj = await jobService.getAllUnsettleShiftOneGuard(data);
+      const obj = await jobService.getAllUnsettleShiftOneGuard(data,myData);
       
       return res.status(200).json({
         status: 200,
-        message: obj,
+        data: obj,
       });
       
     } catch (error) {
@@ -85,7 +97,7 @@ export default class JobController {
       
       return res.status(200).json({
         status: 200,
-        message: obj,
+        data: obj,
       });
       
     } catch (error) {
@@ -99,12 +111,14 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const data = req.body;
+      const data =JSON.parse(req.body.schedule_id)
+      const data2 ={
+        schedule_id:data
+      }
 
-      //REMOVE THIS AFTER TEST
-      req.user = req.body.guard_id;
+      console.log(data2)
 
-      const obj = await jobService.settleShift(data);
+      const obj = await jobService.settleShift(data2);
       
       return res.status(200).json({
         status: 200,
