@@ -25,7 +25,7 @@ class AuthRoutes extends AuthController {
       this.resetPasswordEmail
     );
     this.router.post(
-      "/reset-password",
+      "/reset-password",  
       this.resetPassword
     );
 

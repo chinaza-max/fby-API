@@ -22,6 +22,7 @@ import ICustomer from "../../interfaces/customer.interface";
     declare password: CreationOptional<string>;
     declare date_of_birth: Date;
     declare gender: GenderTypes;
+    declare phone_number:number;
     declare location_id?: CreationOptional<number>;
     declare created_at: CreationOptional<Date>;
     declare updated_at: CreationOptional<Date>;
@@ -58,6 +59,10 @@ import ICustomer from "../../interfaces/customer.interface";
         },
         password: {
           type: DataTypes.STRING,
+          allowNull: true,
+        },
+        phone_number: {
+          type: DataTypes.NUMBER,
           allowNull: true,
         },
         date_of_birth: {

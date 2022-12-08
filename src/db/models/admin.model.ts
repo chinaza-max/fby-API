@@ -21,6 +21,7 @@ import IAdmin from "../../interfaces/admin.interface";
     declare first_name: string;
     declare last_name: string;
     declare availability:boolean;
+    declare suspended:boolean;
     declare phone_number: number;
     declare email: string;
     declare password: CreationOptional<string>;
@@ -39,7 +40,7 @@ import IAdmin from "../../interfaces/admin.interface";
   export function init(connection: Sequelize) {
     Admin.init(
       {
-        id: {
+        id:{
           type: DataTypes.INTEGER.UNSIGNED,
           autoIncrement: true,
           primaryKey: true,
@@ -66,6 +67,10 @@ import IAdmin from "../../interfaces/admin.interface";
         phone_number: {
           type: DataTypes.NUMBER,
           allowNull: false,
+        },
+        suspended: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
         },
         password: {
           type: DataTypes.STRING,

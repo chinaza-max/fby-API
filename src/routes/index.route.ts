@@ -18,7 +18,7 @@ class Routes {
   routes(): void {
     let rootAPI = "/api/v1";
     this.router.get("/").get(`${rootAPI}/`, (req: Request, res: Response) => {
-      return res.status(200).json({
+      return res.status(200).json({                                                                                                                                      
         status: 200,
         message: "Welcome to FBY Security API",
         data: {
@@ -27,6 +27,7 @@ class Routes {
         },
       });
     });
+
 
     this.router.use(`${rootAPI}/auth`, authRoute);
 

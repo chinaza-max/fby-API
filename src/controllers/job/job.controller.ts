@@ -51,6 +51,48 @@ export default class JobController {
 
 
   
+  
+  protected async getAllSite(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+
+      const obj = await jobService.getAllSite(req);
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async getAllGuard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+
+      const obj = await jobService.getAllGuard(req);
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
 
   protected async getGuard(
     req: Request,
@@ -61,11 +103,11 @@ export default class JobController {
       const data = req.body;
 
 
-      const obj = await jobService.getGuard(req);
+      const obj = await jobService.getGuard(data);
       
       return res.status(200).json({
         status: 200,
-        message: obj,
+        data: obj,
       });
       
     } catch (error) {
@@ -504,6 +546,7 @@ export default class JobController {
     try {
       const data = req.body;
 
+      console.log(data)
       const obj = await jobService.sheduleDate(data);
 
       return res.status(200).json({

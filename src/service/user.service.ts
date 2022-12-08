@@ -41,6 +41,16 @@ class UserService {
     // await user.update();
     return user;
   }
+  
+  async deleteStaff(id: any) {
+
+    await this.UserModel.destroy({
+      where:{
+        id
+      }
+    });
+
+}
 
 
 
@@ -97,6 +107,7 @@ async toggleVisibilty(data: any) {
           email: staff.email,
           date_of_birth: staff.date_of_birth,
           gender: staff.gender,
+          phone_number: staff.phone_number,
           address: (staff.location as any)?.address,
         };
         staffRes.push(staffData);
@@ -133,6 +144,7 @@ async toggleVisibilty(data: any) {
           email: staff.email,
           date_of_birth: staff.date_of_birth,
           gender: staff.gender,
+          phone_number: staff.phone_number,
           address: (staff.location as any)?.address,
         };
         staffRes.push(staffData);

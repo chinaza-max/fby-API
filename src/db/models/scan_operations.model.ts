@@ -18,7 +18,7 @@ import FacilityLocation from "./facility_location.model";
   export function init(connection: Sequelize) {
     ScanOperations.init(
       {
-        id: {
+        id:{
           type: DataTypes.INTEGER.UNSIGNED,
           autoIncrement: true,
           primaryKey: true,

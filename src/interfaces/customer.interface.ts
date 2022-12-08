@@ -14,4 +14,5 @@ export default interface ICustomer {
     updated_at?: Date;
     is_archived?: boolean;
     last_logged_in?: Date;
+    phone_number:number;
 }

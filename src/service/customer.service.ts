@@ -180,6 +180,7 @@ class CustomerService {
       gender,
       address,
       sites,
+      phone_number
     } = await customerUtil.verifyUserCreationData.validateAsync(data);
     var password = authService.generatePassword();
     let hashedPassword;
@@ -210,6 +211,7 @@ class CustomerService {
       gender,
       password: hashedPassword,
       location_id: createdLocation.id,
+      phone_number
     })
     
     console.log(sites);
@@ -477,6 +479,8 @@ class CustomerService {
             email: customer.email,
             gender: customer.gender,
             date_of_birth: customer.date_of_birth,
+            phone_number: customer.phone_number,
+
           };
           let sites = [];
           customer.facilities?.forEach((facility) => {

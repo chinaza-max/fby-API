@@ -9,10 +9,7 @@ import {
 import { IAgendaOperations } from "../../interfaces/agenda_operations.interface";
 
 class AgendaOperations
-  extends Model<
-    InferAttributes<AgendaOperations>,
-    InferCreationAttributes<AgendaOperations>
-  >
+  extends Model<InferAttributes<AgendaOperations>,InferCreationAttributes<AgendaOperations>>
   implements IAgendaOperations
 {
   declare id: CreationOptional<number>;
@@ -25,7 +22,7 @@ class AgendaOperations
 export function init(connection: Sequelize) {
   AgendaOperations.init(
     {
-      id: {
+      id:{
         type: DataTypes.INTEGER.UNSIGNED,
         autoIncrement: true,
         primaryKey: true,

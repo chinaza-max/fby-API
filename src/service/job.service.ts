@@ -1001,7 +1001,7 @@ console.log(myNewDateIn)
     =  await jobUtil.verifyGetgetGeneralShift.validateAsync(obj);
      */ 
     
-    const  foundS =await  this.ScheduleModel.findAll()
+    const  foundS =await  this.ScheduleModel.findAll({})
 
     let all_shift=[]     
    if(foundS.length!=0){
@@ -1041,9 +1041,6 @@ console.log(myNewDateIn)
           let name=await this.getSingleGuardDetail(foundS[i].guard_id)
           let hours=await this.calculateHoursSetToWork(foundS[i].check_in_date ,foundS[i].check_out_date)
           
-      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkooooooooooo")
-
-      console.log(hours)
 
 
           obj["start_date"]= await this.getDateOnly(foundS[i].check_in_date) 
@@ -1051,14 +1048,16 @@ console.log(myNewDateIn)
           obj["start_time"]=foundS[i].start_time
           obj["end_time"]=foundS[i].end_time
           obj["hours"]= await this.calculateHoursSetToWork( foundS[i].check_out_date, foundS[i].check_in_date)
-          obj["First_name"]= name["first_name"]
-          obj["last_name"]= name["last_name"]
-          obj["customer"]= foundC.first_name
+          obj["name"]= name["first_name"]+" "+name["last_name"]
+          obj["customer"]= foundC.first_name +" "+foundC.last_name
           obj["site"]= foundF.name
-          obj["guard_charge"]= "$"+foundF.guard_charge
+          obj["guard_charge"]= foundF.guard_charge
           obj["guard_id"]= foundS[i].guard_id
-          obj["client_charge"]= "$"+foundF.client_charge
+          obj["client_charge"]= foundF.client_charge
           obj["job_status"]= foundJ.job_status
+          obj["description"]= foundJ.description
+          obj["settlement_status"]=foundS[i].settlement_status
+
 
 
 
@@ -1072,14 +1071,14 @@ console.log(myNewDateIn)
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
               obj["check_out"]=await this.getDateAndTime(foundJL.check_out_date) 
               obj["hours_worked"]=foundJL.hours_worked
-              obj["earned"]="$"+ (foundJL.hours_worked*foundF.client_charge).toFixed(2)
+              obj["earned"]=(foundJL.hours_worked*foundF.client_charge).toFixed(2)
             }
             else{
 
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
               obj["check_out"]="empty" 
               obj["hours_worked"]=0
-              obj["earned"]= "$"+0
+              obj["earned"]= 0
             }
           
           }
@@ -1087,7 +1086,7 @@ console.log(myNewDateIn)
             obj["check_in"]="none"
             obj["check_out"]="none"
             obj["hours_worked"]=0
-            obj["earned"]="$"+ 0
+            obj["earned"]=0
           }
                 
 
@@ -1216,14 +1215,246 @@ console.log(myNewDateIn)
   
 
 
+  
+  
+  async getAllSite(obj) {
 
+
+    let foundF=await  this.FacilityModel.findAll()
+
+   
+    let availabLeGuard=[]
+    if(foundF.length!=0){
+
+          for(let i=0; i<foundF.length; i++){
+
+            let obj={}
+            obj["name"]=foundF[i].name
+            obj["guard"]=foundF[i].id
+
+            availabLeGuard.push(obj)
+
+
+            if(i==foundF.length-1){
+              return availabLeGuard
+            }
+             
+          }
+    }
+    else{
+      return []
+    }
+
+  }
+
+
+  async getAllGuard(obj) {
+
+
+    let foundG=await  this.UserModel.findAll({
+      where:{
+        role:'GUARD'
+      }
+    })
+
+   
+    let availabLeGuard=[]
+    if(foundG.length!=0){
+
+          for(let i=0; i<foundG.length; i++){
+
+            let obj={}
+            obj["name"]=foundG[i].first_name+" "+foundG[i].last_name
+            obj["guard"]=foundG[i].id
+
+            availabLeGuard.push(obj)
+
+
+            if(i==foundG.length-1){
+              return availabLeGuard
+            }
+             
+          }
+    }
+    else{
+      return []
+    }
+
+  }
 
   
   async getGuard(obj) {
 
 
+
+
+    let foundS= await  this.ScheduleModel.findAll({
+      where:{
+        job_id:obj.job_id
+      }
+    })
+
+    let arrayId=[]
+    let detail=[]
+
+    if(foundS.length!=0){
+      for(let i=0;i<foundS.length;i++){
+
+          if(arrayId.includes(foundS[i].guard_id)){
+
+          }
+          else{
+            arrayId.push(foundS[i].guard_id)
+          }
+        if(i==foundS.length-1){
+            //console.log(arrayId)
+            let foundG=await  this.UserModel.findAll({
+              where:
+              {[Op.and]: 
+                [
+                  {availability:true},
+                  {suspended:false},
+                {role:'GUARD'}
+                ]}
+            })
+
+
+            if(foundG.length!=0){
+
+              for(let j=0;j<foundG.length;j++){
+                            
+                  if(arrayId.includes(foundG[j].id)){
+
+                  }
+                  else{
+                    arrayId.push(foundG[j].id)
+                  }
+                
+                if(j==foundG.length-1){
+                  if(arrayId.length!=0){
+                    for(let i=0;i<arrayId.length;i++){
+                      let obj={}
+                    
+                      let name =await this.getSingleGuardDetail(arrayId[i])
+            
+                      obj["guard_id"]=arrayId[i]
+                      obj["full_name"]=name["first_name"]+" "+name["last_name"]
+                      detail.push(obj)
+            
+                      if(i==arrayId.length-1){
+                          return detail
+                      }
+                    }
+                   }
+                   else{
+                    return detail
+                  }
+                }
+              }
+            }
+            else{
+              if(arrayId.length!=0){
+                for(let i=0;i<arrayId.length;i++){
+                  let obj={}
+                
+                  let name =await this.getSingleGuardDetail(arrayId[i])
+        
+                  obj["guard_id"]=arrayId[i]
+                  obj["full_name"]=name["first_name"]+" "+name["last_name"]
+                  detail.push(obj)
+        
+                  if(i==arrayId.length-1){
+                      return detail
+                  }
+                }
+               }
+               else{
+                return detail
+              }
+            }
+        }
+      }
+    }
+    else{
+      let foundG=await  this.UserModel.findAll({
+        where:
+        {[Op.and]: 
+          [
+            {availability:true},
+            {suspended:false},
+          {role:'GUARD'}
+          ]}
+      })
+
+
+      if(foundG.length!=0){
+
+        for(let j=0;j<foundG.length;j++){
+                      
+            if(arrayId.includes(foundG[j].id)){
+
+            }
+            else{
+              arrayId.push(foundG[j].id)
+            }
+          
+          if(j==foundG.length-1){
+            
+            if(arrayId.length!=0){
+              for(let i=0;i<arrayId.length;i++){
+                let obj={}
+              
+                let name =await this.getSingleGuardDetail(arrayId[i])
+      
+                obj["guard_id"]=arrayId[i]
+                obj["full_name"]=name["first_name"]+" "+name["last_name"]
+                detail.push(obj)
+      
+                if(i==arrayId.length-1){
+                    return detail
+                }
+              }
+             }
+             else{
+              return detail
+            }
+          }
+        }
+      }
+      else{
+
+        if(arrayId.length!=0){
+          for(let i=0;i<arrayId.length;i++){
+            let obj={}
+          
+            let name =await this.getSingleGuardDetail(arrayId[i])
+  
+            obj["guard_id"]=arrayId[i]
+            obj["full_name"]=name["first_name"]+" "+name["last_name"]
+            detail.push(obj)
+  
+            if(i==arrayId.length-1){
+                return detail
+            }
+          }
+         }
+         else{
+          return detail
+        }
+      }
+    }
+
+    
+
+  /*
     let foundG=await  this.UserModel.findAll({
-      where: {availability:true}
+      where:
+      {[Op.and]: 
+        [
+          {availability:true},
+          {suspended:false},
+        {role:'GUARD'}
+        ]}
     })
 
    
@@ -1277,6 +1508,8 @@ console.log(myNewDateIn)
       return "NO GUARD AVAILABLE"
     }
 
+
+    */
   }
 
   
@@ -1706,17 +1939,20 @@ return ''
      const foundItemJob =await  this.JobModel.findOne(
       { where: {id:job_id } })
 
+
       const foundItemFac =await  this.FacilityModel.findOne(
         { where: {id:foundItemJob.facility_id } })
+
+      
       const foundItemFacLo =await  this.FacilityLocationModel.findOne(
         { where: {id:foundItemFac.facility_location_id } })
+        
       const foundItemCoor =await  this.CoordinatesModel.findOne(
         { where: {id:foundItemFacLo.coordinates_id } })
 
 
         let my_time_zone=foundItemFac.time_zone||"Africa/Lagos"||"America/Tijuana"
 
-        console.log("hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh")
 
           console.log(my_time_zone)
 
@@ -1726,12 +1962,6 @@ return ''
         let full_date=con_fig_time_zone.format('YYYY-MM-DD hh:mm:ss a')
 
 
-        console.log("start")
-        console.log(date)
-        console.log(time)
-        console.log("end")
-
-        
       let objLatLog={
         latitude:foundItemCoor.latitude,
         longitude:foundItemCoor.longitude,
@@ -2371,10 +2601,7 @@ async combineUnsettleShift(val){
       let duration = moment.duration(now.diff(init));
       // duration in hours
       let hours  : number = duration.asHours();
-      console.log("k+========================")
-
-    console.log(hours)
-    console.log(Number(hours.toFixed(2)) )
+      
 
       return Number(hours.toFixed(2)) 
   }

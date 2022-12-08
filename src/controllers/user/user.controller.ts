@@ -26,8 +26,25 @@ export default class UserController {
     }
   }
 
-
   
+  protected async deleteStaff(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+
+      const id=req.body.id
+      const users = await userService.deleteStaff(id);
+
+      return res.status(200).json({
+        status: 200,
+        message: "successfully deleted",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
   protected async toggleVisibilty(
     req: Request,
     res: Response,
@@ -46,6 +63,8 @@ export default class UserController {
       next(error);
     }
   }
+
+
 
 
 

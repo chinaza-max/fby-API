@@ -96,6 +96,8 @@ export default class CustomerController {
     try {
       const data = req.body;
 
+      console.log(data)
+      
       const obj = await customerService.handleCustomerCreation(data);
 
       try {
