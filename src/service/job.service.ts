@@ -387,121 +387,126 @@ class UserService {
       //GETTING ALL THE THE JOBS SPECIFIC TO THE SHEDULE
       let myShedule=await this.ScheduleModel.findAll({
           where: { job_id:date_time_staff_shedule[0].job_id }
-      });
+      })
 
-      console.log(myShedule)
 
-      //CHECK FOR DUBPLICATE
+     console.log( await this.checkIfDateAreApart(date_time_staff_shedule))
+        
+     if(await this.checkIfDateAreApart(date_time_staff_shedule)){
+         //CHECK FOR DUBPLICATE
       let cleanShedule=[]
 
-        if(myShedule.length!=0){
-          
-            for(let i=0;  i<date_time_staff_shedule.length; i++){
-              let obj=date_time_staff_shedule[i]
+      if(myShedule.length!=0){
+        
+          for(let i=0;  i<date_time_staff_shedule.length; i++){
+            let obj=date_time_staff_shedule[i]
 
-              for(let j=0;  j<myShedule.length; j++){
-                let obj2=myShedule[j]
-
-
-              //  console.log(moment(new Date(obj.check_in_date)).format('YYYY-MM-DD hh:mm:ss a'))
+            for(let j=0;  j<myShedule.length; j++){
+              let obj2=myShedule[j]
 
 
-                let newDate= moment(new Date(obj.check_in_date));
-                let newDate2= moment(new Date(obj.check_out_date));
-                let dateNowFormatted1 = newDate.format('YYYY-MM-DD');
-                let dateNowFormatted2 = newDate2.format('YYYY-MM-DD');
+            //  console.log(moment(new Date(obj.check_in_date)).format('YYYY-MM-DD hh:mm:ss a'))
 
 
-
-                let myNewDateIn=new Date( moment(new Date(obj.check_in_date)).format('YYYY-MM-DD hh:mm:ss a'));
-                let myNewDateOut= moment(new Date(obj.check_out_date));
-               // let myNewDateFormatted1 = newDate.format('YYYY-MM-DD hh:mm:ss a');
-                //let myNewDateOutFormatted1 = newDate2.format('YYYY-MM-DD hh:mm:ss a')
-
-                let oldDate= moment( new Date(obj2.check_in_date));
-                let oldDate2= moment( new Date(obj2.check_out_date));
-                let dateNowFormatted3 = oldDate.format('YYYY-MM-DD');
-                let dateNowFormatted4 = oldDate2.format('YYYY-MM-DD');
-                //console.log(dateNowFormatted2)
-
-                console.log("in : ",dateNowFormatted1,"out : ",dateNowFormatted2,"in : ",dateNowFormatted3 ,"out : ",dateNowFormatted4)
-                console.log((dateNowFormatted1==dateNowFormatted3)&&(dateNowFormatted2==dateNowFormatted4)&&(obj.guard_id==obj2.guard_id))
+              let newDate= moment(new Date(obj.check_in_date));
+              let newDate2= moment(new Date(obj.check_out_date));
+              let dateNowFormatted1 = newDate.format('YYYY-MM-DD');
+              let dateNowFormatted2 = newDate2.format('YYYY-MM-DD');
 
 
 
+              let myNewDateIn=new Date( moment(new Date(obj.check_in_date)).format('YYYY-MM-DD hh:mm:ss a'));
+              let myNewDateOut= moment(new Date(obj.check_out_date));
+             // let myNewDateFormatted1 = newDate.format('YYYY-MM-DD hh:mm:ss a');
+              //let myNewDateOutFormatted1 = newDate2.format('YYYY-MM-DD hh:mm:ss a')
+
+              let oldDate= moment( new Date(obj2.check_in_date));
+              let oldDate2= moment( new Date(obj2.check_out_date));
+              let dateNowFormatted3 = oldDate.format('YYYY-MM-DD');
+              let dateNowFormatted4 = oldDate2.format('YYYY-MM-DD');
+              //console.log(dateNowFormatted2)
+
+              console.log("in : ",dateNowFormatted1,"out : ",dateNowFormatted2,"in : ",dateNowFormatted3 ,"out : ",dateNowFormatted4)
+              console.log((dateNowFormatted1==dateNowFormatted3)&&(dateNowFormatted2==dateNowFormatted4)&&(obj.guard_id==obj2.guard_id))
 
 
-//THIS CODE PREVENT DATE TANGLE MENT   ONE DATE FALLING INSIDE ANOTHE DATE
+
+
+
+//THIS CODE PREVENT DATE ENTANGLE MENT   ONE DATE FALLING INSIDE ANOTHE DATE
 
 
 console.log(myNewDateIn)
-                const foundItemS =await   this.ScheduleModel.findOne(
-                  {
-                    where: {[Op.and]: 
-                      [{check_in_date: {[Op.lte]: myNewDateIn} },
-                      {check_out_date: {[Op.gte]: myNewDateIn} },
-                      {job_id:obj.job_id},
-                      {guard_id:obj.guard_id }
-                      ]}
-                  }
-                )
-
-                console.log("========================")
-
-                console.log(foundItemS)
-                console.log("=============---------------===========")
-
-                if(foundItemS){
-                  continue 
+              const foundItemS =await   this.ScheduleModel.findOne(
+                {
+                  where: {[Op.and]: 
+                    [{check_in_date: {[Op.lte]: myNewDateIn} },
+                    {check_out_date: {[Op.gte]: myNewDateIn} },
+                    {job_id:obj.job_id},
+                    {guard_id:obj.guard_id }
+                    ]}
                 }
+              )
 
-                const foundItemS2 =await   this.ScheduleModel.findOne(
-                  {
-                    where: {[Op.and]: 
-                      [{check_in_date: {[Op.lte]: myNewDateOut} },
-                      {check_out_date: {[Op.gte]: myNewDateOut} },
-                      {job_id:obj.job_id},
-                      {guard_id:obj.guard_id }
-                      ]}
-                  }
-                )
-                if(foundItemS2){
-                  continue 
-                }
+              console.log("========================")
 
-                if((dateNowFormatted1==dateNowFormatted3)&&(dateNowFormatted2==dateNowFormatted4)&&(obj.guard_id==obj2.guard_id)){
-                  continue;
-                }
-              
-                if(j==myShedule.length-1){
-                  date_time_staff_shedule[i].status_per_staff=myShedule[0].status_per_staff
-                  cleanShedule.push(date_time_staff_shedule[i])
-                }
+              console.log(foundItemS)
+              console.log("=============---------------===========")
+
+              if(foundItemS){
+                continue 
               }
-              if(i==date_time_staff_shedule.length-1){
-                  if(cleanShedule.length!=0){
-                    console.log("ooooooooooooooooooooooooooooo")
-                    //console.log(cleanShedule)
 
+              const foundItemS2 =await   this.ScheduleModel.findOne(
+                {
+                  where: {[Op.and]: 
+                    [{check_in_date: {[Op.lte]: myNewDateOut} },
+                    {check_out_date: {[Op.gte]: myNewDateOut} },
+                    {job_id:obj.job_id},
+                    {guard_id:obj.guard_id }
+                    ]}
+                }
+              )
+              if(foundItemS2){
+                continue 
+              }
 
-                  return  await this.ScheduleModel.bulkCreate(cleanShedule);
-                  }else{
-                    throw new DateSheduleError("no new shedule was created dublicate found");
-
-                  }
+              if((dateNowFormatted1==dateNowFormatted3)&&(dateNowFormatted2==dateNowFormatted4)&&(obj.guard_id==obj2.guard_id)){
+                continue;
+              }
+            
+              if(j==myShedule.length-1){
+                date_time_staff_shedule[i].status_per_staff=myShedule[0].status_per_staff
+                cleanShedule.push(date_time_staff_shedule[i])
               }
             }
-            if(cleanShedule.length!=0){
-              await this.ScheduleModel.bulkCreate(cleanShedule);
-            }
-        }
-        else{
-          console.log(date_time_staff_shedule)
+            if(i==date_time_staff_shedule.length-1){
+                if(cleanShedule.length!=0){
+                  console.log("ooooooooooooooooooooooooooooo")
+                  //console.log(cleanShedule)
 
-          await this.ScheduleModel.bulkCreate(date_time_staff_shedule);
-        }
-       
-      
+
+                return  await this.ScheduleModel.bulkCreate(cleanShedule);
+                }else{
+                  throw new DateSheduleError("no new shedule was created dublicate found");
+
+                }
+            }
+          }
+          if(cleanShedule.length!=0){
+            await this.ScheduleModel.bulkCreate(cleanShedule);
+          }
+      }
+      else{
+        console.log(date_time_staff_shedule)
+
+        await this.ScheduleModel.bulkCreate(date_time_staff_shedule);
+      }
+     
+    
+     }
+ 
+     
     } catch (error) {
       console.log(error);
       throw new SystemError(error.toString());
@@ -1591,68 +1596,6 @@ console.log(myNewDateIn)
 
 
 
-/*
-  async getAllUnsettleShiftOneGuard(obj) {
-
-    var { 
-      guard_id,
-      settlement
-    }
-    =  await jobUtil.verifyGetAllUnsettleShiftOneGuard.validateAsync(obj);
-      
-    let foundS=await this.ScheduleModel.findAll(
-      {
-        where: {[Op.and]: [{guard_id },
-        {settlement_status:settlement}]}
-      }
-    );
-
-    console.log("llllllllllllllllllllll")
-return ''
-    let unSettledSucessfullShift=[]
-    if(foundS){
-          for(let i=0; i<foundS.length; i++){
-
-            let obj={}
-              //JUST FOR GETTING THE CHARGE PER JOB
-            let foundJ=    await this.JobModel.findOne({where:{id: foundS[i].job_id}})
-              
-            let foundJL=    await this.JobLogsModel.findOne({
-              where: {[Op.and]: 
-                [{check_in_status:true},
-                  {project_check_in_date:foundS[i].check_in_date},
-                {check_out_status:true }
-                ]}
-            })
-
-            if(foundJL){
-              let my_guard_info=  await this.getSingleGuardDetail(foundS[i].guard_id)
-
-              obj["hours_worked"]=foundJL.hours_worked
-              obj["amount"]=foundJL.hours_worked*foundJ.staff_charge
-              obj["first_name"]=my_guard_info["first_name"]
-              obj["last_name"]=my_guard_info["last_name"]
-
-              unSettledSucessfullShift.push(obj)
-
-            }
-            else{
-              continue;
-            }
-
-            if(i==foundS.length-1){
-              return unSettledSucessfullShift
-            }
-          }
-    }
-    else{
-      return
-    }
-
-  } 
-
-  */
-
   async settleShift(obj) {
     var { 
       schedule_id
@@ -2580,7 +2523,64 @@ async combineUnsettleShift(val){
   }
 
 
+async checkIfDateAreApart(postedDate){
 
+  let myShedule=await this.ScheduleModel.findAll({
+        where: { job_id:postedDate[0].job_id }
+      })
+
+let combinedArray=[...postedDate,...myShedule]
+      console.log(combinedArray)
+
+for(let i=0;i<combinedArray.length ;i++){
+
+  for(let j=0;j<combinedArray.length;j++){
+
+    if(i==j || combinedArray[i].guard_id!=combinedArray[j].guard_id){
+
+      continue
+    }
+
+    if(moment(combinedArray[i].check_in_date).isBefore(combinedArray[j].check_out_date)){
+        if(moment(combinedArray[i].check_out_date).add(60, 'minutes').isBefore(combinedArray[j].check_in_date)){
+
+          
+        }
+        else{
+              let name= await this.getSingleGuardDetail(combinedArray[i].guard_id)
+
+
+              let data={
+                message:`This schedule (start date:${moment(combinedArray[i].check_in_date).format("YYYY-MM-DD  hh:mm:ss a")},end date:${moment(combinedArray[i].check_out_date).format("YYYY-MM-DD  hh:mm:ss a")  } )  is clashing with (start date:${moment(combinedArray[j].check_in_date).format("YYYY-MM-DD  hh:mm:ss a")    },end date:${moment(combinedArray[j].check_out_date).format("YYYY-MM-DD  hh:mm:ss a") } ) or they are not far apart `,
+                solution:`SOLUTION :remove this guard (${name["first_name"]} ${name["last_name"] }) from the schedule or adjust the date`
+              }
+      
+                throw new TimeError(JSON.stringify(data));
+        }
+    }
+    else if(moment(combinedArray[i].check_in_date).subtract(60, 'minutes').isAfter(combinedArray[j].check_out_date)){
+
+    }
+    else{
+        let name= await this.getSingleGuardDetail(combinedArray[i].guard_id)
+
+
+        let data={
+          message:`This schedule (start date:${moment(combinedArray[i].check_in_date).format("YYYY-MM-DD  hh:mm:ss a")},end date:${moment(combinedArray[i].check_out_date).format("YYYY-MM-DD  hh:mm:ss a")  } )  is clashing with (start date:${moment(combinedArray[j].check_in_date).format("YYYY-MM-DD  hh:mm:ss a")    },end date:${moment(combinedArray[j].check_out_date).format("YYYY-MM-DD  hh:mm:ss a") } ) or they are not far apart `,
+          solution:`SOLUTION :remove this guard (${name["first_name"]} ${name["last_name"] }) from the schedule or adjust the date`
+        }
+
+          throw new TimeError(JSON.stringify(data));
+        
+
+    }
+  }
+  if(i==combinedArray.length-1){
+      return true
+  }
+}
+  
+}
 
 
   async calculateHoursSetToWork(to ,from){

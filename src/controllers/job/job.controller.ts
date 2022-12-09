@@ -544,10 +544,17 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const data = req.body;
+     // const data = req.body;
 
-      console.log(data)
-      const obj = await jobService.sheduleDate(data);
+
+      const data =JSON.parse(req.body.date_time_staff_shedule)
+      const data2 ={
+        date_time_staff_shedule:data
+      }
+
+      
+      console.log(data2)
+      const obj = await jobService.sheduleDate(data2);
 
       return res.status(200).json({
         status: 200,
