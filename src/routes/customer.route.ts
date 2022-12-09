@@ -28,6 +28,11 @@ class CustomerRoutes extends CustomerController {
       this.createCustomer 
     );
     this.router.post(
+      "/deleteCustomer",
+     // authMiddleware.validateUserToken,
+      this.deleteCustomer 
+    );
+    this.router.post(
       "/createFacility",
    //   authMiddleware.validateUserToken,
       this.createFacility 

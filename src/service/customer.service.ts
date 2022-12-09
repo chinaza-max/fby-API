@@ -170,6 +170,24 @@ class CustomerService {
    
   }
 
+  
+  
+  async deleteCustomer(data: object): Promise<any> {
+    const {
+      customer_id
+    } = await customerUtil.verifyDeleteCustomer.validateAsync(data);
+   
+        console.log(customer_id)
+
+        await this.UserModel.destroy({
+          where:{
+            id:customer_id
+          }
+        })
+  }
+  
+
+
   async handleCustomerCreation(data: object): Promise<any> {
     const {
       first_name,

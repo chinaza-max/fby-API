@@ -77,6 +77,7 @@ function associate() {
     as: "staff",
   });
   Customer.belongsTo(Location, {
+    onDelete: 'cascade',
     foreignKey: {
       allowNull: false,
       name: "location_id",

@@ -88,6 +88,39 @@ export default class CustomerController {
       next(error);
     }
   }
+
+
+
+
+
+  
+  protected async deleteCustomer(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      console.log(data)
+      
+      const obj = await customerService.deleteCustomer(data);
+
+      return res.status(200).json({
+        status: 200,
+        message: "Customer deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+
+
+
+
+
   protected async createCustomer(
     req: Request,
     res: Response,

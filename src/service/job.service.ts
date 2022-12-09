@@ -1006,7 +1006,9 @@ console.log(myNewDateIn)
     =  await jobUtil.verifyGetgetGeneralShift.validateAsync(obj);
      */ 
     
-    const  foundS =await  this.ScheduleModel.findAll({})
+    const  foundS =await  this.ScheduleModel.findAll({ order: [
+      ['created_at', 'DESC']]
+      })
 
     let all_shift=[]     
    if(foundS.length!=0){
@@ -1018,14 +1020,8 @@ console.log(myNewDateIn)
           const foundJ = await this.JobModel.findOne({
              where: { id:foundS[i].job_id} });
 
-
-          
           const foundF = await this.FacilityModel.findOne({
           where: { id:foundJ.facility_id} });
-
-
-     
-
 
           const foundC = await this.CustomerModel.findOne({
             where: { id:foundJ.customer_id} });
@@ -1056,19 +1052,12 @@ console.log(myNewDateIn)
           obj["name"]= name["first_name"]+" "+name["last_name"]
           obj["customer"]= foundC.first_name +" "+foundC.last_name
           obj["site"]= foundF.name
-          obj["guard_charge"]= foundF.guard_charge
+          obj["guard_charge"]="$"+foundF.guard_charge
           obj["guard_id"]= foundS[i].guard_id
-          obj["client_charge"]= foundF.client_charge
+          obj["client_charge"]="$"+foundF.client_charge
           obj["job_status"]= foundJ.job_status
           obj["description"]= foundJ.description
           obj["settlement_status"]=foundS[i].settlement_status
-
-
-
-
-          console.log("=================================")
-          console.log(foundJL)
-          console.log("=================================")
 
 
           if(foundJL){
@@ -1076,14 +1065,14 @@ console.log(myNewDateIn)
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
               obj["check_out"]=await this.getDateAndTime(foundJL.check_out_date) 
               obj["hours_worked"]=foundJL.hours_worked
-              obj["earned"]=(foundJL.hours_worked*foundF.client_charge).toFixed(2)
+              obj["earned"]=  "$"+(foundJL.hours_worked*foundF.client_charge).toFixed(2)
             }
             else{
 
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
-              obj["check_out"]="empty" 
+              obj["check_out"]="none" 
               obj["hours_worked"]=0
-              obj["earned"]= 0
+              obj["earned"]="$"+0
             }
           
           }
@@ -1091,12 +1080,16 @@ console.log(myNewDateIn)
             obj["check_in"]="none"
             obj["check_out"]="none"
             obj["hours_worked"]=0
-            obj["earned"]=0
+            obj["earned"]="$"+0
           }
                 
 
           all_shift.push(obj)
         if(i==foundS.length-1){
+
+
+
+          console.log(all_shift)
           return all_shift
         }
       }
@@ -1166,23 +1159,19 @@ console.log(myNewDateIn)
   
     =  await jobUtil.verifygetGuardPerJob.validateAsync(obj);
       
-    
-      
-     const  foundS =await  this.ScheduleModel.findAll({
-      where: {job_id}
-      })
+    const  foundS =await  this.ScheduleModel.findAll({
+    where: {job_id}
+    })
 
     let all_guard_id=[]
-     
-     console.log("lllllllllllllllllllllllll")
-     console.log(foundS.length)
 
    if(foundS.length!=0){
-      let obj={}
+        let obj={}
+
         for(let i=0;i<foundS.length;i++ ){
 
           if(all_guard_id.includes(foundS[i].guard_id)){
-              //continue
+            //continue
           }
           else{
 
@@ -1210,7 +1199,18 @@ console.log(myNewDateIn)
       }
    }
    else{
-    return 
+
+    let job= await this.getJobDetail(job_id)
+    let site= await this.getSiteDetail(job.facility_id)
+
+    let detail={
+        guard:[],
+        job,
+        site
+    }
+
+
+    return detail
    }
       
   }

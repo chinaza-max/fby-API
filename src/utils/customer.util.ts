@@ -33,6 +33,15 @@ class CustomerUtil {
         operations_area_constraint: Joi.number().required(),
   });
 
+
+  
+
+
+  public  verifyDeleteCustomer = Joi.object().keys({  
+    customer_id:Joi.number().required(),
+
+  });
+
   public verifyUserCreationData = Joi.object().keys({
     first_name: Joi.string().required(),
     last_name: Joi.string().required(),
