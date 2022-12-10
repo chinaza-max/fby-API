@@ -390,7 +390,6 @@ class UserService {
       })
 
 
-     console.log( await this.checkIfDateAreApart(date_time_staff_shedule))
         
      if(await this.checkIfDateAreApart(date_time_staff_shedule)){
          //CHECK FOR DUBPLICATE
@@ -549,10 +548,11 @@ console.log(myNewDateIn)
   async acceptDeclineJobAdmin(req) {
 
     var { job_id, accept ,guard_id} =req.body;
-    var relatedAssignment;
-    if(accept){
 
-      relatedAssignment = await this.ScheduleModel.destroy(
+ 
+    if(accept=="true"){
+
+     let relatedAssignment = await this.ScheduleModel.destroy(
         {where: {[Op.and]: [{ guard_id}, {job_id}]} }
       )
                     
@@ -560,11 +560,20 @@ console.log(myNewDateIn)
         {where: {[Op.and]: [{ guard_id }, {job_id}]}}
       )
 
+
+
+      if (relatedAssignment == null)
+      throw new NotFoundError(
+        "No Assignment was found for you.\nIt may not exist anymore"
+      );
+
     }
     else{
-      relatedAssignment = await this.ScheduleModel.update(
+
+  
+      let relatedAssignment=await this.ScheduleModel.update(
         {
-          status_per_staff:accept ? 'ACTIVE' : 'PENDING',
+          status_per_staff:'PENDING',
         },
         {
         where: {[Op.and]: [{ guard_id}, {job_id}]}
@@ -572,22 +581,26 @@ console.log(myNewDateIn)
                     
       await this.AgendasModel.update(
         {
-          status_per_staff:accept ? 'ACTIVE' : 'PENDING',
+          status_per_staff:'PENDING',
         },
         {
         where: {[Op.and]: [{ guard_id }, {job_id}]}
         })
+
+
+
+        console.log(relatedAssignment)
+
+        if (relatedAssignment == null)
+          throw new NotFoundError(
+            "No Assignment was found for you.\nIt may not exist anymore"
+          );
+
     }
 
 
-      console.log(relatedAssignment)
+   
 
-    if (relatedAssignment == null)
-      throw new NotFoundError(
-        "No Assignment was found for you.\nIt may not exist anymore"
-      );
-
-    return relatedAssignment;
     
   }
 
@@ -1127,7 +1140,6 @@ console.log(myNewDateIn)
 
     let all_shedule=[]     
    if(foundS.length!=0){
-    console.log(foundS)
 
         for(let i=0;i<foundS.length;i++ ){
 
@@ -1137,7 +1149,11 @@ console.log(myNewDateIn)
             check_out_date:await this.getDateOnly(foundS[i].check_out_date) ,
             end_time:foundS[i].end_time,
             hours:await this.calculateHoursSetToWork(foundS[i].check_out_date,foundS[i].check_in_date),
-            shedule_id:foundS[i].id
+            shedule_id:foundS[i].id,
+            guard_id:foundS[i].guard_id,
+            job_id:foundS[i].job_id
+
+
           }
           all_shedule.push(obj)
           
@@ -1216,11 +1232,96 @@ console.log(myNewDateIn)
   }
   
   
+  
+  async getDeclinedJob(obj) {
+
+    let foundS=await  this.ScheduleModel.findAll({
+      where:{
+        status_per_staff:'DECLINE'
+      },
+      group: ['job_id','guard_id']
+    })
 
   
 
 
+    
+    let decline=[]
+
+    if(foundS.length!=0){
+      for(let i=0; i<foundS.length; i++){
+        let obj={}
   
+  
+        let guardName= await this.getSingleGuardDetail(foundS[i].guard_id)
+        
+
+        let foundJ=await  this.JobModel.findOne({
+          where:{
+            id:foundS[i].job_id
+          }
+        })
+
+       
+        let customerF= await this.getCustomerDetail(foundJ.customer_id)
+        let facilityF= await this.getSiteDetail(foundJ.facility_id)
+  
+        obj["date"]=await this.getDateOnly(foundJ.created_at)
+        obj["Name"]=guardName["first_name"] +" "+ guardName["last_name"]
+        obj["Phone_number"]=guardName["phone_number"]
+        obj["customer_name"]=customerF["first_name"] +" "+ customerF["last_name"]
+        obj["facility_name"]=facilityF["name"]
+        obj["job_id"]=foundS[i].job_id
+        obj["guard_id"]=foundS[i].guard_id
+
+  
+  
+        decline.push(obj)
+  
+        if(i==foundS.length-1){
+          return decline
+        }
+  
+  
+      }
+    }
+    return decline
+   
+
+  }
+
+  async getDashBoardInfo(obj) {
+
+
+    let foundC=await  this.CustomerModel.findAll()
+    let foundG=await  this.UserModel.findAll({
+      where:{
+        role:'GUARD'
+      }
+    })
+
+    let foundA=await  this.UserModel.findAll({
+      where:{
+        role:'ADMIN'
+      }
+    })
+    let foundJ=await  this.JobModel.findAll({
+      where:{
+        job_status:'ACTIVE'
+      }
+    })
+    obj={
+      noCustomer:foundC.length,
+      noStaff:foundA.length,
+      noGuard: foundG.length,
+      noActive:foundJ.length
+    }
+
+    return obj
+   
+  
+
+  }
   
   async getAllSite(obj) {
 
@@ -1291,26 +1392,27 @@ console.log(myNewDateIn)
   async getGuard(obj) {
 
 
-
-
+/*
     let foundS= await  this.ScheduleModel.findAll({
       where:{
         job_id:obj.job_id
       }
     })
-
+*/
     let arrayId=[]
     let detail=[]
 
+
+/*
     if(foundS.length!=0){
       for(let i=0;i<foundS.length;i++){
 
-          if(arrayId.includes(foundS[i].guard_id)){
+        if(arrayId.includes(foundS[i].guard_id)){
 
-          }
-          else{
-            arrayId.push(foundS[i].guard_id)
-          }
+        }
+        else{
+          arrayId.push(foundS[i].guard_id)
+        }
         if(i==foundS.length-1){
             //console.log(arrayId)
             let foundG=await  this.UserModel.findAll({
@@ -1380,10 +1482,13 @@ console.log(myNewDateIn)
         }
       }
     }
+
     else{
+*/
+
       let foundG=await  this.UserModel.findAll({
         where:
-        {[Op.and]: 
+        {[Op.and]:    
           [
             {availability:true},
             {suspended:false},
@@ -1395,13 +1500,14 @@ console.log(myNewDateIn)
       if(foundG.length!=0){
 
         for(let j=0;j<foundG.length;j++){
-                      
-            if(arrayId.includes(foundG[j].id)){
 
-            }
-            else{
-              arrayId.push(foundG[j].id)
-            }
+     
+          if(arrayId.includes(foundG[j].id)||await this.checkIfGuardIsInAnyActiveJob(foundG[j].id,obj.job_id)){
+
+          }
+          else{
+            arrayId.push(foundG[j].id)
+          }
           
           if(j==foundG.length-1){
             
@@ -1447,7 +1553,7 @@ console.log(myNewDateIn)
           return detail
         }
       }
-    }
+  //  }
 
     
 
@@ -1648,6 +1754,29 @@ console.log(myNewDateIn)
       where: {id:log_id}
     })
   }
+
+
+
+  
+  async RemoveGuardSingleShedule(obj) {
+    var { schedule_id,
+      guard_id,
+    }
+  
+    =  await jobUtil.verifyRemoveGuardSingleShedule.validateAsync(obj);
+      
+    
+    await  this.ScheduleModel.destroy({
+      where: {[Op.and]: 
+        [{guard_id},
+        {id:schedule_id }
+        ]}
+    })
+      
+  }
+
+
+
 
   async RemoveGuardShedule(obj) {
     var { job_id,
@@ -2339,6 +2468,8 @@ console.log(myNewDateIn)
     if(foundU){
       obj["first_name"]=foundU.first_name,
       obj["last_name"]=foundU.last_name
+      obj["phone_number"]=foundU.phone_number
+
     }
     else{
       obj["first_name"]="deleted",
@@ -2412,8 +2543,6 @@ console.log(myNewDateIn)
  }
 
 
-
-
  async getDateOnly(val){
 
    return moment(val).format('YYYY-MM-DD')
@@ -2453,6 +2582,21 @@ async getDateAndTime(val){
      }
       
      return site
+  }
+
+
+  async getCustomerDetail(val){
+
+    const  foundC =await  this.CustomerModel.findOne({
+      where: {id:val}
+      })
+      
+     let Customer={
+      first_name:foundC.first_name,
+      last_name:foundC.last_name
+     }
+      
+     return Customer
   }
 
 
@@ -2581,6 +2725,51 @@ for(let i=0;i<combinedArray.length ;i++){
 }
   
 }
+
+async checkIfGuardIsInAnyActiveJob(guard_id,job_id){
+
+  let foundJ=await this.JobModel.findAll(
+    {
+      where:
+      {[Op.and]: 
+        [
+          { job_status:'ACTIVE'},
+          {id:{[Op.ne]:job_id}}
+        ]}
+    }
+  )
+
+
+  /**{
+      where:{ job_status:'ACTIVE'}
+    } */
+
+  
+    if(foundJ.length!=0){
+      for(let i=0;i<foundJ.length;i++){
+
+        let foundS=await this.ScheduleModel.findAll({
+          where: {[Op.and]: [{job_id:foundJ[i].id },
+          {guard_id}]}
+        })
+
+
+
+        if(foundS.length!=0){
+          return true
+        }
+
+        if(i==foundJ.length-1){
+            return false
+        }
+      }
+    }
+    else{
+      return false
+    }
+}
+
+
 
 
   async calculateHoursSetToWork(to ,from){

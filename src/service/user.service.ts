@@ -42,11 +42,12 @@ class UserService {
     return user;
   }
   
-  async deleteStaff(id: any) {
+  async deleteStaff(address_id: any) {
 
-    await this.UserModel.destroy({
+
+    await this.LocationModel.destroy({
       where:{
-        id
+        id:address_id
       }
     });
 
@@ -109,7 +110,10 @@ async toggleVisibilty(data: any) {
           gender: staff.gender,
           phone_number: staff.phone_number,
           address: (staff.location as any)?.address,
+          address_id: staff.location["id"],
+
         };
+     
         staffRes.push(staffData);
       }
       return staffRes;
@@ -146,6 +150,8 @@ async toggleVisibilty(data: any) {
           gender: staff.gender,
           phone_number: staff.phone_number,
           address: (staff.location as any)?.address,
+          address_id: (staff.location as any)?.id,
+
         };
         staffRes.push(staffData);
       }

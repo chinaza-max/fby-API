@@ -41,7 +41,7 @@ export function init(connection: Sequelize) {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      end_time: {
+      end_time: {      
         type: DataTypes.STRING,
         allowNull: false,
       },

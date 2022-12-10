@@ -56,14 +56,19 @@ class JobUtil {
     log_id: Joi.number().required()
   });
 
+  
+  public verifyRemoveGuardSingleShedule= Joi.object().keys({
+    guard_id: Joi.number().required(),
+    schedule_id: Joi.number().required(),
+});
+
+
+
   public verifyRemoveGuardShedule = Joi.object().keys({
       guard_id: Joi.number().required(),
       job_id: Joi.number().required(),
   });
 
-
-
-  
 
   public verifyUpdateMaxCheckInTime = Joi.object().keys({
     guard_id: Joi.number(),

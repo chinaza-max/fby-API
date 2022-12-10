@@ -53,6 +53,7 @@ import MynewAgenda, {
 function associate() {
   // User Favorite Relationships
   Admin.belongsTo(Location, {
+    onDelete: 'cascade',
     foreignKey: {
       allowNull: false,
       name: "location_id",

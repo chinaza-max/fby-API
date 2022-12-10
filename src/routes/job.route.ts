@@ -14,6 +14,8 @@ class JobRoutes extends JobController {
 
 
     this.router.post("/remove_guard_shedule", this.RemoveGuardShedule);
+    this.router.post("/remove_guard_single_shedule", this.RemoveGuardSingleShedule);
+
     this.router.post("/remove_guard_shedule_log", this.RemoveGuardSheduleLog);
     this.router.post("/check-in", this.checkInCheckOut);
     this.router.post("/check_in_admin", this.checkInCheckOutAdmin);
@@ -38,6 +40,11 @@ class JobRoutes extends JobController {
     //THIS IS FOR ALL GUARD
     this.router.get("/getAllGuard", this.getAllGuard);
     this.router.get("/getAllSite", this.getAllSite);
+
+
+    this.router.get("/getDashBoardInfo", this.getDashBoardInfo);
+    this.router.get("/getDeclinedJob", this.getDeclinedJob);
+
 
 
 

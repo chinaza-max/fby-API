@@ -174,14 +174,14 @@ class CustomerService {
   
   async deleteCustomer(data: object): Promise<any> {
     const {
-      customer_id
+      address_id
     } = await customerUtil.verifyDeleteCustomer.validateAsync(data);
    
-        console.log(customer_id)
+        console.log(address_id)
 
-        await this.UserModel.destroy({
+        await this.LocationModel.destroy({
           where:{
-            id:customer_id
+            id:address_id
           }
         })
   }
@@ -422,6 +422,7 @@ class CustomerService {
             first_name: customer.first_name,
             last_name: customer.last_name,
             address: customer.location.address,
+            address_id: customer.location.id,
             email: customer.email,
             gender: customer.gender,
             date_of_birth: customer.date_of_birth,
@@ -453,8 +454,6 @@ class CustomerService {
     else{
       try {
 
-        console.log( data.limit, data.offset)
-        console.log( data)
 
         var allCustomers = await Customer.findAll({
           limit: data.limit,
@@ -494,6 +493,7 @@ class CustomerService {
             first_name: customer.first_name,
             last_name: customer.last_name,
             address: customer.location.address,
+            address_id: customer.location.id,
             email: customer.email,
             gender: customer.gender,
             date_of_birth: customer.date_of_birth,

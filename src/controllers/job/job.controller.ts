@@ -51,6 +51,48 @@ export default class JobController {
 
 
   
+  protected async getDeclinedJob(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+
+      const obj = await jobService.getDeclinedJob(req);
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+  protected async getDashBoardInfo(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+
+      const obj = await jobService.getDashBoardInfo(req);
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
   
   protected async getAllSite(
     req: Request,
@@ -370,6 +412,36 @@ export default class JobController {
   }
 
 
+  
+  protected async RemoveGuardSingleShedule(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      //REMOVE THIS AFTER TEST
+      req.user = req.body.guard_id;
+
+      console.log(data)
+
+      const obj = await jobService.RemoveGuardSingleShedule(data);
+
+      
+      return res.status(200).json({
+        status: 200,
+        message: `schedule removed successfully`,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+
+
 
 
   protected async RemoveGuardShedule(
@@ -484,12 +556,12 @@ export default class JobController {
   ): Promise<Response> {
     try {
       const data = req.body;
-
+ 
       const obj = await jobService.acceptDeclineJobAdmin(req);
 
       return res.status(200).json({
         status: 200,
-        message: `Job ${data.accept ? 'deleted' : 're-asigned'} successfully`,
+        message: `Job ${data.accept=="true" ? 'deleted' : 're-asigned'} successfully`,
       });
     } catch (error) {
 
@@ -558,7 +630,7 @@ export default class JobController {
 
       return res.status(200).json({
         status: 200,
-        message: "Job created successfully",
+        message: "Schedule created successfully",
       });
     } catch (error) {
       next(error);

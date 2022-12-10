@@ -150,7 +150,6 @@ class AuthenticationService {
     console.log(hashedPassword);
 
     var existingUser = await this.getUserByEmail(email);
-    console.log("==================================");
 
     console.log(existingUser);
     if (existingUser != null)
@@ -159,11 +158,6 @@ class AuthenticationService {
       address,
     });
 
-    console.log("==================================");
-
-    console.log(createdLocation.id);
-
-    console.log("===================================");
 
     const user = await this.UserModel.create({
       first_name,
