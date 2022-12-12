@@ -48,6 +48,8 @@ class UserService {
   private MyNewAgendasModel = MynewAgenda;
   private JobSecurityModel = JobSecurityCode;
 
+
+  /*
   async getJobsForStaff(staffId: number): Promise<any[]> {
     try {
       const jobs = [];
@@ -147,6 +149,358 @@ class UserService {
       return null;
     }
   }
+
+*/
+
+
+
+
+
+
+
+
+
+
+async getSinglejob(myObj: any): Promise<any[]> {
+  try {
+
+    let jobDetail=[]
+
+
+
+              const foundS = await this.ScheduleModel.findAll({
+                where: {[Op.and]: [{job_id:myObj.job_id },
+                {guard_id:myObj.guard_id },
+                {status_per_staff:'ACTIVE'}]}
+              })
+
+              if(foundS.length!=0){
+
+                let schedule=[]
+                for(let j=0;j<foundS.length;j++){
+                  let obj={}
+                  let sheduleObj=foundS[j]
+
+                  obj["check_in_date"]= await this.getDateOnly(sheduleObj.check_in_date)
+                  obj["check_out_date"]= await this.getDateOnly(sheduleObj.check_out_date)
+                  obj["start_time"]=await this.getTimeOnly(sheduleObj.check_in_date)
+                  obj["end_time"]=await this.getTimeOnly(sheduleObj.check_out_date)
+
+                  schedule.push(obj)
+                  if(j==foundS.length-1){
+
+                    const foundJ2 = await this.JobModel.findOne({
+                      where: {id:sheduleObj.job_id}
+                    })
+                    const foundF = await this.FacilityModel.findOne({
+                      where: {id:foundJ2.facility_id}
+                    })
+
+                    const foundFL= await this.FacilityLocationModel.findOne({
+                      where: {id:foundF.facility_location_id}
+                    })
+
+                        jobDetail.push({schedule,
+                          job_id:sheduleObj.job_id,
+                          description:foundJ2.description,
+                          job_type:foundJ2.job_type,
+                          client_charge:foundJ2.client_charge,
+                          guard_charge:foundJ2.staff_charge,
+                          time_zone:foundF.time_zone,
+                          facility_name:foundF.name,
+                          address:foundFL.address,
+                          job_status:foundFL.address,
+
+                        })
+                  } 
+
+
+                  if(j==foundS.length-1){
+                    return jobDetail
+                  }
+                }
+               
+              }
+              else{
+                return jobDetail
+              }
+
+
+
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+async getJobsForStaff(myObj: any): Promise<any[]> {
+  try {
+
+    let jobDetail=[]
+
+
+
+    
+    if(myObj.jobType=="ACTIVE"){
+
+      const foundJ = await this.JobModel.findAll({
+        where: {job_status:'ACTIVE'}
+      })
+
+    
+      if(foundJ.length!=0){
+        for(let i=0;i<foundJ.length;i++){
+              
+              const foundS = await this.ScheduleModel.findAll({
+                where: {[Op.and]: [{job_id:foundJ[i].id },
+                {guard_id:myObj.id },
+                {status_per_staff:'ACTIVE'}]}
+              })
+
+
+              if(foundS.length!=0){
+
+                let schedule=[]
+                for(let j=0;j<foundS.length;j++){
+                  let obj={}
+                  let sheduleObj=foundS[j]
+
+                  obj["check_in_date"]= await this.getDateOnly(sheduleObj.check_in_date)
+                  obj["check_out_date"]= await this.getDateOnly(sheduleObj.check_out_date)
+                  obj["start_time"]=await this.getTimeOnly(sheduleObj.check_in_date)
+                  obj["end_time"]=await this.getTimeOnly(sheduleObj.check_out_date)
+
+                  schedule.push(obj)
+                  if(j==foundS.length-1){
+
+                    const foundJ2 = await this.JobModel.findOne({
+                      where: {id:sheduleObj.job_id}
+                    })
+                    const foundF = await this.FacilityModel.findOne({
+                      where: {id:foundJ2.facility_id}
+                    })
+
+                    const foundFL= await this.FacilityLocationModel.findOne({
+                      where: {id:foundF.facility_location_id}
+                    })
+
+                    
+                    jobDetail.push({schedule,
+                      job_id:sheduleObj.job_id,
+                      description:foundJ2.description,
+                      job_type:foundJ2.job_type,
+                      client_charge:foundJ2.client_charge,
+                      guard_charge:foundJ2.staff_charge,
+                      time_zone:foundF.time_zone,
+                      facility_name:foundF.name,
+                      address:foundFL.address,
+                      job_status:foundFL.address,
+
+                  })
+                  } 
+                }
+               
+              }
+  
+          if(i==foundJ.length-1){
+            console.log(jobDetail)
+
+            return jobDetail
+          }
+        }
+      }
+      else{
+        return jobDetail
+      }
+
+
+    }
+    else if(myObj.jobType=="PENDING"){
+
+
+
+
+
+      const foundJ = await this.JobModel.findAll({
+        where: {job_status:'ACTIVE'}
+      })
+
+    
+      if(foundJ.length!=0){
+        for(let i=0;i<foundJ.length;i++){
+              
+              const foundS = await this.ScheduleModel.findAll({
+                where: {[Op.and]: [{job_id:foundJ[i].id },
+                {guard_id:myObj.id },
+                {status_per_staff:'PENDING'}]}
+              })
+              if(foundS.length!=0){
+
+                let schedule=[]
+                for(let j=0;j<foundS.length;j++){
+                  let obj={}
+                  let sheduleObj=foundS[j]
+
+                  obj["check_in_date"]= await this.getDateOnly(sheduleObj.check_in_date)
+                  obj["check_out_date"]= await this.getDateOnly(sheduleObj.check_out_date)
+                  obj["start_time"]=await this.getTimeOnly(sheduleObj.check_in_date)
+                  obj["end_time"]=await this.getTimeOnly(sheduleObj.check_out_date)
+
+                  schedule.push(obj)
+                  if(j==foundS.length-1){
+
+                    const foundJ2 = await this.JobModel.findOne({
+                      where: {id:sheduleObj.job_id}
+                    })
+                    const foundF = await this.FacilityModel.findOne({
+                      where: {id:foundJ2.facility_id}
+                    })
+
+                    const foundFL= await this.FacilityLocationModel.findOne({
+                      where: {id:foundF.facility_location_id}
+                    })
+
+                    
+                    jobDetail.push({schedule,
+                      job_id:sheduleObj.job_id,
+                      description:foundJ2.description,
+                      job_type:foundJ2.job_type,
+                      client_charge:foundJ2.client_charge,
+                      guard_charge:foundJ2.staff_charge,
+                      time_zone:foundF.time_zone,
+                      facility_name:foundF.name,
+                      address:foundFL.address,
+                      job_status:foundFL.address,
+
+                  })
+                  } 
+                }
+               
+              }
+  
+          if(i==foundJ.length-1){
+            console.log(jobDetail)
+
+            return jobDetail
+          }
+        }
+      }
+      else{
+        return jobDetail
+      }
+
+
+
+
+    }
+    else if(myObj.jobType=="COMPLETED"){
+        
+
+
+      const foundJ = await this.JobModel.findAll({
+        where: {job_status:'COMPLETED'}
+      })
+
+    
+      if(foundJ.length!=0){
+        for(let i=0;i<foundJ.length;i++){
+              
+              const foundS = await this.ScheduleModel.findAll({
+                where: {[Op.and]: [{job_id:foundJ[i].id },
+                {guard_id:myObj.id },
+                {status_per_staff:'ACTIVE'}]}
+              })
+              if(foundS.length!=0){
+
+                let schedule=[]
+                for(let j=0;j<foundS.length;j++){
+                  let obj={}
+                  let sheduleObj=foundS[j]
+
+                  obj["check_in_date"]= await this.getDateOnly(sheduleObj.check_in_date)
+                  obj["check_out_date"]= await this.getDateOnly(sheduleObj.check_out_date)
+                  obj["start_time"]=await this.getTimeOnly(sheduleObj.check_in_date)
+                  obj["end_time"]=await this.getTimeOnly(sheduleObj.check_out_date)
+
+                  schedule.push(obj)
+                  if(j==foundS.length-1){
+
+                    const foundJ2 = await this.JobModel.findOne({
+                      where: {id:sheduleObj.job_id}
+                    })
+                    const foundF = await this.FacilityModel.findOne({
+                      where: {id:foundJ2.facility_id}
+                    })
+
+                    const foundFL= await this.FacilityLocationModel.findOne({
+                      where: {id:foundF.facility_location_id}
+                    })
+
+                    
+                    jobDetail.push({schedule,
+                      job_id:sheduleObj.job_id,
+                      description:foundJ2.description,
+                      job_type:foundJ2.job_type,
+                      client_charge:foundJ2.client_charge,
+                      guard_charge:foundJ2.staff_charge,
+                      time_zone:foundF.time_zone,
+                      facility_name:foundF.name,
+                      address:foundFL.address,
+                      job_status:foundFL.address,
+
+                  })
+                  } 
+                }
+               
+              }
+  
+          if(i==foundJ.length-1){
+            console.log(jobDetail)
+
+            return jobDetail
+          }
+        }
+      }
+      else{
+        return jobDetail
+      }
+
+    }
+    else{
+      return jobDetail
+    }
+
+
+
+
+
+
+
+   
+
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
+
+
+
+
+
+
+
+
 
 
   
@@ -608,30 +962,28 @@ console.log(myNewDateIn)
   async acceptDeclineJob(req) {
 
     var { job_id, accept } =req.body;
-
-    console.log(req.user)
-    console.log(accept ? 'ACTIVE' : 'DECLINE')
+    let id=req.user.id
 
 
     var relatedAssignment = await this.ScheduleModel.update(
       {
-        status_per_staff:accept ? 'ACTIVE' : 'DECLINE',
+        status_per_staff:accept=="true" ? 'ACTIVE' : 'DECLINE',
       },
       {
-      where: {[Op.and]: [{ guard_id:req.user }, {job_id}]}
+      where: {[Op.and]: [{ guard_id:id }, {job_id}]}
       }
       );
 
      await this.AgendasModel.update(
         {
-          status_per_staff:accept ? 'ACTIVE' : 'DECLINE',
+          status_per_staff:accept="true" ? 'ACTIVE' : 'DECLINE',
         },
         {
-        where: {[Op.and]: [{ guard_id:req.user }, {job_id}]}
+        where: {[Op.and]: [{ guard_id:id }, {job_id}]}
         }
         );
 
-      console.log(relatedAssignment)
+      //console.log(relatedAssignment)
 
     if (relatedAssignment == null)
       throw new NotFoundError(
@@ -2552,6 +2904,14 @@ async getDateAndTime(val){
 
   return moment(val).format('YYYY-MM-DD hh:mm:ss a')
 }
+
+
+
+async getTimeOnly(val){
+
+  return moment(val).format('hh:mm:ss a')
+}
+
 
 
   async getJobDetail(val){

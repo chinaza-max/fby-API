@@ -55,6 +55,8 @@ class JobRoutes extends JobController {
 
 
     this.router.get("/myJobs", this.getMyJobs);
+    this.router.get("/myJobs/getSinglejob", this.getSinglejob);
+
     
 
    // this.router.get("/myJobsAdminDetail", this.getMyJobsAdminDetail);

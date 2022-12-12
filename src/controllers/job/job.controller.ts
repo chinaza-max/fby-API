@@ -533,9 +533,6 @@ export default class JobController {
     try {
       const data = req.body;
 
-      //NOTE WHEN YOU MOVE OUT OF POST MAN REMOVE THIS PART
-      req.user=req.body.guard_id;
-
       const obj = await jobService.acceptDeclineJob(req);
 
       return res.status(200).json({
@@ -715,8 +712,9 @@ export default class JobController {
  
  
  
- 
-  protected async getMyJobs(
+  
+
+  protected async getSinglejob(
     req: Request,
     res: Response,
     next: NextFunction
@@ -725,7 +723,17 @@ export default class JobController {
       const data = req.body;
       const id = req.user.id;
 
-      const obj = await jobService.getJobsForStaff(id);
+
+      let myObj={
+        job_id:req.query.job_id ,
+        guard_id:id
+      }
+
+
+      console.log(myObj)
+
+      const obj = await jobService.getSinglejob(myObj);
+
       console.log(obj?.length);
       if(obj?.length != 0 && obj?.length == null){
         return res.status(400).json({
@@ -742,4 +750,51 @@ export default class JobController {
       next(error);
     }
   }
+
+
+
+  protected async getMyJobs(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+      const id = req.user.id;
+
+      let myObj={
+          id,
+          jobType:req.query.jobType
+      }
+
+
+      console.log(myObj)
+
+      const obj = await jobService.getJobsForStaff(myObj);
+
+      console.log(obj?.length);
+      if(obj?.length != 0 && obj?.length == null){
+        return res.status(400).json({
+          status: 400,
+          data: obj ?? "Failed to process request",
+        });
+      }
+
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+
+
+
+
+
+
+
 }
