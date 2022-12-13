@@ -165,13 +165,31 @@ async getSinglejob(myObj: any): Promise<any[]> {
   try {
 
     let jobDetail=[]
+    let myHours_worked=0
 
+              let foundJL=    await this.JobLogsModel.findAll({
+                where: {[Op.and]: 
+                  [{check_in_status:true},
+                    {guard_id:myObj.guard_id},
+                  {check_out_status:true }
+                  ]}
+              })
 
+              if(foundJL.length!=0){
+                  for(let l=0;l<foundJL.length;l++){
+                    myHours_worked+=foundJL[l].hours_worked
+                  }
+              }
 
               const foundS = await this.ScheduleModel.findAll({
                 where: {[Op.and]: [{job_id:myObj.job_id },
                 {guard_id:myObj.guard_id },
-                {status_per_staff:'ACTIVE'}]}
+                {status_per_staff:'ACTIVE'}]},
+
+                order: [
+                  ["check_in_date", "ASC"],
+            
+                ],
               })
 
               if(foundS.length!=0){
@@ -180,6 +198,8 @@ async getSinglejob(myObj: any): Promise<any[]> {
                 for(let j=0;j<foundS.length;j++){
                   let obj={}
                   let sheduleObj=foundS[j]
+
+                  
 
                   obj["check_in_date"]= await this.getDateOnly(sheduleObj.check_in_date)
                   obj["check_out_date"]= await this.getDateOnly(sheduleObj.check_out_date)
@@ -204,13 +224,14 @@ async getSinglejob(myObj: any): Promise<any[]> {
                           job_id:sheduleObj.job_id,
                           description:foundJ2.description,
                           job_type:foundJ2.job_type,
-                          client_charge:foundJ2.client_charge,
-                          guard_charge:foundJ2.staff_charge,
+                          guard_charge:"$"+foundJ2.staff_charge,
                           time_zone:foundF.time_zone,
                           facility_name:foundF.name,
                           address:foundFL.address,
                           job_status:foundFL.address,
-
+                          hours_worked:myHours_worked,
+                          earn:"$"+myHours_worked*foundJ2.staff_charge,
+                          guard_id:myObj.guard_id
                         })
                   } 
 
@@ -299,7 +320,6 @@ async getJobsForStaff(myObj: any): Promise<any[]> {
                       job_id:sheduleObj.job_id,
                       description:foundJ2.description,
                       job_type:foundJ2.job_type,
-                      client_charge:foundJ2.client_charge,
                       guard_charge:foundJ2.staff_charge,
                       time_zone:foundF.time_zone,
                       facility_name:foundF.name,
@@ -375,7 +395,6 @@ async getJobsForStaff(myObj: any): Promise<any[]> {
                       job_id:sheduleObj.job_id,
                       description:foundJ2.description,
                       job_type:foundJ2.job_type,
-                      client_charge:foundJ2.client_charge,
                       guard_charge:foundJ2.staff_charge,
                       time_zone:foundF.time_zone,
                       facility_name:foundF.name,
@@ -451,7 +470,6 @@ async getJobsForStaff(myObj: any): Promise<any[]> {
                       job_id:sheduleObj.job_id,
                       description:foundJ2.description,
                       job_type:foundJ2.job_type,
-                      client_charge:foundJ2.client_charge,
                       guard_charge:foundJ2.staff_charge,
                       time_zone:foundF.time_zone,
                       facility_name:foundF.name,
@@ -612,6 +630,14 @@ async getJobsForStaff(myObj: any): Promise<any[]> {
       const {
         job_id
       } = await jobUtil.verifyDeleteJob.validateAsync(data);
+
+
+      console.log("lllllllllllllllllllllllllllllllllllllllllll")
+
+      console.log(job_id)
+
+      console.log("lllllllllllllllllllllllllllllllllllllllllll")
+
 
       this.JobModel.destroy({
         where: {
@@ -1045,8 +1071,6 @@ console.log(myNewDateIn)
           obj["lat"]= latLon.latitude
           obj["log"]= latLon.longitude
          
-
-
           myLog.push(obj)
 
           if(i==foundJL.length-1){
@@ -1246,7 +1270,131 @@ console.log(myNewDateIn)
   }
 
 
+  
 
+  async shiftPerGuardAllJob(obj) {
+    var { 
+      guard_id
+    }
+    =  await jobUtil.verifyShiftPerGuardAllJob.validateAsync(obj);
+      
+    
+    const  foundS =await  this.ScheduleModel.findAll(
+      {
+        where: {[Op.and]: 
+           [{guard_id}
+           ]}, 
+           order: [
+               ['check_in_date', 'ASC']
+           ]
+      }
+    )
+
+    let all_shift=[]     
+   if(foundS.length!=0){
+        for(let i=0;i<foundS.length;i++ ){
+
+          let obj={}
+
+          const foundJ = await this.JobModel.findOne({
+             where: { id:foundS[i].job_id} });
+
+          const foundF = await this.FacilityModel.findOne({
+          where: { id:foundJ.facility_id} });
+
+          const foundC = await this.CustomerModel.findOne({
+            where: { id:foundJ.customer_id} });
+
+
+          const  foundJL=await  this.JobLogsModel.findOne({
+             where: {[Op.and]: 
+                [{project_check_in_date:foundS[i].check_in_date},
+                  {job_id:foundS[i].job_id},
+                  {guard_id:foundS[i].guard_id},
+                {check_in_status:true}
+                ]}
+          })
+
+          //obj["first_name"]= await this.getDateOnly(foundS[i].check_in_date) 
+          //obj["last_name"]=await this.getDateOnly(foundS[i].check_out_date) 
+
+          let name=await this.getSingleGuardDetail(foundS[i].guard_id)
+          let hours=await this.calculateHoursSetToWork(foundS[i].check_in_date ,foundS[i].check_out_date)
+          
+     
+
+          obj["start_date"]= await this.getDateOnly(foundS[i].check_in_date) 
+          obj["end_date"]=await this.getDateOnly(foundS[i].check_out_date) 
+          obj["start_time"]=foundS[i].start_time
+          obj["end_time"]=foundS[i].end_time
+          obj["hours"]= await this.calculateHoursSetToWork( foundS[i].check_out_date, foundS[i].check_in_date)
+          obj["first_name"]= name["first_name"]
+          obj["last_name"]= name["last_name"]
+          obj["customer"]= foundC.first_name+" "+foundC.last_name;
+          obj["site"]= foundF.name
+
+          if(foundF.guard_charge>0){
+
+            console.log("pppppppppppppppppppppppppppppppppp")
+
+            console.log(foundF.guard_charge)
+              return
+          }
+          obj["guard_charge"]= "$"+foundF.guard_charge
+          obj["guard_id"]= foundS[i].guard_id
+          obj["client_charge"]= foundF.client_charge
+
+
+
+          console.log("=================================")
+          console.log(foundF)
+          console.log("=================================")
+
+
+          if(foundJL){
+            if(foundJL.check_out_status==true){
+              obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
+              obj["check_out"]=await this.getDateAndTime(foundJL.check_out_date) 
+              obj["hours_worked"]=foundJL.hours_worked
+              obj["earned"]= "$"+(foundJL.hours_worked*foundF.client_charge).toFixed(2)
+              obj["settlement_status"]=foundS[i].settlement_status
+
+            }
+            else{
+
+              obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
+              obj["check_out"]="empty" 
+              obj["hours_worked"]=0
+              obj["earned"]="$"+ 0
+              obj["settlement_status"]="empty"
+
+            }
+          
+          }
+          else{
+            obj["check_in"]="none"
+            obj["check_out"]="none"
+            obj["hours_worked"]=0
+            obj["earned"]="$"+0
+            obj["settlement_status"]="empty"
+
+          }
+                
+
+          all_shift.push(obj)
+        if(i==foundS.length-1){
+          return all_shift
+        }
+      }
+   }
+   else{
+    return []
+   }
+
+
+
+      
+  }
   
   async getShiftPerGuard(obj) {
     var { job_id,
@@ -1263,6 +1411,10 @@ console.log(myNewDateIn)
              {job_id},
              {guard_id}
            ]}
+           ,
+           order: [
+            ['check_in_date', 'DESC'],
+        ],
      }
     )
 
@@ -1642,6 +1794,84 @@ console.log(myNewDateIn)
 
   }
 
+
+
+  
+
+  async getDashBoardInfoGuard(req) {
+
+
+
+    console.log("lllllllllllllllllllllllll")
+    console.log(req.user.id)
+
+  
+
+
+    let foundS=await  this.ScheduleModel.findAll({
+        where:{guard_id:req.user.id},
+        group: ['job_id','guard_id']
+    })
+    let active=0
+    let completed=0
+    let pending=0
+    let obj={}
+
+
+  
+    if(foundS.length!=0){
+
+        for(let i=0;i<foundS.length;i++){
+          let foundJ=await  this.JobModel.findOne({
+            where:{id:foundS[i].job_id}
+          })
+
+   
+
+          if(foundJ.job_status=='ACTIVE'&&foundS[i].status_per_staff=='ACTIVE'){
+            active++
+          }
+          else if(foundJ.job_status=='COMPLETED'&&foundS[i].status_per_staff=='ACTIVE'){
+            completed++
+          }
+          else if(foundJ.job_status=='ACTIVE'&&foundS[i].status_per_staff=='PENDING'){
+            pending++
+          }
+
+          if(i==foundS.length-1){
+            
+              obj["active"]=active
+              obj["completed"]=completed
+              obj["pending"]=pending
+
+              return obj
+
+          }
+        }
+    }
+    else{
+
+
+      obj["active"]=active
+      obj["completed"]=completed
+      obj["pending"]=pending
+
+      return obj
+    }
+
+
+
+   
+  
+   
+  
+
+  }
+
+
+
+
+
   async getDashBoardInfo(obj) {
 
 
@@ -1985,9 +2215,6 @@ console.log(myNewDateIn)
       where: {settlement_status:obj.settlement}
     })
 
-
-    console.log('llllllllllllllllllll')
-    console.log(foundS  )
 
     let unSettledSucessfullShift=[]
     if(foundS.length!=0){
@@ -2392,7 +2619,6 @@ console.log(myNewDateIn)
         radius:foundItemFacLo.operations_area_constraint
       }
 
-      if(this.isInlocation(latitude, longitude, objLatLog)){
 
         if(check_in){
 
@@ -2406,11 +2632,7 @@ console.log(myNewDateIn)
                 ]}
             }
           )
-          console.log("===========shedule==============")
-
-          console.log(foundItemS)
-
-          console.log("===========shedule==============")
+ 
 
 
             if(foundItemS){
@@ -2419,74 +2641,95 @@ console.log(myNewDateIn)
               let storedDate=foundItemS.check_in_date
               let retrivedate=full_date
 
-              //let storedDate='2022-01-07 08:30:00 am'    
-              //let retrivedate='2022-01-07 08:50:00 am'
-             // console.log(new Date(retrivedate))
-             // console.log("na here")
-             // console.log(moment(new Date(retrivedate)).format("YYYY-MM-DD hh:mm:ss A Z"));
-              //console.log(retrivedate)
-                
+          
                 if(moment(new Date(retrivedate),'YYYY-MM-DD  hh:mm:ss a').isSameOrAfter(new Date(storedDate)) ){
                 
-                  console.log("pass=======================================")
-                  //THIS HELPS TO GET max_check_in_time
-                  /*const foundItemS =await   this.ScheduleModel.findOne(
-                    {
-                      where: {[Op.and]: 
-                        [{check_in_date: {[Op.lte]: date} },
-                        {check_out_date: {[Op.gte]: date} },
-                        {job_id},
-                        {guard_id }
-                        ]}
-                    })*/
+            
 
-                    let foundItemJL =await this.JobLogsModel.findOne(
-                      {
-                        where: {[Op.and]: [{job_id },
-                        {guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
-                      }
-                    )
-                      console.log(date)
-                      console.log("kkkkkkkkkkkkkkkkkkkkooooooooooooooooooo")
-                      console.log(foundItemJL)
-                      console.log(foundItemS.check_in_date)
 
-                      
+                  if(this.isInlocation(latitude, longitude, objLatLog)){
 
-                  if(!foundItemJL){
-                    if (this.checkIfGuardIsLate(storedDate,retrivedate,foundItemS.max_check_in_time)) {
-                      
-                      let coordinates_res=await this.CoordinatesModel.create({
-                        longitude,
-                        latitude
-                      })
-      
+
+                          let foundItemJL =await this.JobLogsModel.findOne(
+                            {
+                              where: {[Op.and]: [{job_id },
+                              {guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
+                            }
+                          )
+                    
+                          if(!foundItemJL){
+                            if (this.checkIfGuardIsLate(storedDate,retrivedate,foundItemS.max_check_in_time)) {
+                              
+                              let coordinates_res=await this.CoordinatesModel.create({
+                                longitude,
+                                latitude
+                              })
+              
+                              let obj={
+                                message:"in location",
+                                check_in_time:time,
+                                check_in_status:true,
+                                job_id,
+                                guard_id,
+                                coordinates_id:coordinates_res.id,
+                                check_in_date:date,
+                                schedule_id:foundItemS.id,
+                                project_check_in_date:foundItemS.check_in_date
+                              }
+              
+                              this.JobLogsModel.create(obj).then((myRes)=>{
+                                console.log(myRes)
+                              })
+                            }
+                            else{
+                              throw new LocationError("you are late cant check in");
+                            }
+
+                          }
+                          else{
+                            throw new LocationError("you have check in already");
+                          }
+                  }
+                  else{
+
+                    let coordinates_res=await this.CoordinatesModel.create({
+                      longitude,
+                      latitude
+                    })
+            
+            
+                    if(check_in){
                       let obj={
-                        message:"in location",
+                        message:"not in location",
                         check_in_time:time,
-                        check_in_status:true,
+                        check_in_status:false,
                         job_id,
                         guard_id,
                         coordinates_id:coordinates_res.id,
-                        check_in_date:date,
-                        schedule_id:foundItemS.id,
-                        project_check_in_date:foundItemS.check_in_date
+                        check_in_date: date,
+                        project_check_in_date:date
                       }
-      
-                      this.JobLogsModel.create(obj).then((myRes)=>{
-                        console.log(myRes)
-                      })
+                      await this.JobLogsModel.create(obj)
+                      throw new LocationError( "You are not in location" );
                     }
                     else{
-                      throw new LocationError("you are late cant check in");
+                      let obj={
+                        message:"not in location",
+                        check_out_time:time,
+                        check_out_status:false,
+                        job_id,
+                        guard_id,
+                        coordinates_id:coordinates_res.id,
+                        check_out_date: date,
+                        project_check_in_date:date
+                      }
+                      await this.JobLogsModel.create(obj)
+                      throw new LocationError( "You are not in location" );
                     }
-
-                  }
-                  else{
                    
-                    throw new LocationError("you have check in already");
-
                   }
+
+
                 }
                 else{
                   throw new LocationError("not yet time to check");
@@ -2500,150 +2743,151 @@ console.log(myNewDateIn)
         }
         else{
 
-          //FOR ALLOWING LATE CHECK OUT 30
-          let con_fig_time_zone2 = momentTimeZone.tz(my_time_zone).subtract(1, 'minutes')
-          let date2=new Date(con_fig_time_zone2.format('YYYY-MM-DD hh:mm:ss a'))
+          if(this.isInlocation(latitude, longitude, objLatLog)){
 
-          const foundItemS =await   this.ScheduleModel.findOne(
-            {
-              where: {[Op.and]: 
-                [{check_in_date: {[Op.lte]: date} },
-                {check_out_date:{ [Op.or]: [{[Op.gte]: date2},{[Op.gte]: date}]  } },
-                {job_id},
-                {guard_id }
-                ]}
-            }
-          )
+            
+            //FOR ALLOWING LATE CHECK OUT 30
+            let con_fig_time_zone2 = momentTimeZone.tz(my_time_zone).subtract(1, 'minutes')
+            let date2=new Date(con_fig_time_zone2.format('YYYY-MM-DD hh:mm:ss a'))
 
-          console.log("================================")
-
-          console.log(foundItemS)
-
-
-          console.log("================================")
-
-
-          if(foundItemS){
-
-            const foundItemJL =await   this.JobLogsModel.findOne(
+            const foundItemS =await   this.ScheduleModel.findOne(
               {
-                where: {[Op.and]: [{job_id },
-                {guard_id},{check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
+                where: {[Op.and]: 
+                  [{check_in_date: {[Op.lte]: date} },
+                  {check_out_date:{ [Op.or]: [{[Op.gte]: date2},{[Op.gte]: date}]  } },
+                  {job_id},
+                  {guard_id }
+                  ]}
               }
             )
-            if (!foundItemJL) {
-              throw new LocationError("you have not check in yet");
-  
+
+
+            if(foundItemS){
+
+              const foundItemJL =await   this.JobLogsModel.findOne(
+                {
+                  where: {[Op.and]: [{job_id },
+                  {guard_id},{check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
+                }
+              )
+              if (!foundItemJL) {
+                throw new LocationError("you have not check in yet");
+    
+              }
+              else{
+
+
+                    if (!foundItemJL.check_out_status) {
+                    
+                      let my_log_date_check_in=foundItemJL.check_in_date
+                      let my_date_now_check_out=full_date
+                      let my_shedule_date_check_in=foundItemS.check_in_date
+                      let my_shedule_date_check_out=foundItemS.check_out_date
+
+
+                      console.log(full_date)
+                              /*           
+                      retrivedate='2022-01-07 08:00:00 am'    
+                        storedDate='2022-01-10 11:40:00 pm'*/
+
+                                    
+                      let my_job_H_worked=await this.calculateHoursSetToWork(my_date_now_check_out,my_log_date_check_in )
+
+                      
+                      if(this.timePositionForCheckOut(my_date_now_check_out ,my_shedule_date_check_out)){
+                        my_job_H_worked=await this.calculateHoursSetToWork(my_date_now_check_out, my_log_date_check_in)
+    
+                          let obj={
+                            check_out_time:time,
+                            hours_worked:my_job_H_worked,
+                            check_out_status:true,
+                            check_out_date:new Date(full_date)
+                          }
+                            
+                          let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
+                        
+                          this.JobLogsModel.update(obj,{
+                          where:whereOptions})
+    
+                          
+                        }
+                        else{    
+    
+                          my_job_H_worked=await this.calculateHoursSetToWork(my_shedule_date_check_out, my_log_date_check_in)
+                          
+                          let obj={
+                            check_out_time:foundItemS.end_time,
+                            hours_worked:my_job_H_worked,
+                            check_out_status:true,
+                            check_out_date:foundItemS.check_out_date
+                          }
+                            
+                          let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
+                          /*
+                          this.JobLogsModel.update(obj,{
+                          where:whereOptions})
+    */
+                                              
+                        }
+    
+                      
+                      }
+                      else{
+                        throw new LocationError("you have check out already");
+                      }   
+              }
             }
             else{
-
-
-                  if (!foundItemJL.check_out_status) {
-                  
-                    let my_log_date_check_in=foundItemJL.check_in_date
-                    let my_date_now_check_out=full_date
-                    let my_shedule_date_check_in=foundItemS.check_in_date
-                    let my_shedule_date_check_out=foundItemS.check_out_date
-
-
-                    console.log(full_date)
-                            /*           
-                     retrivedate='2022-01-07 08:00:00 am'    
-                      storedDate='2022-01-10 11:40:00 pm'*/
-
-                                  
-                    let my_job_H_worked=await this.calculateHoursSetToWork(my_date_now_check_out,my_log_date_check_in )
-
-                    
-                     if(this.timePositionForCheckOut(my_date_now_check_out ,my_shedule_date_check_out)){
-                       my_job_H_worked=await this.calculateHoursSetToWork(my_date_now_check_out, my_log_date_check_in)
-  
-                        let obj={
-                          check_out_time:time,
-                          hours_worked:my_job_H_worked,
-                          check_out_status:true,
-                          check_out_date:new Date(full_date)
-                        }
-                          
-                        let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
-                      
-                        this.JobLogsModel.update(obj,{
-                        where:whereOptions})
-  
-                        
-                      }
-                      else{    
-  
-                        my_job_H_worked=await this.calculateHoursSetToWork(my_shedule_date_check_out, my_log_date_check_in)
-                        
-                        let obj={
-                          check_out_time:foundItemS.end_time,
-                          hours_worked:my_job_H_worked,
-                          check_out_status:true,
-                          check_out_date:foundItemS.check_out_date
-                        }
-                          
-                        let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
-                        /*
-                        this.JobLogsModel.update(obj,{
-                        where:whereOptions})
-  */
-                                            
-                      }
-  
-                    
-                    }
-                    else{
-                      throw new LocationError("you have check out already");
-                    }   
+              throw new LocationError("cant check out no shift available");
             }
-          }
-          else{
-            throw new LocationError("cant check out no shift available");
-          }
 
       
-        }
 
-      }
-      else{
-
-        let coordinates_res=await this.CoordinatesModel.create({
-          longitude,
-          latitude
-        })
-
-
-        if(check_in){
-          let obj={
-            message:"not in location",
-            check_in_time:time,
-            check_in_status:false,
-            job_id,
-            guard_id,
-            coordinates_id:coordinates_res.id,
-            check_in_date: date,
-            project_check_in_date:date
           }
-          await this.JobLogsModel.create(obj)
-          throw new LocationError( "You are not in location" );
-        }
-        else{
-          let obj={
-            message:"not in location",
-            check_out_time:time,
-            check_out_status:false,
-            job_id,
-            guard_id,
-            coordinates_id:coordinates_res.id,
-            check_out_date: date,
-            project_check_in_date:date
+
+          else{
+
+            let coordinates_res=await this.CoordinatesModel.create({
+              longitude,
+              latitude
+            })
+    
+    
+            if(check_in){
+              let obj={
+                message:"not in location",
+                check_in_time:time,
+                check_in_status:false,
+                job_id,
+                guard_id,
+                coordinates_id:coordinates_res.id,
+                check_in_date: date,
+                project_check_in_date:date
+              }
+              await this.JobLogsModel.create(obj)
+              throw new LocationError( "You are not in location" );
+            }
+            else{
+              let obj={
+                message:"not in location",
+                check_out_time:time,
+                check_out_status:false,
+                job_id,
+                guard_id,
+                coordinates_id:coordinates_res.id,
+                check_out_date: date,
+                project_check_in_date:date
+              }
+              await this.JobLogsModel.create(obj)
+              throw new LocationError( "You are not in location" );
+            }
+           
           }
-          await this.JobLogsModel.create(obj)
-          throw new LocationError( "You are not in location" );
+
+
         }
-       
-      }
+
+ 
 
 
       

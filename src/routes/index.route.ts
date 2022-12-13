@@ -37,9 +37,9 @@ class Routes {
 
     this.router.use(`${rootAPI}/customer`, customerRoute);
 
-    this.router.use(`${rootAPI}/job`, jobRoute);
+    this.router.use(`${rootAPI}/job`, jobRoute)
 
-    this.router.use(`${rootAPI}/user`, userRoute);
+    this.router.use(`${rootAPI}/user`, userRoute)
 
     this.router.all("*", (req: Request, res: Response) => {
       // return res.status(400).json({

@@ -12,10 +12,8 @@ class JobRoutes extends JobController {
 
   private routes(): void {
 
-
     this.router.post("/remove_guard_shedule", this.RemoveGuardShedule);
     this.router.post("/remove_guard_single_shedule", this.RemoveGuardSingleShedule);
-
     this.router.post("/remove_guard_shedule_log", this.RemoveGuardSheduleLog);
     this.router.post("/check-in", this.checkInCheckOut);
     this.router.post("/check_in_admin", this.checkInCheckOutAdmin);
@@ -29,7 +27,13 @@ class JobRoutes extends JobController {
     this.router.post("/allJobs/guard", this.getGuardPerJob);
     this.router.post("/allJobs/oneShedulePerGuard", this.getOneShedulePerGuard);
     this.router.get("/allJobs/generalshift", this.getGeneralShift);
+
+    //THIS GET SHIFT PER GUARD PER JOB
     this.router.post("/allJobs/shiftPerGuard", this.getShiftPerGuard);
+
+    //THIS GET SHIFT PER GUARD FOR ALL JOB
+    this.router.post("/allJobs/shiftPerGuardAllJob", this.shiftPerGuardAllJob);
+
     this.router.post("/allJobs/logPerGuard", this.getLogPerGuard);
     this.router.post("/updateJobStatus", this.updateJobStatus);
     this.router.post("/settleShift", this.settleShift);
@@ -41,23 +45,15 @@ class JobRoutes extends JobController {
     this.router.get("/getAllGuard", this.getAllGuard);
     this.router.get("/getAllSite", this.getAllSite);
 
-
     this.router.get("/getDashBoardInfo", this.getDashBoardInfo);
+    this.router.get("/getDashBoardInfoGuard", this.getDashBoardInfoGuard);
+
     this.router.get("/getDeclinedJob", this.getDeclinedJob);
-
-
-
-
-
     this.router.post("/getAllUnsettleShiftOneGuard", this.getAllUnsettleShiftOneGuard);
-
-
-
-
+    
+     
     this.router.get("/myJobs", this.getMyJobs);
     this.router.get("/myJobs/getSinglejob", this.getSinglejob);
-
-    
 
    // this.router.get("/myJobsAdminDetail", this.getMyJobsAdminDetail);
     this.router.post("/", this.createJob);

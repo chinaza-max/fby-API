@@ -12,6 +12,18 @@ class JobUtil {
 
   });
   
+
+
+ 
+
+    
+  public verifyShiftPerGuardAllJob = Joi.object().keys({
+    guard_id: Joi.number().required(),
+
+  });
+
+
+
   public verifyGetShiftPerGuard = Joi.object().keys({
     job_id: Joi.number().required(),
     guard_id: Joi.number().required(),

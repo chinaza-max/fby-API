@@ -73,6 +73,34 @@ export default class JobController {
   }
 
 
+
+
+  
+
+
+  protected async getDashBoardInfoGuard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+
+      console.log("kkkkkkkkkkkkkkkkkkk")
+
+      const obj = await jobService.getDashBoardInfoGuard(req);
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+
+
   protected async getDashBoardInfo(
     req: Request,
     res: Response,
@@ -255,8 +283,6 @@ export default class JobController {
   ): Promise<Response> {
     try {
       const data = req.body;
-
-      //REMOVE THIS AFTER TEST
       req.user = req.body.guard_id;
 
       const obj = await jobService.getLogPerGuard(data);
@@ -276,6 +302,40 @@ export default class JobController {
 
 
 
+  
+
+
+  protected async shiftPerGuardAllJob(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      //REMOVE THIS AFTER TEST
+      req.user = req.body.guard_id;
+      
+
+      const obj = await jobService.shiftPerGuardAllJob(data);
+
+
+
+      console.log("lllllllllllllllllllllllllllllllll")
+
+      console.log(obj)
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+
   protected async getShiftPerGuard(
     req: Request,
     res: Response,
@@ -288,7 +348,6 @@ export default class JobController {
       req.user = req.body.guard_id;
 
       const obj = await jobService.getShiftPerGuard(data);
-
 
       console.log(obj)
       
@@ -507,17 +566,22 @@ export default class JobController {
     try {
       const data = req.body;
 
+
+      let guard_id = req.user.id;
+      let myObj2={
+        guard_id,
+        ...data
+      }
+
       //REMOVE THIS AFTER TEST
-      req.user = req.body.guard_id;
-
-      const obj = await jobService.checkIn(data);
-
+     
+      const obj = await jobService.checkIn(myObj2);
 
       console.log(obj)
       
       return res.status(200).json({
         status: 200,
-        message: `Check ${data.check_in ? 'in' : 'out'} successful`,
+        message: `Check ${data.check_in=="true" ? 'in' : 'out'} successful`,
       });
       
     } catch (error) {
@@ -733,6 +797,10 @@ export default class JobController {
       console.log(myObj)
 
       const obj = await jobService.getSinglejob(myObj);
+
+      console.log("llllllllllllllllllllllllllllllllllllllllllllllll");
+
+      console.log(obj);
 
       console.log(obj?.length);
       if(obj?.length != 0 && obj?.length == null){
