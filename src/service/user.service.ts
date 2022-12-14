@@ -17,6 +17,7 @@ class UserService {
     );
     const user = await this.UserModel.findByPk(id);
     if (!user) throw new NotFoundError("User not found.");
+
     if (file) await user.update({ image: file.path });
     var relatedLocation = await this.LocationModel.findOrCreate({
       where: {
@@ -40,6 +41,7 @@ class UserService {
     });
     // await user.update();
     return user;
+    
   }
   
   async deleteStaff(address_id: any) {

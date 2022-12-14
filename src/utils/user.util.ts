@@ -5,6 +5,7 @@ class UserUtil {
     first_name: Joi.string().required(),
     last_name: Joi.string().required(),
     address: Joi.string().required(),
+    who_has_it:Joi.string().required(),
     email: Joi.string().required(),
     phone_number:Joi.number().required(),
     date_of_birth: Joi.date()

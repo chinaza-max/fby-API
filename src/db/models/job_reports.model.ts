@@ -10,8 +10,7 @@ import { IJobReports } from "../../interfaces/job_reports.interface";
 import { JobReportPriorityTypes } from "../../interfaces/types.interface";
 
 class JobReports
-  extends Model<
-    InferAttributes<JobReports>,
+  extends Model<InferAttributes<JobReports>,
     InferCreationAttributes<JobReports>
   >
   implements IJobReports
@@ -19,7 +18,9 @@ class JobReports
   declare id: CreationOptional<number>;
   declare job_id: number;
   declare guard_id: number;
-  declare message?: string;
+  declare message: string;
+  declare reportType: string;
+  declare who_has_it: string;
   declare is_emergency: boolean;
   declare file_url: string;
   declare is_read: boolean;
@@ -43,6 +44,13 @@ export function init(connection: Sequelize) {
         type: DataTypes.NUMBER,
         allowNull: false,
       },
+      reportType: {
+        type: DataTypes.ENUM(
+          'ATTACHMENT',
+          'MESSAGE'
+        ),
+        allowNull:false,
+      },
       message: {
         type: DataTypes.STRING,
         allowNull: true,
@@ -58,6 +66,13 @@ export function init(connection: Sequelize) {
       },
       is_read: {
         type: DataTypes.BOOLEAN,
+        allowNull: false,
+      },
+      who_has_it:{
+        type: DataTypes.ENUM(
+          'GUARD',
+          'ADMIN'
+        ),
         allowNull: false,
       },
       created_at: {

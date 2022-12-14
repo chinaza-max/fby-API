@@ -388,6 +388,37 @@ export default class JobController {
   }
 
 
+
+    protected async submitReportAndAttachment(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+
+      //console.log(req)
+      const { id } = req.user;
+      const data = req.body;
+      const { file } = req;
+     
+      const user = await jobService.submitReportAndAttachment(id, data, file);
+
+      return res.status(200).json({
+        status: 200,
+        message: "Repost posted successfully.",
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+
+
+
+
+
   protected async getOneShedulePerGuard(
     req: Request,
     res: Response,

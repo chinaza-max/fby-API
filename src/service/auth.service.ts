@@ -286,6 +286,7 @@ class AuthenticationService {
         email,
         date_of_birth,
         gender,
+        phone_number,
         created_at,
         updated_at,
         is_archived,
@@ -297,6 +298,7 @@ class AuthenticationService {
         first_name,
         last_name,
         email,
+        phone_number,
         // Added Location
         address: locationObj.address,
         date_of_birth,

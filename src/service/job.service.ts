@@ -11,6 +11,7 @@ import {
   Agendas,
   JobSecurityCode,
   JobLogs,
+  JobReports,
   MynewAgenda
 } from "../db/models";
 import {
@@ -45,7 +46,7 @@ class UserService {
   private FacilityModel = Facility;
   private FacilityLocationModel = FacilityLocation;
   private AgendasModel = Agendas;
-  private MyNewAgendasModel = MynewAgenda;
+  private JobReportsModel = JobReports;
   private JobSecurityModel = JobSecurityCode;
 
 
@@ -1631,10 +1632,65 @@ console.log(myNewDateIn)
     return []
    }
 
-
-
-      
   }
+
+
+
+
+  async submitReportAndAttachment(
+    id: number,
+    data: any,
+    file?: Express.Multer.File
+  ): Promise<JobReports> {
+
+    const data2 = await jobUtil.verifySubmitReportAndAttachment.validateAsync(
+      data
+    );
+
+
+      try{
+        if(data.reportType=="MESSAGE"){
+        let   createdRes= await this.JobReportsModel.create({
+            job_id:data2.job_id,
+            guard_id :data2.guard_id,
+            reportType :data2.reportType,
+            message :data2.message,
+            is_emergency :data2.is_emergency,
+            is_read:data2.is_read
+          })
+
+          return createdRes
+
+        }
+        else{
+
+
+
+
+          console.log(file)
+          let createdRes=  await this.JobReportsModel.create({
+              job_id:data2.job_id,
+              guard_id :data2.guard_id,
+              reportType :data2.reportType,
+              file_url : file.path,
+              is_emergency :data2.is_emergency,
+              is_read:data2.is_read
+            })
+          
+
+            return createdRes
+
+        }
+          
+      }
+      catch (error) {
+        console.log(error);
+        throw new SystemError(error.toString());
+      }
+
+
+  
+}
     
 
 

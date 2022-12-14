@@ -22,4 +22,7 @@ class UserRoutes extends UserController {
   }
 }
 
+
+
+
 export default new UserRoutes().router;

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import JobController from "../controllers/job/job.controller";
+import uploadHandler from "../middlewares/upload.middleware";
 
 class JobRoutes extends JobController {
   public router: Router;
@@ -28,6 +29,14 @@ class JobRoutes extends JobController {
     this.router.post("/allJobs/oneShedulePerGuard", this.getOneShedulePerGuard);
     this.router.get("/allJobs/generalshift", this.getGeneralShift);
 
+
+    //SUBMIT REPORT FROM GUARD
+    
+    this.router.put("/submitReportAttachment",uploadHandler.uploads.single("file"), this.submitReportAndAttachment);
+    //this.router.post("/submitReport", this.submitReport);
+
+
+
     //THIS GET SHIFT PER GUARD PER JOB
     this.router.post("/allJobs/shiftPerGuard", this.getShiftPerGuard);
 
@@ -45,8 +54,6 @@ class JobRoutes extends JobController {
     this.router.get("/getAllGuard", this.getAllGuard);
     this.router.get("/getAllSite", this.getAllSite);
 
-//SUBMIT REPORT FROM GUARD
-this.router.post("/submitReport", this.getGuard);
 
 
     this.router.get("/getDashBoardInfo", this.getDashBoardInfo);

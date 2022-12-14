@@ -38,9 +38,30 @@ class JobUtil {
   public verifygetOneShedulePerGuard = Joi.object().keys({
     job_id: Joi.number().required(),
     guard_id: Joi.number().required(),
-
   });
 
+
+
+  public verifySubmitReportAndAttachment = Joi.object().keys({
+    job_id: Joi.number().required(),
+    guard_id: Joi.number().required(),
+    reportType: Joi.string().required(),
+    is_emergency: Joi.boolean().required(),
+    is_read:Joi.boolean().required(),
+    message: Joi.string(),
+    file: Joi.alternatives(
+      Joi.string(),
+      Joi.object().unknown(true).error((errors: any) => {
+        errors.forEach(error => {
+          error.message = "Image must be a valid file not greater than 1mb";
+        });
+        return errors;
+      })
+    )
+  });
+
+
+  //THIS MAY THROW ERROR BECAUSE CHANGES WAS MADE HERE WITH NO TEST
   public verifygetGuardPerJob = Joi.object().keys({
     job_id: Joi.number().required(),
   });
