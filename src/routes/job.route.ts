@@ -45,13 +45,16 @@ class JobRoutes extends JobController {
     this.router.get("/getAllGuard", this.getAllGuard);
     this.router.get("/getAllSite", this.getAllSite);
 
+//SUBMIT REPORT FROM GUARD
+this.router.post("/submitReport", this.getGuard);
+
+
     this.router.get("/getDashBoardInfo", this.getDashBoardInfo);
     this.router.get("/getDashBoardInfoGuard", this.getDashBoardInfoGuard);
 
     this.router.get("/getDeclinedJob", this.getDeclinedJob);
     this.router.post("/getAllUnsettleShiftOneGuard", this.getAllUnsettleShiftOneGuard);
     
-     
     this.router.get("/myJobs", this.getMyJobs);
     this.router.get("/myJobs/getSinglejob", this.getSinglejob);
 

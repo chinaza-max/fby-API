@@ -17,10 +17,11 @@ class JobReports
   implements IJobReports
 {
   declare id: CreationOptional<number>;
-  declare job_operations_id: number;
+  declare job_id: number;
+  declare guard_id: number;
   declare message?: string;
   declare is_emergency: boolean;
-  declare priority: JobReportPriorityTypes;
+  declare file_url: string;
   declare is_read: boolean;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
@@ -34,7 +35,11 @@ export function init(connection: Sequelize) {
         autoIncrement: true,
         primaryKey: true,
       },
-      job_operations_id: {
+      job_id: {
+        type: DataTypes.NUMBER,
+        allowNull: false,
+      },
+      guard_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
       },
@@ -47,9 +52,9 @@ export function init(connection: Sequelize) {
         defaultValue: false,
         allowNull: false,
       },
-      priority: {
-        type: DataTypes.ENUM("TASK", "AGENDA"),
-        allowNull: false,
+      file_url: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       is_read: {
         type: DataTypes.BOOLEAN,

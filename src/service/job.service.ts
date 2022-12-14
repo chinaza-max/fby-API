@@ -264,7 +264,18 @@ async getSinglejob(myObj: any): Promise<any[]> {
 
 
 
-async getJobsForStaff(myObj: any): Promise<any[]> {
+async getJobsForStaff(req: any): Promise<any[]> {
+
+
+  const id = req.user.id;
+
+
+  let myObj={
+    id,
+    jobType:req.query.jobType
+}
+
+
   try {
 
     let jobDetail=[]
@@ -423,7 +434,11 @@ async getJobsForStaff(myObj: any): Promise<any[]> {
 
     }
     else if(myObj.jobType=="COMPLETED"){
-        
+
+      const myData={
+        limit:Number(req.query.limit),
+        offset:Number(req.query.offset)
+      }
 
 
       const foundJ = await this.JobModel.findAll({
@@ -435,10 +450,17 @@ async getJobsForStaff(myObj: any): Promise<any[]> {
         for(let i=0;i<foundJ.length;i++){
               
               const foundS = await this.ScheduleModel.findAll({
+                limit: myData.limit,
+                offset: myData.offset,
                 where: {[Op.and]: [{job_id:foundJ[i].id },
                 {guard_id:myObj.id },
-                {status_per_staff:'ACTIVE'}]}
+                {status_per_staff:'ACTIVE'}]},
+                order: [
+                  ['created_at', 'ASC']
+                ]
               })
+
+
               if(foundS.length!=0){
 
                 let schedule=[]
@@ -1283,12 +1305,11 @@ console.log(myNewDateIn)
       {
         where: {[Op.and]: 
            [{guard_id}
-           ]}, 
-           order: [
-               ['check_in_date', 'ASC']
-           ]
+           ]}
       }
     )
+
+
 
     let all_shift=[]     
    if(foundS.length!=0){
@@ -1315,6 +1336,8 @@ console.log(myNewDateIn)
                 ]}
           })
 
+          console.log("jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj")
+          console.log(foundJ)
           //obj["first_name"]= await this.getDateOnly(foundS[i].check_in_date) 
           //obj["last_name"]=await this.getDateOnly(foundS[i].check_out_date) 
 
@@ -1333,16 +1356,10 @@ console.log(myNewDateIn)
           obj["customer"]= foundC.first_name+" "+foundC.last_name;
           obj["site"]= foundF.name
 
-          if(foundF.guard_charge>0){
-
-            console.log("pppppppppppppppppppppppppppppppppp")
-
-            console.log(foundF.guard_charge)
-              return
-          }
-          obj["guard_charge"]= "$"+foundF.guard_charge
+          
+          obj["guard_charge"]= "$"+foundJ.staff_charge
           obj["guard_id"]= foundS[i].guard_id
-          obj["client_charge"]= foundF.client_charge
+          obj["client_charge"]= foundJ.client_charge
 
 
 
@@ -1356,7 +1373,7 @@ console.log(myNewDateIn)
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
               obj["check_out"]=await this.getDateAndTime(foundJL.check_out_date) 
               obj["hours_worked"]=foundJL.hours_worked
-              obj["earned"]= "$"+(foundJL.hours_worked*foundF.client_charge).toFixed(2)
+              obj["earned"]= "$"+(foundJL.hours_worked*foundJ.staff_charge).toFixed(2)
               obj["settlement_status"]=foundS[i].settlement_status
 
             }
@@ -1367,7 +1384,6 @@ console.log(myNewDateIn)
               obj["hours_worked"]=0
               obj["earned"]="$"+ 0
               obj["settlement_status"]="empty"
-
             }
           
           }

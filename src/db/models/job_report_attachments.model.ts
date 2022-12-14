@@ -18,6 +18,7 @@ class JobReportAttachments
   declare id: CreationOptional<number>;
   declare job_report_id: number;
   declare file_url: string;
+  declare message: string;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
 }
@@ -36,7 +37,11 @@ export function init(connection: Sequelize) {
       },
       file_url: {
         type: DataTypes.STRING,
-        allowNull: false,
+        allowNull: true,
+      },
+      message: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       created_at: {
         type: DataTypes.DATE,

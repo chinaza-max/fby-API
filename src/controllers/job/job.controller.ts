@@ -828,17 +828,10 @@ export default class JobController {
   ): Promise<Response> {
     try {
       const data = req.body;
-      const id = req.user.id;
 
-      let myObj={
-          id,
-          jobType:req.query.jobType
-      }
+   
 
-
-      console.log(myObj)
-
-      const obj = await jobService.getJobsForStaff(myObj);
+      const obj = await jobService.getJobsForStaff(req);
 
       console.log(obj?.length);
       if(obj?.length != 0 && obj?.length == null){
