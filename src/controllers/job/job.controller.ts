@@ -444,6 +444,33 @@ export default class JobController {
       next(error);
     }
   }
+
+
+  
+  protected async getSingleReportGuard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await jobService.getSingleReportGuard(data);
+
+
+      console.log(obj)
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
   protected async getGuardPerJob(
     req: Request,
     res: Response,

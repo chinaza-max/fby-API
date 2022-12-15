@@ -1648,9 +1648,6 @@ console.log(myNewDateIn)
     );
 
 
-    console.log("bbbbbbbbbbbbbbbbbbbbbbbbbbbb")
-
-        console.log(data2.report_type=="MESSAGE")
       try{
         if(data2.report_type=="MESSAGE"){
         let createdRes= await this.JobReportsModel.create({
@@ -1660,7 +1657,7 @@ console.log(myNewDateIn)
             message :data2.message,
             is_emergency :data2.is_emergency,
             is_read:data2.is_read,
-            who_has_it:data2.who_has_it
+            who_has_it:data2.who_has_it 
           })
           return createdRes
 
@@ -1747,6 +1744,57 @@ console.log(myNewDateIn)
 
   }
     
+
+  
+
+  async getSingleReportGuard(obj) {
+    var { job_id,
+      guard_id
+    }
+  
+    =  await jobUtil.verifyGetSingleReportGuard.validateAsync(obj);
+      
+
+
+    let myReport=[]
+
+        let foundJR=await this.JobReportsModel.findAll({
+          where:{[Op.and]: 
+            [
+              {job_id},
+              {guard_id}
+            ]},
+            order: [["created_at", "DESC"]],
+        })
+
+        console.log(foundJR)
+        if(foundJR.length!=0){
+            for(let i=0; i<foundJR.length;i++){
+              let obj={}
+
+                obj["report_type"]=foundJR[i].report_type
+                obj["message"]=foundJR[i].message
+                obj["is_emergency"]=foundJR[i].is_emergency
+                obj["file_url"]=foundJR[i].file_url
+                obj["is_read"]=foundJR[i].is_read
+                obj["who_has_it"]=foundJR[i].who_has_it
+                obj["mime_type"]=foundJR[i].mime_type
+                obj["created_at"]= await this.getDateOnly(foundJR[i].created_at) 
+                obj["report_id"]=foundJR[i].id
+
+              
+                myReport.push(obj)
+              if(i==foundJR.length-1){
+                return myReport 
+              }
+            }
+        }
+        else{
+            return myReport
+        }      
+  }
+
+
   async getGuardPerJob(obj) {
     var { job_id,
     }
