@@ -23,7 +23,7 @@ import {
   DateSheduleError,
   LocationError
 } from "../errors";
-import { fn, col, Op, QueryError, where } from "sequelize";
+import { fn, col, Op, QueryError, where, FLOAT } from "sequelize";
 import moment from "moment";
 import momentTimeZone from "moment-timezone";
 import Schedule from "../db/models/schedule.model";
@@ -231,7 +231,7 @@ async getSinglejob(myObj: any): Promise<any[]> {
                           address:foundFL.address,
                           job_status:foundFL.address,
                           hours_worked:myHours_worked,
-                          earn:"$"+myHours_worked*foundJ2.staff_charge,
+                          earn:"$"+ (myHours_worked*foundJ2.staff_charge).toFixed(2) ,   
                           guard_id:myObj.guard_id
                         })
                   } 
@@ -1648,10 +1648,11 @@ console.log(myNewDateIn)
     );
 
 
+    console.log("bbbbbbbbbbbbbbbbbbbbbbbbbbbb")
 
-  
+        console.log(data2.report_type=="MESSAGE")
       try{
-        if(data.reportType=="MESSAGE"){
+        if(data2.report_type=="MESSAGE"){
         let createdRes= await this.JobReportsModel.create({
             job_id:data2.job_id,
             guard_id :data2.guard_id,
@@ -1660,15 +1661,13 @@ console.log(myNewDateIn)
             is_emergency :data2.is_emergency,
             is_read:data2.is_read,
             who_has_it:data2.who_has_it
-
           })
           return createdRes
 
         }
         else{
 
-
-          console.log(file)
+          console.log(data2)
           let createdRes=  await this.JobReportsModel.create({
               job_id:data2.job_id,
               guard_id :data2.guard_id,
@@ -1676,8 +1675,9 @@ console.log(myNewDateIn)
               file_url : file.path,
               is_emergency :data2.is_emergency,
               is_read:data2.is_read,
-              who_has_it:data2.who_has_it
-
+              message :data2.message,
+              who_has_it:data2.who_has_it,  
+              mime_type:file.mimetype
             })
           
 

@@ -23,6 +23,7 @@ class JobReports
   declare who_has_it: string;
   declare is_emergency: boolean;
   declare file_url: string;
+  declare mime_type:string;
   declare is_read: boolean;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
@@ -74,6 +75,10 @@ export function init(connection: Sequelize) {
           'ADMIN'
         ),
         allowNull: false,
+      },
+      mime_type: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       created_at: {
         type: DataTypes.DATE,

@@ -12,4 +12,5 @@ export interface IJobReports {
   updated_at: Date;
   who_has_it:string;
   report_type:string;
+  mime_type: string;
 }

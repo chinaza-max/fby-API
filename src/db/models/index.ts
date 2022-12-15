@@ -202,6 +202,7 @@ function associate() {
     },
     as: "job_operations",
   });
+
   ScanOperations.belongsTo(Coordinates, {
     foreignKey: {
       allowNull: false,
@@ -226,6 +227,7 @@ function associate() {
     },
     as: "coordinates",
   });
+  
   JobLogs.belongsTo(Job, {
     onDelete: 'cascade',
     foreignKey: {
@@ -333,6 +335,5 @@ export function init(connection: Sequelize) {
   initJobReports(connection);
   initJobReportAttachments(connection);
   initJobSecurityCode(connection);
-
   associate();
 }

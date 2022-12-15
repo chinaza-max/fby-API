@@ -13,6 +13,8 @@ const uStorage = new CloudinaryStorage({
   cloudinary: Cloudinary,
   params: {
     folder: "files",
+    resource_type: 'auto',
+    allowedFormats: ['jpeg', 'png', 'jpg', 'mp3', 'mp4' , 'pdf'],
   } as any
 });
 
