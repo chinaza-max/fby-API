@@ -164,6 +164,16 @@ function associate() {
     as:"job",
   });
   Job.hasMany(Schedule);
+  JobReports.belongsTo(Job, {
+    onDelete: 'cascade',
+    foreignKey: {
+      allowNull: false,
+      name: "job_id",
+      field: "job_id",
+    },
+    as:"job",
+  });
+  Job.hasMany(JobReports);
 
   MynewAgenda.belongsTo(Job, {
     onDelete: 'cascade',
@@ -254,14 +264,7 @@ function associate() {
     },
     as: "agenda",
   });
-  JobReports.belongsTo(Coordinates, {
-    foreignKey: {
-      allowNull: false,
-      name: "coordinates_id",
-      field: "coordinates_id",
-    },
-    as: "coordinates",
-  });
+
   JobReportAttachments.belongsTo(Coordinates, {
     foreignKey: {
       allowNull: false,

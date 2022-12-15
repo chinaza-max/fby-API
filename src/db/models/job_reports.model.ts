@@ -19,7 +19,7 @@ class JobReports
   declare job_id: number;
   declare guard_id: number;
   declare message: string;
-  declare reportType: string;
+  declare report_type: string;
   declare who_has_it: string;
   declare is_emergency: boolean;
   declare file_url: string;
@@ -44,7 +44,7 @@ export function init(connection: Sequelize) {
         type: DataTypes.NUMBER,
         allowNull: false,
       },
-      reportType: {
+      report_type: {
         type: DataTypes.ENUM(
           'ATTACHMENT',
           'MESSAGE'

@@ -45,7 +45,8 @@ class JobUtil {
   public verifySubmitReportAndAttachment = Joi.object().keys({
     job_id: Joi.number().required(),
     guard_id: Joi.number().required(),
-    reportType: Joi.string().required(),
+    report_type: Joi.string().required(),
+    who_has_it: Joi.string().required(),
     is_emergency: Joi.boolean().required(),
     is_read:Joi.boolean().required(),
     message: Joi.string(),

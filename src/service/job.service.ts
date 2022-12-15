@@ -1648,33 +1648,36 @@ console.log(myNewDateIn)
     );
 
 
+
+  
       try{
         if(data.reportType=="MESSAGE"){
-        let   createdRes= await this.JobReportsModel.create({
+        let createdRes= await this.JobReportsModel.create({
             job_id:data2.job_id,
             guard_id :data2.guard_id,
-            reportType :data2.reportType,
+            report_type :data2.report_type,
             message :data2.message,
             is_emergency :data2.is_emergency,
-            is_read:data2.is_read
-          })
+            is_read:data2.is_read,
+            who_has_it:data2.who_has_it
 
+          })
           return createdRes
 
         }
         else{
 
 
-
-
           console.log(file)
           let createdRes=  await this.JobReportsModel.create({
               job_id:data2.job_id,
               guard_id :data2.guard_id,
-              reportType :data2.reportType,
+              report_type:data2.report_type,
               file_url : file.path,
               is_emergency :data2.is_emergency,
-              is_read:data2.is_read
+              is_read:data2.is_read,
+              who_has_it:data2.who_has_it
+
             })
           
 
@@ -1687,7 +1690,6 @@ console.log(myNewDateIn)
         console.log(error);
         throw new SystemError(error.toString());
       }
-
 
   
 }
