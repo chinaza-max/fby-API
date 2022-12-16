@@ -32,9 +32,7 @@ class JobRoutes extends JobController {
     this.router.post("/allJobs/oneShedulePerGuard", this.getOneShedulePerGuard);
     this.router.get("/allJobs/generalshift", this.getGeneralShift);
 
-
     //SUBMIT REPORT FROM GUARD
-    
     this.router.put("/submitReportAttachment",uploadHandler.uploads.single("file"), this.submitReportAndAttachment);
     
 
