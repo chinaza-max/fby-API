@@ -17,6 +17,7 @@ import ICustomer from "../interfaces/customer.interface";
 import utilService from "./util.service";
 import { fn, col, Op, QueryError, where } from "sequelize";
 import { date, string } from "joi";
+import momentTimeZone from "moment-timezone";
 import moment from "moment"
 
 interface DecodedToken {
@@ -38,6 +39,8 @@ class CustomerService {
     const {
       longitude,
       latitude,
+      longitude_admin,
+      latitude_admin,
       operations_area_constraint,
       client_charge,
       guard_charge,
@@ -58,16 +61,23 @@ class CustomerService {
       }
       else{
 
-        
-       let get_time_zone= await this.getTimeZone(latitude ,longitude)
+        let get_time_zone_admin= await this.getTimeZone(latitude_admin ,longitude_admin)
+        let get_time_zone= await this.getTimeZone(latitude ,longitude)
+        let dateStamp=await this.getDateAndTimeForStamp(get_time_zone_admin)
+
+
         
         var createdLocation = await this.LocationModel.create({
           address,
+          created_at:dateStamp, 
+          updated_at:dateStamp
         });
         console.log(createdLocation.id);
             const createdCoordinates = await this.CoordinatesModel.create({
               longitude,
               latitude,
+              created_at:dateStamp, 
+              updated_at:dateStamp
             });
             const createdFacilityLocation = await this.FacilityLocationModel.create(
               {
@@ -76,6 +86,8 @@ class CustomerService {
                 coordinates_id: createdCoordinates.id,
                 operations_area_constraint:operations_area_constraint,
                 operations_area_constraint_active:true,
+                created_at:dateStamp, 
+                updated_at:dateStamp
               }
             );
 
@@ -678,13 +690,21 @@ class CustomerService {
       );
   }
 
+
+  async getDateAndTimeForStamp(my_time_zone){
+
+    let con_fig_time_zone = momentTimeZone.tz(my_time_zone)
+    let date =new Date(con_fig_time_zone.format('YYYY-MM-DD hh:mm:ss a'))
+      
+     return date
+  }
+
   async getTimeZone(lat: number,log:number) {
     
-
     let timestamp =moment(new Date()).unix();
     try {
       let response = await axios.get(
-        `https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${log}&timestamp=${timestamp}&key=AIzaSyAqoyaPtHf5BcoTX_iNvCzXjVj6BpGl2do`,
+        `https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${log}&timestamp=${timestamp}&key=${serverConfig.GOOGLE_KEY}`,
       );
       // console.log(response.data.url);
       // console.log(response.data.explanation);

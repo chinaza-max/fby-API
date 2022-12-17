@@ -41,12 +41,10 @@ export function init(connection: Sequelize) {
       },
       created_at: {
         type: DataTypes.DATE,
-        defaultValue: new Date(),
         allowNull: false,
       },
       updated_at: {
         type: DataTypes.DATE,
-        defaultValue: new Date(),
         allowNull: false,
       },
       is_archived: {
@@ -57,7 +55,7 @@ export function init(connection: Sequelize) {
     },
     {
       tableName: "coordinates",
-      timestamps: true, underscored: true,
+       underscored: true,
       sequelize: connection,
     }
   );

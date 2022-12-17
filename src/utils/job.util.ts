@@ -125,6 +125,8 @@ class JobUtil {
   });
   
   public verifysheduleDateCreation = Joi.object().keys({
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
     date_time_staff_shedule: Joi.array().min(1).required().items({
       guard_id: Joi.number().required(),
       job_id: Joi.number().required(),
@@ -162,6 +164,8 @@ class JobUtil {
     description: Joi.string().trim().min(1),
     customer_id: Joi.number().required(),
     site_id: Joi.number().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
     job_status: Joi.string()
       .valid("ACTIVE", "PENDING", "COMPLETED"),
     staff_charge: Joi.number().required(),

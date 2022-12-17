@@ -25,9 +25,11 @@ import {
 } from "../errors";
 import { fn, col, Op, QueryError, where, FLOAT } from "sequelize";
 import moment from "moment";
+import axios from "axios";
 import momentTimeZone from "moment-timezone";
 import Schedule from "../db/models/schedule.model";
 import jobUtil from "../utils/job.util";
+import serverConfig from "../config/server.config";
 import { JobStatus } from "../interfaces/types.interface";
 import { IJobSecurityCode } from "../interfaces/job_security_code.interface";
 import authService from "./auth.service";
@@ -783,9 +785,14 @@ async getJobsForStaff(req: any): Promise<any[]> {
   async sheduleDate(data: any): Promise<any> {
     try {
       const {
-        date_time_staff_shedule
+        date_time_staff_shedule ,
+        latitude,
+        longitude
       } = await jobUtil.verifysheduleDateCreation.validateAsync(data);
 
+
+      let my_time_zone= await this.getTimeZone(latitude ,longitude)
+      let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
       //GETTING ALL THE THE JOBS SPECIFIC TO THE SHEDULE
       let myShedule=await this.ScheduleModel.findAll({
@@ -884,28 +891,33 @@ console.log(myNewDateIn)
             }
             if(i==date_time_staff_shedule.length-1){
                 if(cleanShedule.length!=0){
+                 
+                  let scheduleWithTimeStamp=await this.addTimeStampToArr(cleanShedule,dateStamp)
                   console.log("ooooooooooooooooooooooooooooo")
-                  //console.log(cleanShedule)
+                  console.log(scheduleWithTimeStamp)
 
-
-                return  await this.ScheduleModel.bulkCreate(cleanShedule);
+                return  await this.ScheduleModel.bulkCreate(scheduleWithTimeStamp);
                 }else{
                   throw new DateSheduleError("no new shedule was created dublicate found");
-
                 }
             }
           }
           if(cleanShedule.length!=0){
+
+
+
+            let scheduleWithTimeStamp=await this.addTimeStampToArr(cleanShedule,dateStamp)
+            console.log("ooooooooooooooooooooooooooooo")
+            console.log(scheduleWithTimeStamp)
             await this.ScheduleModel.bulkCreate(cleanShedule);
           }
       }
       else{
-        console.log(date_time_staff_shedule)
-
+        let scheduleWithTimeStamp=await this.addTimeStampToArr(date_time_staff_shedule,dateStamp)
+        console.log("ooooooooooooooooooooooooooooo")
+        console.log(scheduleWithTimeStamp)
         await this.ScheduleModel.bulkCreate(date_time_staff_shedule);
       }
-     
-    
      }
  
      
@@ -926,8 +938,13 @@ console.log(myNewDateIn)
         staff_charge,
         payment_status,
         job_status,
-        job_type
+        job_type,
+        latitude,
+        longitude,
       } = await jobUtil.verifyJobCreationData.validateAsync(data);
+
+      let my_time_zone= await this.getTimeZone(latitude ,longitude)
+      let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
       await this.JobModel.create({
         description,
@@ -937,7 +954,10 @@ console.log(myNewDateIn)
         staff_charge,
         payment_status,
         job_status,
-        job_type
+        job_type,
+        time_zone:my_time_zone,
+        created_at:dateStamp, 
+        updated_at:dateStamp
       })
 
     } catch (error) {
@@ -1531,18 +1551,127 @@ console.log(myNewDateIn)
       
   }
 
-  async getGeneralShift(obj) {
-    /*
-    var { job_id,
-      guard_id
-    }
+
+
   
-    =  await jobUtil.verifyGetgetGeneralShift.validateAsync(obj);
-     */ 
-    
-    const  foundS =await  this.ScheduleModel.findAll({ order: [
-      ['created_at', 'DESC']]
+
+  async generalshiftStarted(obj) {
+ 
+    const  foundS = await  this.ScheduleModel.findAll({
+                      where: {status_per_staff:{[Op.ne]:'DECLINE'}},
+                      order: [
+                        ['created_at', 'DESC']]
+                    })
+
+
+    let all_shift=[]     
+
+   if(foundS.length!=0){
+        for(let i=0;i<foundS.length;i++ ){
+
+          let obj={}
+
+
+          const foundJ = await this.JobModel.findOne({
+             where: { id:foundS[i].job_id} });
+
+
+            let dateAndTime=await this.getDateAndTimeForStamp(foundJ.time_zone)
+          
+            if(moment(dateAndTime).isSame(foundS[i].check_in_date)||moment(dateAndTime).isSame(foundS[i].check_out_date)||moment(dateAndTime).isBetween(moment(foundS[i].check_in_date), foundS[i].check_out_date)){
+
+
+                  
+            const foundF = await this.FacilityModel.findOne({
+                          where: { id:foundJ.facility_id} });
+  
+              const foundC = await this.CustomerModel.findOne({
+                            where: { id:foundJ.customer_id} });
+  
+              const  foundJL=await  this.JobLogsModel.findOne({
+                            where: {[Op.and]: 
+                                [{project_check_in_date:foundS[i].check_in_date},
+                                  {job_id:foundS[i].job_id},
+                                  {job_id:foundS[i].job_id},
+                                {check_in_status:true}
+                                ]}
+                          })
+  
+
+            let name=await this.getSingleGuardDetail(foundS[i].guard_id)
+            let guard_charge=Number(foundJ.staff_charge).toFixed(2)
+            let client_charge=Number(foundJ.client_charge).toFixed(2)
+            //let hours=await this.calculateHoursSetToWork(foundS[i].check_in_date ,foundS[i].check_out_date)
+            
+            obj["start_date"]= await this.getDateOnly(foundS[i].check_in_date) 
+            obj["end_date"]=await this.getDateOnly(foundS[i].check_out_date) 
+            obj["start_time"]=foundS[i].start_time
+            obj["end_time"]=foundS[i].end_time
+            obj["hours"]= await this.calculateHoursSetToWork( foundS[i].check_out_date, foundS[i].check_in_date)
+            obj["name"]= name["first_name"]+" "+name["last_name"]
+            obj["customer"]= foundC.first_name +" "+foundC.last_name
+            obj["site"]= foundF.name
+            obj["guard_charge"]="$"+guard_charge
+            obj["guard_id"]= foundS[i].guard_id
+            obj["client_charge"]="$"+client_charge
+            obj["job_status"]= foundJ.job_status
+            obj["description"]= foundJ.description
+            obj["settlement_status"]=foundS[i].settlement_status
+  
+  
+            if(foundJL){
+              if(foundJL.check_out_status==true){
+                obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
+                obj["check_out"]=await this.getDateAndTime(foundJL.check_out_date) 
+                obj["hours_worked"]=foundJL.hours_worked
+                obj["earned"]=  "$"+(foundJL.hours_worked*foundJ.staff_charge).toFixed(2)
+              }
+              else{
+  
+                obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
+                obj["check_out"]="none" 
+                obj["hours_worked"]=0
+                obj["earned"]="$"+0.00
+              }
+            
+            }
+            else{
+              obj["check_in"]="none"
+              obj["check_out"]="none"
+              obj["hours_worked"]=0
+              obj["earned"]="$"+0.00
+            }
+              
+            all_shift.push(obj)
+  
+            }
+
+        if(i==foundS.length-1){
+
+
+
+          console.log(all_shift)
+          return all_shift
+        }
+
+
+      }
+   }
+   else{
+    return []
+   }
+
+  }
+
+  async getGeneralShift(obj) {
+   
+
+    const  foundS = await  this.ScheduleModel.findAll({
+      where: {status_per_staff:{[Op.ne]:'DECLINE'}},
+      order: [
+        ['created_at', 'DESC']]
       })
+    
 
     let all_shift=[]     
    if(foundS.length!=0){
@@ -1575,8 +1704,8 @@ console.log(myNewDateIn)
 
           let name=await this.getSingleGuardDetail(foundS[i].guard_id)
           let hours=await this.calculateHoursSetToWork(foundS[i].check_in_date ,foundS[i].check_out_date)
-          
-
+          let guard_charge=Number(foundJ.staff_charge).toFixed(2)
+          let client_charge=Number(foundJ.client_charge).toFixed(2)
 
           obj["start_date"]= await this.getDateOnly(foundS[i].check_in_date) 
           obj["end_date"]=await this.getDateOnly(foundS[i].check_out_date) 
@@ -1586,9 +1715,9 @@ console.log(myNewDateIn)
           obj["name"]= name["first_name"]+" "+name["last_name"]
           obj["customer"]= foundC.first_name +" "+foundC.last_name
           obj["site"]= foundF.name
-          obj["guard_charge"]="$"+foundF.guard_charge
+          obj["guard_charge"]="$"+guard_charge
           obj["guard_id"]= foundS[i].guard_id
-          obj["client_charge"]="$"+foundF.client_charge
+          obj["client_charge"]="$"+client_charge
           obj["job_status"]= foundJ.job_status
           obj["description"]= foundJ.description
           obj["settlement_status"]=foundS[i].settlement_status
@@ -1599,31 +1728,25 @@ console.log(myNewDateIn)
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
               obj["check_out"]=await this.getDateAndTime(foundJL.check_out_date) 
               obj["hours_worked"]=foundJL.hours_worked
-              obj["earned"]=  "$"+(foundJL.hours_worked*foundF.client_charge).toFixed(2)
+              obj["earned"]=  "$"+(foundJL.hours_worked*foundJ.staff_charge).toFixed(2)
             }
             else{
 
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
               obj["check_out"]="none" 
               obj["hours_worked"]=0
-              obj["earned"]="$"+0
+              obj["earned"]="$0.00"
             }
-          
           }
           else{
             obj["check_in"]="none"
             obj["check_out"]="none"
             obj["hours_worked"]=0
-            obj["earned"]="$"+0
+            obj["earned"]="$0.00"
           }
                 
-
           all_shift.push(obj)
         if(i==foundS.length-1){
-
-
-
-          console.log(all_shift)
           return all_shift
         }
       }
@@ -1645,10 +1768,19 @@ console.log(myNewDateIn)
 
     const data2 = await jobUtil.verifySubmitReportAndAttachment.validateAsync(
       data
-    );
-
+    )
+    
 
       try{
+
+          let foundJ=await this.JobModel.findOne({
+            where:{id:data2.job_id}
+          })
+
+
+          let dateStamp=await this.getDateAndTimeForStamp(foundJ.time_zone)
+
+
         if(data2.report_type=="MESSAGE"){
         let createdRes= await this.JobReportsModel.create({
             job_id:data2.job_id,
@@ -1657,14 +1789,15 @@ console.log(myNewDateIn)
             message :data2.message,
             is_emergency :data2.is_emergency,
             is_read:data2.is_read,
-            who_has_it:data2.who_has_it 
+            who_has_it:data2.who_has_it,
+            created_at:dateStamp, 
+            updated_at:dateStamp
           })
           return createdRes
 
         }
         else{
 
-          console.log(data2)
           let createdRes=  await this.JobReportsModel.create({
               job_id:data2.job_id,
               guard_id :data2.guard_id,
@@ -1674,7 +1807,9 @@ console.log(myNewDateIn)
               is_read:data2.is_read,
               message :data2.message,
               who_has_it:data2.who_has_it,  
-              mime_type:file.mimetype
+              mime_type:file.mimetype,
+              created_at:dateStamp, 
+              updated_at:dateStamp
             })
           
 
@@ -1754,9 +1889,7 @@ console.log(myNewDateIn)
   
     =  await jobUtil.verifyGetSingleReportGuard.validateAsync(obj);
       
-
-
-    let myReport=[]
+        let myReport=[]
 
         let foundJR=await this.JobReportsModel.findAll({
           where:{[Op.and]: 
@@ -1779,7 +1912,7 @@ console.log(myNewDateIn)
                 obj["is_read"]=foundJR[i].is_read
                 obj["who_has_it"]=foundJR[i].who_has_it
                 obj["mime_type"]=foundJR[i].mime_type
-                obj["created_at"]= await this.getDateOnly(foundJR[i].created_at) 
+                obj["created_at"]= await this.getDateAndTime(foundJR[i].created_at) 
                 obj["report_id"]=foundJR[i].id
 
               
@@ -2701,7 +2834,6 @@ console.log(myNewDateIn)
        check_in, 
        latitude, 
        longitude,
-       
        }
   
     =  await jobUtil.verifyCheckinData.validateAsync(obj);
@@ -2725,9 +2857,9 @@ console.log(myNewDateIn)
 
 
         let my_time_zone=foundItemFac.time_zone||"Africa/Lagos"||"America/Tijuana"
+        let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
 
-          console.log(my_time_zone)
 
         let con_fig_time_zone = momentTimeZone.tz(my_time_zone)
         let date =new Date(con_fig_time_zone.format('YYYY-MM-DD hh:mm:ss a'))
@@ -2784,7 +2916,9 @@ console.log(myNewDateIn)
                               
                               let coordinates_res=await this.CoordinatesModel.create({
                                 longitude,
-                                latitude
+                                latitude,
+                                created_at:dateStamp,
+                                updated_at:dateStamp
                               })
               
                               let obj={
@@ -2796,7 +2930,9 @@ console.log(myNewDateIn)
                                 coordinates_id:coordinates_res.id,
                                 check_in_date:date,
                                 schedule_id:foundItemS.id,
-                                project_check_in_date:foundItemS.check_in_date
+                                project_check_in_date:foundItemS.check_in_date,
+                                created_at:dateStamp,
+                                updated_at:dateStamp
                               }
               
                               this.JobLogsModel.create(obj).then((myRes)=>{
@@ -2816,7 +2952,9 @@ console.log(myNewDateIn)
 
                     let coordinates_res=await this.CoordinatesModel.create({
                       longitude,
-                      latitude
+                      latitude,
+                      created_at:dateStamp,
+                      updated_at:dateStamp
                     })
             
             
@@ -2829,7 +2967,9 @@ console.log(myNewDateIn)
                         guard_id,
                         coordinates_id:coordinates_res.id,
                         check_in_date: date,
-                        project_check_in_date:date
+                        project_check_in_date:date,
+                        created_at:dateStamp,
+                        updated_at:dateStamp
                       }
                       await this.JobLogsModel.create(obj)
                       throw new LocationError( "You are not in location" );
@@ -2843,7 +2983,9 @@ console.log(myNewDateIn)
                         guard_id,
                         coordinates_id:coordinates_res.id,
                         check_out_date: date,
-                        project_check_in_date:date
+                        project_check_in_date:date,
+                        created_at:dateStamp,
+                        updated_at:dateStamp
                       }
                       await this.JobLogsModel.create(obj)
                       throw new LocationError( "You are not in location" );
@@ -2867,7 +3009,6 @@ console.log(myNewDateIn)
 
           if(this.isInlocation(latitude, longitude, objLatLog)){
 
-            
             //FOR ALLOWING LATE CHECK OUT 30
             let con_fig_time_zone2 = momentTimeZone.tz(my_time_zone).subtract(1, 'minutes')
             let date2=new Date(con_fig_time_zone2.format('YYYY-MM-DD hh:mm:ss a'))
@@ -2923,7 +3064,8 @@ console.log(myNewDateIn)
                             check_out_time:time,
                             hours_worked:my_job_H_worked,
                             check_out_status:true,
-                            check_out_date:new Date(full_date)
+                            check_out_date:new Date(full_date),
+                            updated_at:dateStamp
                           }
                             
                           let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
@@ -2941,18 +3083,17 @@ console.log(myNewDateIn)
                             check_out_time:foundItemS.end_time,
                             hours_worked:my_job_H_worked,
                             check_out_status:true,
-                            check_out_date:foundItemS.check_out_date
+                            check_out_date:foundItemS.check_out_date,
+                            updated_at:dateStamp
                           }
                             
                           let whereOptions ={[Op.and]: [{job_id },{guard_id} , {check_in_status:true},{project_check_in_date:foundItemS.check_in_date}]}
-                          /*
+                          
                           this.JobLogsModel.update(obj,{
                           where:whereOptions})
-    */
-                                              
+      
                         }
     
-                      
                       }
                       else{
                         throw new LocationError("you have check out already");
@@ -2971,9 +3112,10 @@ console.log(myNewDateIn)
 
             let coordinates_res=await this.CoordinatesModel.create({
               longitude,
-              latitude
+              latitude,
+              created_at:dateStamp,
+              updated_at:dateStamp
             })
-    
     
             if(check_in){
               let obj={
@@ -2984,7 +3126,9 @@ console.log(myNewDateIn)
                 guard_id,
                 coordinates_id:coordinates_res.id,
                 check_in_date: date,
-                project_check_in_date:date
+                project_check_in_date:date,
+                created_at:dateStamp,
+                updated_at:dateStamp
               }
               await this.JobLogsModel.create(obj)
               throw new LocationError( "You are not in location" );
@@ -2998,7 +3142,9 @@ console.log(myNewDateIn)
                 guard_id,
                 coordinates_id:coordinates_res.id,
                 check_out_date: date,
-                project_check_in_date:date
+                project_check_in_date:date,
+                created_at:dateStamp,
+                updated_at:dateStamp
               }
               await this.JobLogsModel.create(obj)
               throw new LocationError( "You are not in location" );
@@ -3226,8 +3372,10 @@ console.log(myNewDateIn)
             last_name:foundU.last_name,
             image:foundU.image,
             email:foundU.email,
+            phone_number:foundU.phone_number,
             money_earned,
             guard_id:foundU.id
+
           }
           guard_detail.push(guard)
         }else{
@@ -3323,6 +3471,16 @@ async getTimeOnly(val){
      }
       
      return Customer
+  }
+
+
+
+  async getDateAndTimeForStamp(my_time_zone){
+
+    let con_fig_time_zone = momentTimeZone.tz(my_time_zone)
+    let date =new Date(con_fig_time_zone.format('YYYY-MM-DD hh:mm:ss a'))
+      
+     return date
   }
 
 
@@ -3452,7 +3610,7 @@ for(let i=0;i<combinedArray.length ;i++){
   
 }
 
-async checkIfGuardIsInAnyActiveJob(guard_id,job_id){
+  async checkIfGuardIsInAnyActiveJob(guard_id,job_id){
 
   let foundJ=await this.JobModel.findAll(
     {
@@ -3470,7 +3628,7 @@ async checkIfGuardIsInAnyActiveJob(guard_id,job_id){
       where:{ job_status:'ACTIVE'}
     } */
 
-  
+
     if(foundJ.length!=0){
       for(let i=0;i<foundJ.length;i++){
 
@@ -3493,15 +3651,13 @@ async checkIfGuardIsInAnyActiveJob(guard_id,job_id){
     else{
       return false
     }
-}
+  }
 
 
 
 
   async calculateHoursSetToWork(to ,from){
 
- 
-    
     let init2 = moment(from).format('YYYY-MM-DD hh:mm:ss a');
     let now2 = moment(to).format('YYYY-MM-DD hh:mm:ss a')
   
@@ -3519,6 +3675,42 @@ async checkIfGuardIsInAnyActiveJob(guard_id,job_id){
       
 
       return Number(hours.toFixed(2)) 
+  }
+
+
+  async getTimeZone(lat: number,log:number) {
+    
+    let timestamp =moment(new Date()).unix();
+    try {
+      let response = await axios.get(
+        `https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${log}&timestamp=${timestamp}&key=${serverConfig.GOOGLE_KEY}`,
+      );
+      // console.log(response.data.url);
+      // console.log(response.data.explanation);
+        console.log(response.data);
+
+      return response.data.timeZoneId;
+    } catch (error) {
+      console.log(error);
+      throw new NotFoundError("Failed to resolve query");
+    }
+  }
+
+  async addTimeStampToArr(schedule,dateAndTime) {
+    
+
+    let obj={}
+    obj["created_at"]=dateAndTime
+    obj["updated_at"]=dateAndTime
+    let mySchedule=[]
+    for(let i=0;i<schedule.length;i++){
+    
+      mySchedule.push({...schedule[i],...obj})
+
+      if(i==schedule.length-1){
+          return mySchedule
+      }
+    }
   }
 
 

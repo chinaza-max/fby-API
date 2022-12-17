@@ -92,18 +92,15 @@ export function init(connection: Sequelize) {
       },
       created_at: {
         type: DataTypes.DATE,
-        defaultValue: new Date(),
         allowNull: false,
       },
       updated_at: {
         type: DataTypes.DATE,
-        defaultValue: new Date(),
         allowNull: false,
       },
     },
     {
       tableName: "job_logs",
-      timestamps: true,
       underscored: true,
       sequelize: connection,
     }

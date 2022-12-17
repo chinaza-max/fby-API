@@ -3,6 +3,7 @@ import { JobStatus, JobTypes } from "./types.interface";
 export default interface IJob {
     id: number;
     description: string;
+    time_zone:string
     customer_id: number;
     facility_id: number;
     job_status: JobStatus;

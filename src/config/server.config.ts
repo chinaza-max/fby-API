@@ -47,6 +47,8 @@ class ServerConfig {
   public STRIPE_PUBLIC_KEY = String(process.env.STRIPE_PUBLIC_KEY);
   public STRIPE_SECRET_KEY = String(process.env.STRIPE_SECRET_KEY);
   public STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+  public GOOGLE_KEY = process.env.GOOGLE_KEY;
+
 }
 
 export default new ServerConfig();

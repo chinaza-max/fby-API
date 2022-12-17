@@ -22,9 +22,10 @@ import IJob from "../../interfaces/job.interface";
     declare client_charge: number;
     declare staff_charge: number;
     declare payment_status: string;
+    declare time_zone:string;
     declare job_type: JobTypes;
-    declare created_at: CreationOptional<Date>;
-    declare updated_at: CreationOptional<Date>;
+    declare created_at: Date;
+    declare updated_at: Date;
     declare is_archived: CreationOptional<boolean>;
   }
   
@@ -56,6 +57,10 @@ import IJob from "../../interfaces/job.interface";
           ),
           allowNull: false,
         },
+        time_zone: {
+          type: DataTypes.STRING,
+          allowNull: false,
+        },
         client_charge: {
           type: DataTypes.NUMBER,
           allowNull: false,
@@ -79,12 +84,10 @@ import IJob from "../../interfaces/job.interface";
         },
         created_at: {
           type: DataTypes.DATE,
-          defaultValue: new Date(),
           allowNull: false,
         },
         updated_at: {
           type: DataTypes.DATE,
-          defaultValue: new Date(),
           allowNull: false,
         },
         is_archived: {
@@ -95,7 +98,7 @@ import IJob from "../../interfaces/job.interface";
       },
       {
         tableName: "jobs",
-        timestamps: true, underscored: true,
+        underscored: true,
         sequelize: connection,
       }
     );

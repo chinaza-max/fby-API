@@ -28,6 +28,8 @@ class CustomerUtil {
         address: Joi.string().required(),
         google_address:Joi.string().required(),
         latitude: Joi.number().required(),
+        latitude_admin: Joi.number().required(),
+        longitude_admin: Joi.number().required(),
         customer_id: Joi.number().required(),
         longitude: Joi.number().required(),
         operations_area_constraint: Joi.number().required(),

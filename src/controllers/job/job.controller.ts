@@ -360,6 +360,34 @@ export default class JobController {
       next(error);
     }
   }
+
+
+  
+  protected async generalshiftStarted(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await jobService.generalshiftStarted(data);
+
+
+      console.log(obj)
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+
   
   protected async getGeneralShift(
     req: Request,
@@ -735,12 +763,15 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try {
-     // const data = req.body;
+     //\ 
 
 
       const data =JSON.parse(req.body.date_time_staff_shedule)
+      const data3 = req.body;
       const data2 ={
-        date_time_staff_shedule:data
+        date_time_staff_shedule:data,
+        latitude :data3.latitude,
+        longitude:data3.longitude
       }
 
       

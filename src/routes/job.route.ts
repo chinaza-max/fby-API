@@ -31,6 +31,9 @@ class JobRoutes extends JobController {
     this.router.post("/getSingleReportGuard", this.getSingleReportGuard);
     this.router.post("/allJobs/oneShedulePerGuard", this.getOneShedulePerGuard);
     this.router.get("/allJobs/generalshift", this.getGeneralShift);
+    
+    this.router.get("/allJobs/generalshiftStarted", this.generalshiftStarted);
+
 
     //SUBMIT REPORT FROM GUARD
     this.router.put("/submitReportAttachment",uploadHandler.uploads.single("file"), this.submitReportAndAttachment);
@@ -55,7 +58,6 @@ class JobRoutes extends JobController {
     this.router.get("/getAllSite", this.getAllSite);
 
 
-
     this.router.get("/getDashBoardInfo", this.getDashBoardInfo);
     this.router.get("/getDashBoardInfoGuard", this.getDashBoardInfoGuard);
 
@@ -64,6 +66,7 @@ class JobRoutes extends JobController {
     
     this.router.get("/myJobs", this.getMyJobs);
     this.router.get("/myJobs/getSinglejob", this.getSinglejob);
+
 
    // this.router.get("/myJobsAdminDetail", this.getMyJobsAdminDetail);
     this.router.post("/", this.createJob);
