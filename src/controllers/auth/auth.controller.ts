@@ -126,7 +126,7 @@ export default class AuthenticationController {
   ): Promise<Response> {   
     try {
       const data = req.body;
-
+      console.log(data)
       const obj = await authService.handleAdminCreation(data);
 
       try {

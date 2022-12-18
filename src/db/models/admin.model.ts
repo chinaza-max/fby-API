@@ -15,8 +15,8 @@ import IAdmin from "../../interfaces/admin.interface";
     implements IAdmin
   {
     declare id: CreationOptional<number>;
-    declare created_at: CreationOptional<Date>;
-    declare updated_at: CreationOptional<Date>;
+    declare created_at: Date;
+    declare updated_at: Date;
     declare image?: CreationOptional<string>;
     declare first_name: string;
     declare last_name: string;
@@ -106,12 +106,10 @@ import IAdmin from "../../interfaces/admin.interface";
         },
         created_at: {
           type: DataTypes.DATE,
-          defaultValue: new Date(),
           allowNull: false,
         },
         updated_at: {
           type: DataTypes.DATE,
-          defaultValue: new Date(),
           allowNull: false,
         },
         is_archived: {
@@ -126,7 +124,7 @@ import IAdmin from "../../interfaces/admin.interface";
       },
       {
         tableName: "users",
-        timestamps: true, underscored: true,
+        underscored: true,
         sequelize: connection,
       }
     );

@@ -11,7 +11,10 @@ import {
   SystemError,
 } from "../errors";
 import utilService from "./util.service";
-import { DatabaseError, Op } from "sequelize";
+import moment from "moment";
+import axios from "axios";
+import momentTimeZone from "moment-timezone";
+import { DatabaseError, Op } from "sequelize";  
 import mailService from "./mail.service";
 
 interface DecodedToken {
@@ -76,8 +79,13 @@ class AuthenticationService {
       gender,
       password,
       address,
-      phone_number
+      phone_number,
+      latitude,
+      longitude
     } = await authUtil.verifyUserCreationData.validateAsync(data);
+
+    let my_time_zone= await this.getTimeZone(latitude ,longitude)
+    let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
     let hashedPassword;
     if (password == null) password = this.generatePassword();
     try {
@@ -96,6 +104,8 @@ class AuthenticationService {
       throw new ConflictError("A user with this email already exists");
     var createdLocation = await this.LocationModel.create({
       address,
+      created_at:dateStamp, 
+      updated_at:dateStamp
     });
     console.log(createdLocation.id);
     const user = await this.UserModel.create({
@@ -109,7 +119,9 @@ class AuthenticationService {
       location_id: createdLocation.id,
       phone_number,
       role: "GUARD",
-      availability:true
+      availability:true,
+      created_at:dateStamp, 
+      updated_at:dateStamp
     });
     var transfromedUserObj = await this.transformUserForResponse(user, createdLocation);
     await utilService.updateStat("GUARD_SIGNUP");
@@ -135,8 +147,15 @@ class AuthenticationService {
       gender,
       password,
       address,
+      latitude,
+      longitude,
       phone_number
     } = await authUtil.verifyUserCreationData.validateAsync(data);
+
+
+    let my_time_zone= await this.getTimeZone(latitude ,longitude)
+    let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
+
     let hashedPassword;
     if (password == null) password = this.generatePassword();
     try {
@@ -156,6 +175,8 @@ class AuthenticationService {
       throw new ConflictError("A user with this email already exists");
     var createdLocation = await this.LocationModel.create({
       address,
+      created_at:dateStamp, 
+      updated_at:dateStamp
     });
 
 
@@ -170,6 +191,8 @@ class AuthenticationService {
       location_id: createdLocation.id,
       phone_number,
       role: "ADMIN",
+      created_at:dateStamp, 
+      updated_at:dateStamp
     });
     var transfromedUserObj = await this.transformUserForResponse(user, createdLocation);
     await utilService.updateStat("STAFF_SIGNUP");
@@ -325,6 +348,33 @@ class AuthenticationService {
 
   async getUserCount(): Promise<number> {
     return await this.UserModel.count();
+  }
+
+
+  async getDateAndTimeForStamp(my_time_zone){
+
+    let con_fig_time_zone = momentTimeZone.tz(my_time_zone)
+    let date =new Date(con_fig_time_zone.format('YYYY-MM-DD hh:mm:ss a'))
+      
+     return date
+  }
+
+  async getTimeZone(lat: number,log:number) {
+    
+    let timestamp =moment(new Date()).unix();
+    try {
+      let response = await axios.get(
+        `https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${log}&timestamp=${timestamp}&key=${serverConfig.GOOGLE_KEY}`,
+      );
+      // console.log(response.data.url);
+      // console.log(response.data.explanation);
+        console.log(response.data);
+
+      return response.data.timeZoneId;
+    } catch (error) {
+      console.log(error);
+      throw new NotFoundError("Failed to resolve query");
+    }
   }
 
   verifyToken(token: string): DecodedToken {

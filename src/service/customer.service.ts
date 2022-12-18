@@ -210,8 +210,13 @@ class CustomerService {
       gender,
       address,
       sites,
-      phone_number
+      phone_number,
+      latitude,
+      longitude
     } = await customerUtil.verifyUserCreationData.validateAsync(data);
+
+    let my_time_zone= await this.getTimeZone(latitude ,longitude)
+    let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
     var password = authService.generatePassword();
     let hashedPassword;
     try {
@@ -230,6 +235,8 @@ class CustomerService {
       throw new ConflictError("A user with this email already exists");
     var createdLocation = await this.LocationModel.create({
       address,
+      created_at:dateStamp, 
+      updated_at:dateStamp
     })
     console.log(createdLocation.id);
     const user = await this.UserModel.create({
@@ -241,7 +248,9 @@ class CustomerService {
       gender,
       password: hashedPassword,
       location_id: createdLocation.id,
-      phone_number
+      phone_number, 
+      created_at:dateStamp, 
+      updated_at:dateStamp
     })
     
     console.log(sites);

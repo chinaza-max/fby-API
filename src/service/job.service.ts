@@ -1326,7 +1326,9 @@ console.log(myNewDateIn)
       {
         where: {[Op.and]: 
            [{guard_id}
-           ]}
+           ]},
+          order: [
+            ['check_in_date', 'DESC']],
       }
     )
 
@@ -1401,10 +1403,10 @@ console.log(myNewDateIn)
             else{
 
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
-              obj["check_out"]="empty" 
+              obj["check_out"]="none" 
               obj["hours_worked"]=0
               obj["earned"]="$"+ 0
-              obj["settlement_status"]="empty"
+              obj["settlement_status"]="none"
             }
           
           }
@@ -1556,9 +1558,10 @@ console.log(myNewDateIn)
   
 
   async generalshiftStarted(obj) {
+
  
     const  foundS = await  this.ScheduleModel.findAll({
-                      where: {status_per_staff:{[Op.ne]:'DECLINE'}},
+                      where: {status_per_staff:{[Op.eq]:'ACTIVE'}},
                       order: [
                         ['created_at', 'DESC']]
                     })
@@ -1569,86 +1572,97 @@ console.log(myNewDateIn)
    if(foundS.length!=0){
         for(let i=0;i<foundS.length;i++ ){
 
-          let obj={}
+              let obj={}
 
 
-          const foundJ = await this.JobModel.findOne({
-             where: { id:foundS[i].job_id} });
+              const foundJ = await this.JobModel.findOne({
+             where:{[Op.and]: 
+                  [{id:foundS[i].job_id},
+                    {job_status:'ACTIVE'}
+                  ]}   
+              }); 
 
+              /* const foundJ = await this.JobModel.findOne({
+              where: { id:foundS[i].job_id} });*/
 
-            let dateAndTime=await this.getDateAndTimeForStamp(foundJ.time_zone)
+              console.log("breaking breakingbreaking breaking breaking breaking breaking ")
+              
+              try {
+                console.log(foundJ.time_zone)
+                foundJ.time_zone
+              } catch (e) {
+                console.log(e)
+              }
+
+              let dateAndTime=await this.getDateAndTimeForStamp(foundJ.time_zone)
+
+            if(moment(dateAndTime).isSame(foundS[i].check_in_date)||moment(dateAndTime).isSame(foundS[i].check_out_date)||moment(dateAndTime).isBetween(moment(foundS[i].check_in_date),moment(foundS[i].check_out_date))){
+
+                  const foundF = await this.FacilityModel.findOne({
+                              where: { id:foundJ.facility_id} });
+      
+                  const foundC = await this.CustomerModel.findOne({
+                                where: { id:foundJ.customer_id} });
+      
+                  const  foundJL=await  this.JobLogsModel.findOne({
+                                where: {[Op.and]: 
+                                    [{project_check_in_date:foundS[i].check_in_date},
+                                      {job_id:foundS[i].job_id},
+                                      {job_id:foundS[i].job_id},
+                                    {check_in_status:true}
+                                    ]}
+                              })
+      
+
+                    let name=await this.getSingleGuardDetail(foundS[i].guard_id)
+                    let guard_charge=Number(foundJ.staff_charge).toFixed(2)
+                    let client_charge=Number(foundJ.client_charge).toFixed(2)
+                    //let hours=await this.calculateHoursSetToWork(foundS[i].check_in_date ,foundS[i].check_out_date)
+                
+                    obj["start_date"]= await this.getDateOnly(foundS[i].check_in_date) 
+                    obj["end_date"]=await this.getDateOnly(foundS[i].check_out_date) 
+                    obj["start_time"]=foundS[i].start_time
+                    obj["end_time"]=foundS[i].end_time
+                    obj["hours"]= await this.calculateHoursSetToWork( foundS[i].check_out_date, foundS[i].check_in_date)
+                    obj["name"]= name["first_name"]+" "+name["last_name"]
+                    obj["customer"]= foundC.first_name +" "+foundC.last_name
+                    obj["site"]= foundF.name
+                    obj["guard_charge"]="$"+guard_charge
+                    obj["guard_id"]= foundS[i].guard_id
+                    obj["client_charge"]="$"+client_charge
+                    obj["job_status"]= foundJ.job_status
+                    obj["description"]= foundJ.description
+                    obj["settlement_status"]=foundS[i].settlement_status
+      
+  
+                    if(foundJL){
+                      if(foundJL.check_out_status==true){
+                        obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
+                        obj["check_out"]=await this.getDateAndTime(foundJL.check_out_date) 
+                        obj["hours_worked"]=foundJL.hours_worked
+                        obj["earned"]=  "$"+(foundJL.hours_worked*foundJ.staff_charge).toFixed(2)
+                      }
+                      else{
           
-            if(moment(dateAndTime).isSame(foundS[i].check_in_date)||moment(dateAndTime).isSame(foundS[i].check_out_date)||moment(dateAndTime).isBetween(moment(foundS[i].check_in_date), foundS[i].check_out_date)){
-
-
-                  
-            const foundF = await this.FacilityModel.findOne({
-                          where: { id:foundJ.facility_id} });
-  
-              const foundC = await this.CustomerModel.findOne({
-                            where: { id:foundJ.customer_id} });
-  
-              const  foundJL=await  this.JobLogsModel.findOne({
-                            where: {[Op.and]: 
-                                [{project_check_in_date:foundS[i].check_in_date},
-                                  {job_id:foundS[i].job_id},
-                                  {job_id:foundS[i].job_id},
-                                {check_in_status:true}
-                                ]}
-                          })
-  
-
-            let name=await this.getSingleGuardDetail(foundS[i].guard_id)
-            let guard_charge=Number(foundJ.staff_charge).toFixed(2)
-            let client_charge=Number(foundJ.client_charge).toFixed(2)
-            //let hours=await this.calculateHoursSetToWork(foundS[i].check_in_date ,foundS[i].check_out_date)
-            
-            obj["start_date"]= await this.getDateOnly(foundS[i].check_in_date) 
-            obj["end_date"]=await this.getDateOnly(foundS[i].check_out_date) 
-            obj["start_time"]=foundS[i].start_time
-            obj["end_time"]=foundS[i].end_time
-            obj["hours"]= await this.calculateHoursSetToWork( foundS[i].check_out_date, foundS[i].check_in_date)
-            obj["name"]= name["first_name"]+" "+name["last_name"]
-            obj["customer"]= foundC.first_name +" "+foundC.last_name
-            obj["site"]= foundF.name
-            obj["guard_charge"]="$"+guard_charge
-            obj["guard_id"]= foundS[i].guard_id
-            obj["client_charge"]="$"+client_charge
-            obj["job_status"]= foundJ.job_status
-            obj["description"]= foundJ.description
-            obj["settlement_status"]=foundS[i].settlement_status
-  
-  
-            if(foundJL){
-              if(foundJL.check_out_status==true){
-                obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
-                obj["check_out"]=await this.getDateAndTime(foundJL.check_out_date) 
-                obj["hours_worked"]=foundJL.hours_worked
-                obj["earned"]=  "$"+(foundJL.hours_worked*foundJ.staff_charge).toFixed(2)
-              }
-              else{
-  
-                obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
-                obj["check_out"]="none" 
-                obj["hours_worked"]=0
-                obj["earned"]="$"+0.00
-              }
-            
-            }
-            else{
-              obj["check_in"]="none"
-              obj["check_out"]="none"
-              obj["hours_worked"]=0
-              obj["earned"]="$"+0.00
-            }
+                        obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
+                        obj["check_out"]="none" 
+                        obj["hours_worked"]=0
+                        obj["earned"]="$0.00"
+                      }
+                    }
+                    else{
+                      obj["check_in"]="none"
+                      obj["check_out"]="none"
+                      obj["hours_worked"]=0
+                      obj["earned"]="$0.00"
+                    }
               
             all_shift.push(obj)
   
             }
 
-        if(i==foundS.length-1){
 
-
+          if(i==foundS.length-1){
 
           console.log(all_shift)
           return all_shift

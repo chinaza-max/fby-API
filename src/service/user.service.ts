@@ -15,6 +15,9 @@ class UserService {
     const userUpdateData = await userUtil.verifyUserUpdateData.validateAsync(
       data
     );
+
+    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+
     const user = await this.UserModel.findByPk(id);
     if (!user) throw new NotFoundError("User not found.");
 

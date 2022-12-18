@@ -69,6 +69,8 @@ export default class CustomerController {
       next(error);
     }
   }
+
+  
   protected async updateFacility(
     req: Request,
     res: Response,
@@ -90,10 +92,6 @@ export default class CustomerController {
   }
 
 
-
-
-
-  
   protected async deleteCustomer(
     req: Request,
     res: Response,
@@ -114,11 +112,6 @@ export default class CustomerController {
       next(error);
     }
   }
-
-
-
-
-
 
 
   protected async createCustomer(

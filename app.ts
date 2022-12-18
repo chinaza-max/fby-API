@@ -55,6 +55,9 @@ class Server {
       express.json()(req, res, next);
     });
     this.app.use(express.urlencoded({ extended: false }));
+    this.app.use(express.static("/images/file"));
+    this.app.use(express.static("/images/avatars"));
+
     this.app.use(helmet());
     if (["development", "production"].includes(serverConfig.NODE_ENV)) {
       this.app.use(morgan("dev"));

@@ -1,7 +1,10 @@
 import Joi from "joi";
 
 class AdminUtil {
+
   public verifyUserCreationData = Joi.object().keys({
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
     first_name: Joi.string().required(),
     last_name: Joi.string().required(),
     phone_number: Joi.number().required(),
@@ -10,7 +13,6 @@ class AdminUtil {
     password: Joi.string(),
     date_of_birth: Joi.date().min(new Date("1900-01-01").toLocaleDateString("af-AZ")).required(),
     gender: Joi.string().required().valid('MALE', 'FEMALE', 'NOT_SPECIFIED'),
-    // image: Joi.string().min(5),
   });
 
   public validateUserEmail = Joi.object().keys({

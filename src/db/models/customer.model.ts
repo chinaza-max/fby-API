@@ -24,8 +24,8 @@ import ICustomer from "../../interfaces/customer.interface";
     declare gender: GenderTypes;
     declare phone_number:number;
     declare location_id?: CreationOptional<number>;
-    declare created_at: CreationOptional<Date>;
-    declare updated_at: CreationOptional<Date>;
+    declare created_at: Date;
+    declare updated_at: Date;
     declare is_archived: CreationOptional<boolean>;
     declare last_logged_in?: CreationOptional<Date>;
   }
@@ -84,12 +84,10 @@ import ICustomer from "../../interfaces/customer.interface";
         },
         created_at: {
           type: DataTypes.DATE,
-          defaultValue: new Date(),
           allowNull: false,
         },
         updated_at: {
           type: DataTypes.DATE,
-          defaultValue: new Date(),
           allowNull: false,
         },
         is_archived: {
@@ -104,7 +102,7 @@ import ICustomer from "../../interfaces/customer.interface";
       },
       {
         tableName: "customers",
-        timestamps: true, underscored: true,
+        underscored: true,
         sequelize: connection,
       }
     );
