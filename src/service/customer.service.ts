@@ -99,6 +99,8 @@ class CustomerService {
               client_charge,
               guard_charge,
               time_zone:get_time_zone,
+              created_at:dateStamp, 
+              updated_at:dateStamp
             });
     
         return createdFacility;

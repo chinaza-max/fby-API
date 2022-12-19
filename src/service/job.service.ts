@@ -1784,6 +1784,8 @@ console.log(myNewDateIn)
       data
     )
 
+
+
       try{
 
           let foundJ=await this.JobModel.findOne({
@@ -1795,19 +1797,19 @@ console.log(myNewDateIn)
 
 
         if(data2.report_type=="MESSAGE"){
-        let createdRes= await this.JobReportsModel.create({
-            job_id:data2.job_id,
-            guard_id :data2.guard_id,
-            report_type :data2.report_type,
-            message :data2.message,
-            is_emergency :data2.is_emergency,
-            is_read:data2.is_read,
-            who_has_it:data2.who_has_it,
-            created_at:dateStamp, 
-            updated_at:dateStamp
-          })
-          return createdRes
 
+          let createdRes= await this.JobReportsModel.create({
+              job_id:data2.job_id,
+              guard_id :data2.guard_id,
+              report_type :data2.report_type,
+              message :data2.message,
+              is_emergency :data2.is_emergency,
+              is_read:data2.is_read,
+              who_has_it:data2.who_has_it,
+              created_at:dateStamp, 
+              updated_at:dateStamp
+            })
+          return createdRes
         }
         else{
 
@@ -1973,6 +1975,7 @@ console.log(myNewDateIn)
           let foundG=  await this.getMultipleGuardDetail(all_guard_id,job_id)
           let job=    await this.getJobDetail(job_id)
           let site=    await this.getSiteDetail(job.facility_id)
+
 
           let detail={
               guard:foundG,
@@ -3366,6 +3369,8 @@ console.log(myNewDateIn)
         where: {id:val[i]}
       })
 
+
+
       const  foundJL =await  this.JobLogsModel.findAll({
         where: {[Op.and]: 
           [{check_in_status:true},
@@ -3380,6 +3385,17 @@ console.log(myNewDateIn)
         let money_earned=0
 
         if(foundJL.length==0){
+
+
+          let foundJR=await this.JobReportsModel.findAll({
+            where:{[Op.and]: 
+              [
+                {job_id},
+                {guard_id:val[i]}
+              ]},
+        
+          })
+
           let guard={
             first_name:foundU.first_name,
             last_name:foundU.last_name,
@@ -3387,7 +3403,9 @@ console.log(myNewDateIn)
             email:foundU.email,
             phone_number:foundU.phone_number,
             money_earned,
-            guard_id:foundU.id
+            guard_id:foundU.id,
+            no_of_report:foundJR.length
+
 
           }
           guard_detail.push(guard)
@@ -3396,6 +3414,16 @@ console.log(myNewDateIn)
 
             money_earned+=foundJL[j].hours_worked
             if(j==foundJL.length-1){
+
+              let foundJR=await this.JobReportsModel.findAll({
+                where:{[Op.and]: 
+                  [
+                    {job_id},
+                    {guard_id:val[i]}
+                  ]},
+            
+              })
+
                 
                 let guard={
                   first_name:foundU.first_name,
@@ -3403,14 +3431,14 @@ console.log(myNewDateIn)
                   image:foundU.image,
                   email:foundU.email,
                   money_earned,
-                  guard_id:foundU.id
+                  guard_id:foundU.id,
+                  no_of_report:foundJR.length
+
                 }
                 guard_detail.push(guard)
             }
           }
-        }
-
-
+      }
   if(i==val.length-1){
 
       return guard_detail

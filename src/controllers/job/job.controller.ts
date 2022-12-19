@@ -429,6 +429,7 @@ export default class JobController {
       const data = req.body;
       const { file } = req;
      
+      
       const user = await jobService.submitReportAndAttachment(id, data, file);
 
       return res.status(200).json({
@@ -487,7 +488,6 @@ export default class JobController {
 
 
       console.log(obj)
-      
       return res.status(200).json({
         status: 200,
         data: obj,

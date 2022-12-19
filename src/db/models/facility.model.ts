@@ -22,8 +22,8 @@ import IJob from "../../interfaces/job.interface";
     declare client_charge: number;
     declare guard_charge: number;
     declare customer_id: number;
-    declare created_at: CreationOptional<Date>;
-    declare updated_at: CreationOptional<Date>;
+    declare created_at: Date;
+    declare updated_at: Date;
     declare is_archived: CreationOptional<boolean>;
   }
   
@@ -63,12 +63,10 @@ import IJob from "../../interfaces/job.interface";
         },
         created_at: {
           type: DataTypes.DATE,
-          defaultValue: new Date(),
           allowNull: false,
         },
         updated_at: {
           type: DataTypes.DATE,
-          defaultValue: new Date(),
           allowNull: false,
         },
         is_archived: {
@@ -79,7 +77,7 @@ import IJob from "../../interfaces/job.interface";
       },
       {
         tableName: "facility",
-        timestamps: true, underscored: true,
+         underscored: true,
         sequelize: connection,
       }
     );
