@@ -49,7 +49,7 @@ import IAdmin from "../../interfaces/admin.interface";
           type: DataTypes.STRING,
           allowNull: true,
           defaultValue:
-            "https://res.cloudinary.com/fby-security-bucket-1/image/upload/v1663555863/uploads/avatar_ixcg8u.png",
+            "http://localhost:3000/images/avatars/images.png",
         },
         first_name: {
           type: DataTypes.STRING,

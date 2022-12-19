@@ -2,6 +2,7 @@ import express, { Application, Request, Response, NextFunction } from "express";
 import compression from "compression";
 import helmet from "helmet";
 import cors from "cors";
+import path from 'path';
 import morgan from "morgan";
 import debug from "debug";
 import DB from "./src/db";
@@ -55,8 +56,8 @@ class Server {
       express.json()(req, res, next);
     });
     this.app.use(express.urlencoded({ extended: false }));
-    this.app.use(express.static("/images/file"));
-    this.app.use(express.static("/images/avatars"));
+
+    this.app.use(express.static(path.join(__dirname, 'public')));
 
     this.app.use(helmet());
     if (["development", "production"].includes(serverConfig.NODE_ENV)) {

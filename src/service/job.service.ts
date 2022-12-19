@@ -1783,7 +1783,6 @@ console.log(myNewDateIn)
     const data2 = await jobUtil.verifySubmitReportAndAttachment.validateAsync(
       data
     )
-    
 
       try{
 
@@ -1816,7 +1815,7 @@ console.log(myNewDateIn)
               job_id:data2.job_id,
               guard_id :data2.guard_id,
               report_type:data2.report_type,
-              file_url : file.path,
+              file_url : serverConfig.DOMAIN+file.path.slice(6, file.path.length),
               is_emergency :data2.is_emergency,
               is_read:data2.is_read,
               message :data2.message,

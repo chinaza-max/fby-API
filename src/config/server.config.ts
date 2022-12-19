@@ -48,6 +48,10 @@ class ServerConfig {
   public STRIPE_SECRET_KEY = String(process.env.STRIPE_SECRET_KEY);
   public STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
   public GOOGLE_KEY = process.env.GOOGLE_KEY;
+  public DOMAIN = process.env.DOMAIN;
+
+
+  
 
 }
 

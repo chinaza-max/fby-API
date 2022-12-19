@@ -2,6 +2,8 @@ import { Admin, Location } from "../db/models";
 import { NotFoundError } from "../errors";
 import { fn, col, Op } from "sequelize";
 import userUtil from "../utils/user.util";
+import serverConfig from "../config/server.config";
+
 
 class UserService {
   private UserModel = Admin;
@@ -16,12 +18,17 @@ class UserService {
       data
     );
 
+    
     console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+    console.log(file.path.slice(6, file.path.length))
+    //.substring(0, 5)
+    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+
 
     const user = await this.UserModel.findByPk(id);
     if (!user) throw new NotFoundError("User not found.");
 
-    if (file) await user.update({ image: file.path });
+    if (file) await user.update({ image:serverConfig.DOMAIN+file.path.slice(6, file.path.length) });
     var relatedLocation = await this.LocationModel.findOrCreate({
       where: {
         id: user.location_id,
@@ -63,8 +70,6 @@ class UserService {
 async toggleVisibilty(data: any) {
 
     let id=data
-
-    console.log(data)
 
     const user = await this.UserModel.findByPk(id);
 
