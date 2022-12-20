@@ -1333,7 +1333,6 @@ console.log(myNewDateIn)
     )
 
 
-
     let all_shift=[]     
    if(foundS.length!=0){
         for(let i=0;i<foundS.length;i++ ){
@@ -1415,7 +1414,7 @@ console.log(myNewDateIn)
             obj["check_out"]="none"
             obj["hours_worked"]=0
             obj["earned"]="$"+0
-            obj["settlement_status"]="empty"
+            obj["settlement_status"]="not Ineligible"
 
           }
                 
@@ -3261,7 +3260,7 @@ console.log(myNewDateIn)
     }
 
 
-    console.log(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude))
+    //console.log(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude))
 
     if(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude)>objLatLog.radius){
       return true

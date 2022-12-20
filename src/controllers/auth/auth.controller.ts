@@ -89,7 +89,7 @@ export default class AuthenticationController {
     try {
       const { authType } = req.query;
       const data = req.body;
-
+      
       const obj = await authService.handleUserCreation(data);
 
       try {

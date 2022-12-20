@@ -1,7 +1,7 @@
 export interface IDeletedUploads {
-  id: number;
-  file_upload_url: string;
-  is_deleted: boolean;
+  id: Number;
+  file_upload_url: String;
+  is_deleted: Boolean;
   created_at: Date;
   updated_at: Date;
 }

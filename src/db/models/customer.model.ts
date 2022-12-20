@@ -40,9 +40,9 @@ import ICustomer from "../../interfaces/customer.interface";
         },
         image: {
           type: DataTypes.STRING,
-          allowNull: true,
+          allowNull: true,    
           defaultValue:
-            "https://res.cloudinary.com/fby-security-bucket-1/image/upload/v1663555863/uploads/avatar_ixcg8u.png",
+          "http://localhost:3000/images/avatars/images.png",
         },
         first_name: {
           type: DataTypes.STRING,

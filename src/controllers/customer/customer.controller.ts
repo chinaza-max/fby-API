@@ -127,12 +127,19 @@ export default class CustomerController {
       const obj = await customerService.handleCustomerCreation(data);
 
       try {
+
+
         if (obj != null) {
           await mailService.sendMail({
-            to: "mosesogbonna68@gmail.com",
+            to: obj.email,
             subject: "Welcome to FBY Security",
-            templateName: "welcome",
-            variables: { userRole: "Customer", website: "https://fbysecuritysvs.com", email: obj.transfromedUser.email, password: obj.transfromedUser.password },
+            templateName: "welcome2",
+            variables: {
+              userRole: "Customer",
+              website: "https://fbysecuritysvs.com", 
+              email: obj.email, 
+              password: obj.password 
+            },
           });
         }
       } catch (error) {

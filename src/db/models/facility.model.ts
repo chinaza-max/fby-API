@@ -46,7 +46,7 @@ import IJob from "../../interfaces/job.interface";
         client_charge: {
           type: DataTypes.INTEGER,
           defaultValue: 0,
-          allowNull: false,
+          allowNull: false,  
         },
         guard_charge: {
           type: DataTypes.INTEGER,
