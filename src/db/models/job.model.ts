@@ -9,7 +9,7 @@ import {
 import IJob from "../../interfaces/job.interface";
   import { IStaff } from "../../interfaces/staff.interface";
   import { GenderTypes, JobStatus, JobTypes } from "../../interfaces/types.interface";
-  
+     
   class Job
     extends Model<InferAttributes<Job>, InferCreationAttributes<Job>>
     implements IJob

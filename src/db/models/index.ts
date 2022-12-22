@@ -31,22 +31,11 @@ import DeletedUploads, {
   init as initDeletedUploads,
 } from "./deleted_uploads.model";
 import Agendas, { init as initAgendas } from "./agendas.model";
-import AgendaOperations, {
-  init as initAgendaOperations,
-} from "./agenda_operations.model";
+
 import JobReports, { init as initJobReports } from "./job_reports.model";
-import JobReportAttachments, {
-  init as initJobReportAttachments,
-} from "./job_report_attachments.model";
 import JobSecurityCode, {
   init as initJobSecurityCode,
 } from "./job_security_code.model";
-
-
-
-import MynewAgenda, {
-  init as initMynewAgenda,
-} from "./mynewAgenda.model";
 
 
 
@@ -175,16 +164,7 @@ function associate() {
   });
   Job.hasMany(JobReports);
 
-  MynewAgenda.belongsTo(Job, {
-    onDelete: 'cascade',
-    foreignKey: {
-      allowNull: false,
-      name: "job_id",
-      field: "job_id",
-    },
-    as:"job",
-  });
-  Job.hasMany(MynewAgenda);
+
 
   PasswordReset.belongsTo(Admin, {
     foreignKey: {
@@ -258,7 +238,8 @@ function associate() {
   });
   
   //Job.hasMany(Agendas);
-  AgendaOperations.belongsTo(Agendas, {
+  JobSecurityCode.belongsTo(Agendas, {
+    onDelete: 'cascade',
     foreignKey: {
       allowNull: false,
       name: "agenda_id",
@@ -267,22 +248,6 @@ function associate() {
     as: "agenda",
   });
 
-  JobReportAttachments.belongsTo(Coordinates, {
-    foreignKey: {
-      allowNull: false,
-      name: "coordinates_id",
-      field: "coordinates_id",
-    },
-    as: "coordinates",
-  });
-  JobSecurityCode.belongsTo(Coordinates, {
-    foreignKey: {
-      allowNull: false,
-      name: "coordinates_id",
-      field: "coordinates_id",
-    },
-    as: "coordinates",
-  });
 }
 
 export {
@@ -297,7 +262,6 @@ export {
   JobOperations,
   AssignedStaffs,
   Schedule,
-  MynewAgenda,
   Statistics,
   PasswordReset,
   ScanOperations,
@@ -305,11 +269,9 @@ export {
   JobLogs,
   DeletedUploads,
   Agendas,
-  AgendaOperations,
   JobReports,
-  JobReportAttachments,
   JobSecurityCode,
-};
+}
 
 export function init(connection: Sequelize) {
   initAdmin(connection);
@@ -322,7 +284,6 @@ export function init(connection: Sequelize) {
   initJob(connection);
   initStatistics(connection);
   initSchedule(connection);
-  initMynewAgenda(connection)
   initJobOperations(connection);
   initAssignedStaffs(connection);
   initPasswordReset(connection);
@@ -331,9 +292,7 @@ export function init(connection: Sequelize) {
   initLogs(connection);
   initDeletedUploads(connection);
   initAgendas(connection);
-  initAgendaOperations(connection);
   initJobReports(connection);
-  initJobReportAttachments(connection);
   initJobSecurityCode(connection);
   associate();
 }

@@ -145,7 +145,9 @@ class JobUtil {
   });
 
   public verifySheduleAgenda = Joi.object().keys({
-    shedule_agenda: Joi.array().min(1).required().items({
+      latitude: Joi.number().required(),
+      longitude: Joi.number().required(),
+      shedule_agenda: Joi.array().min(1).required().items({
       guard_id: Joi.number().required(),
       job_id: Joi.number().required(),
       time: Joi.string(),
@@ -153,7 +155,7 @@ class JobUtil {
       title: Joi.string(),
       status_per_staff: Joi.string().required(),
       agenda_type: Joi.string().required(),
-      check_in_date:Joi.date()
+      operation_date:Joi.date()
       .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
       .required(),
       

@@ -54,7 +54,9 @@ class AuthenticationService {
   async handleAdminAuthentication(data): Promise<any> {
     const { email, password } = data;
     const user = await Admin.findOne({ where: { email: email } });
+    
     console.log(bcrypt.compare(password, user.password));
+
     if (!(await bcrypt.compare(password, user.password))) return null;
     if (user.role != "ADMIN") return -1;
 

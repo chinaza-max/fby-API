@@ -12,7 +12,6 @@ import {
   JobSecurityCode,
   JobLogs,
   JobReports,
-  MynewAgenda
 } from "../db/models";
 import {
   BadRequestError,
@@ -50,117 +49,6 @@ class UserService {
   private AgendasModel = Agendas;
   private JobReportsModel = JobReports;
   private JobSecurityModel = JobSecurityCode;
-
-
-  /*
-  async getJobsForStaff(staffId: number): Promise<any[]> {
-    try {
-      const jobs = [];
-      const relatedAssignments = await this.AssignedStaffsModel.findAll({
-        where: {
-          staff_id: staffId,
-        },
-      })
-      for (const assignment of relatedAssignments) {
-        const relatedJobs = await this.JobModel.findAll({
-          where: {
-            id: assignment.job_id,
-            job_status: {
-              [Op.ne]: "CANCELED",
-            },
-          },
-        });
-        if (relatedJobs == null) continue;
-        const relatedJob = relatedJobs[0];
-        const facility = await this.FacilityModel.findByPk(
-          relatedJob.facility_id
-        );
-        if (facility == null) continue;
-        const facilityLocation = await this.FacilityLocationModel.findByPk(
-          facility.id
-        );
-        if (relatedJob == null) continue;
-        const coodinates = await this.CoordinatesModel.findByPk(
-          facilityLocation.coordinates_id
-        );
-        if (coodinates == null) continue;
-        let getStaffJobStatus = () => {
-          if (relatedJob.job_status == "COMPLETED")
-            return relatedJob.job_status;
-          else if (assignment.accept_assignment === true) return "ACTIVE";
-          else if (assignment.accept_assignment === null) return "PENDING";
-        };
-        const currentJob = {
-          id: relatedJob.id,
-          description: relatedJob.description,
-          payment: relatedJob.staff_charge,
-          job_type: relatedJob.job_type,
-          accepted: assignment.accept_assignment,
-          status: getStaffJobStatus(),
-          statistics: {
-            hours_worked: 0.0,
-            payment: 0.0,
-          },
-          facility: {
-            id: facility.id,
-            name: facility.name,
-            location: {
-              address: facilityLocation.address,
-              latitude: coodinates.latitude,
-              longitude: coodinates.longitude,
-            },
-          },
-          schedule: [],
-        };
-        const relatedSchedules = await this.ScheduleModel.findAll({
-          where: {
-            job_id: relatedJob.id,
-          },
-        });
-        var scheduleRes = [];
-        for (const iSchedule of relatedSchedules) {
-          const latestRelatedJobOperation =
-            await this.JobOperationsModel.findOrCreate({
-              where: {
-                staff_id: staffId,
-                schedule_id: iSchedule.id,
-              },
-              defaults: {
-                staff_id: staffId,
-                schedule_id: iSchedule.id,
-              },
-            });
-          scheduleRes.push({
-            id: iSchedule.id,
-            start_time: iSchedule.start_time,
-            end_time: iSchedule.end_time,
-            check_in_date: iSchedule.check_in_date,
-            schedule_length: iSchedule.schedule_length,
-            operations: {
-              id: latestRelatedJobOperation[0].id,
-              checked_in: latestRelatedJobOperation[0].checked_in,
-              checked_out: latestRelatedJobOperation[0].checked_out,
-            },
-          });
-        }
-        currentJob.schedule = [...scheduleRes];
-        jobs.push(currentJob);
-      }
-      return jobs;
-    } catch (error) {
-      console.log(error);
-      return null;
-    }
-  }
-
-*/
-
-
-
-
-
-
-
 
 
 
@@ -693,9 +581,13 @@ async getJobsForStaff(req: any): Promise<any[]> {
   async sheduleAgenda(data: any): Promise<any> {
     try {
       const {
-        shedule_agenda
+        shedule_agenda,
+        latitude,
+        longitude
       } = await jobUtil.verifySheduleAgenda.validateAsync(data);
 
+      let my_time_zone= await this.getTimeZone(latitude ,longitude)
+      let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
       //GETTING ALL THE THE JOBS SPECIFIC TO THE SHEDULE
       let myShedule=await this.AgendasModel.findAll(
@@ -713,35 +605,44 @@ async getJobsForStaff(req: any): Promise<any[]> {
           
           for(let i=0;  i<shedule_agenda.length; i++){
             let obj=shedule_agenda[i]
-          for(let j=0;  j<myShedule.length; j++){
-            let obj2=myShedule[j]
-  
-           // console.log("start check")
-            let newDate= moment( new Date(obj.check_in_date));
-            let dateNowFormatted1 = newDate.format('YYYY-MM-DD');
+            for(let j=0;  j<myShedule.length; j++){
+              let obj2=myShedule[j]
+    
+              // console.log("start check")
+              let newDate= moment( new Date(obj.operation_date));
+              let dateNowFormatted1 = newDate.format('YYYY-MM-DD hh:mm:ss a');
 
-           // console.log(dateNowFormatted1)
-            let oldDate= moment( new Date(obj2.check_in_date));
-            let dateNowFormatted2 = oldDate.format('YYYY-MM-DD');
-       
-            if(obj.agenda_type=="INSTRUCTION"){
-              if((dateNowFormatted1==dateNowFormatted2)&&(obj.guard_id==obj2.guard_id)&&(obj.time==obj2.time)){
-                break;
+              // console.log(dateNowFormatted1)
+              let oldDate= moment( new Date(obj2.operation_date));
+              let dateNowFormatted2 = oldDate.format('YYYY-MM-DD hh:mm:ss a');
+        
+              if(obj.agenda_type=="INSTRUCTION"){
+                if((dateNowFormatted1==dateNowFormatted2)&&(obj.guard_id==obj2.guard_id)&&(obj.time==obj2.time)){
+                  break;
+                }
+              }
+            
+              if(j==myShedule.length-1){
+                shedule_agenda[i].status_per_staff=myShedule[0].status_per_staff
+                cleanShedule.push(shedule_agenda[i])
               }
             }
-          
-            if(j==myShedule.length-1){
-              shedule_agenda[i].status_per_staff=myShedule[0].status_per_staff
-              cleanShedule.push(shedule_agenda[i])
+            if(i==shedule_agenda.length-1){
+
+              if(cleanShedule.length!=0){      
+                let scheduleWithTimeStamp=await this.addTimeStampToArr(cleanShedule,dateStamp)
+                return  await this.AgendasModel.bulkCreate(scheduleWithTimeStamp);
+
+              }else{
+                throw new DateSheduleError("no new shedule was created dublicate found");
+              }
+
             }
-          }
-          if(i==shedule_agenda.length-1){
-              await this.AgendasModel.bulkCreate(cleanShedule);
-          }
           }
         }
         else{
-          await this.AgendasModel.bulkCreate(shedule_agenda);
+          let scheduleWithTimeStamp=await this.addTimeStampToArr(shedule_agenda,dateStamp)
+          await this.AgendasModel.bulkCreate(scheduleWithTimeStamp);
         }
       
     } catch (error) {
@@ -835,17 +736,17 @@ async getJobsForStaff(req: any): Promise<any[]> {
               let dateNowFormatted4 = oldDate2.format('YYYY-MM-DD');
               //console.log(dateNowFormatted2)
 
-              console.log("in : ",dateNowFormatted1,"out : ",dateNowFormatted2,"in : ",dateNowFormatted3 ,"out : ",dateNowFormatted4)
-              console.log((dateNowFormatted1==dateNowFormatted3)&&(dateNowFormatted2==dateNowFormatted4)&&(obj.guard_id==obj2.guard_id))
+             // console.log("in : ",dateNowFormatted1,"out : ",dateNowFormatted2,"in : ",dateNowFormatted3 ,"out : ",dateNowFormatted4)
+             // console.log((dateNowFormatted1==dateNowFormatted3)&&(dateNowFormatted2==dateNowFormatted4)&&(obj.guard_id==obj2.guard_id))
 
 
 
 
 
-//THIS CODE PREVENT DATE ENTANGLE MENT   ONE DATE FALLING INSIDE ANOTHE DATE
+              //THIS CODE PREVENT DATE ENTANGLE MENT   ONE DATE FALLING INSIDE ANOTHE DATE
 
 
-console.log(myNewDateIn)
+              console.log(myNewDateIn)
               const foundItemS =await   this.ScheduleModel.findOne(
                 {
                   where: {[Op.and]: 
@@ -857,10 +758,10 @@ console.log(myNewDateIn)
                 }
               )
 
-              console.log("========================")
+             // console.log("========================")
 
-              console.log(foundItemS)
-              console.log("=============---------------===========")
+             // console.log(foundItemS)
+             // console.log("=============---------------===========")
 
               if(foundItemS){
                 continue 
@@ -893,30 +794,30 @@ console.log(myNewDateIn)
                 if(cleanShedule.length!=0){
                  
                   let scheduleWithTimeStamp=await this.addTimeStampToArr(cleanShedule,dateStamp)
-                  console.log("ooooooooooooooooooooooooooooo")
-                  console.log(scheduleWithTimeStamp)
+                 // console.log("ooooooooooooooooooooooooooooo")
+                 // console.log(scheduleWithTimeStamp)
 
-                return  await this.ScheduleModel.bulkCreate(scheduleWithTimeStamp);
+                  return  await this.ScheduleModel.bulkCreate(scheduleWithTimeStamp);
                 }else{
                   throw new DateSheduleError("no new shedule was created dublicate found");
                 }
             }
           }
           if(cleanShedule.length!=0){
-
-
-
             let scheduleWithTimeStamp=await this.addTimeStampToArr(cleanShedule,dateStamp)
-            console.log("ooooooooooooooooooooooooooooo")
-            console.log(scheduleWithTimeStamp)
-            await this.ScheduleModel.bulkCreate(cleanShedule);
+            //console.log("ooooooooooooooooooooooooooooo")
+            //console.log(scheduleWithTimeStamp)
+            await this.ScheduleModel.bulkCreate(scheduleWithTimeStamp);
+          }
+          else{
+            throw new DateSheduleError("no new shedule was created dublicate found");
           }
       }
       else{
         let scheduleWithTimeStamp=await this.addTimeStampToArr(date_time_staff_shedule,dateStamp)
-        console.log("ooooooooooooooooooooooooooooo")
-        console.log(scheduleWithTimeStamp)
-        await this.ScheduleModel.bulkCreate(date_time_staff_shedule);
+        //console.log("ooooooooooooooooooooooooooooo")
+        //console.log(scheduleWithTimeStamp)
+        await this.ScheduleModel.bulkCreate(scheduleWithTimeStamp);
       }
      }
  
@@ -1414,7 +1315,7 @@ console.log(myNewDateIn)
             obj["check_out"]="none"
             obj["hours_worked"]=0
             obj["earned"]="$"+0
-            obj["settlement_status"]="not Ineligible"
+            obj["settlement_status"]="not eligible"
 
           }
                 
@@ -3369,7 +3270,6 @@ console.log(myNewDateIn)
       })
 
 
-
       const  foundJL =await  this.JobLogsModel.findAll({
         where: {[Op.and]: 
           [{check_in_status:true},
@@ -3381,7 +3281,7 @@ console.log(myNewDateIn)
 
 
        console.log(foundJL)
-        let money_earned=0
+        let hours_worked=0
 
         if(foundJL.length==0){
 
@@ -3401,7 +3301,7 @@ console.log(myNewDateIn)
             image:foundU.image,
             email:foundU.email,
             phone_number:foundU.phone_number,
-            money_earned,
+            hours_worked,
             guard_id:foundU.id,
             no_of_report:foundJR.length
 
@@ -3411,9 +3311,8 @@ console.log(myNewDateIn)
         }else{
           for(let j=0;j<foundJL.length;j++ ){
 
-            money_earned+=foundJL[j].hours_worked
+            hours_worked+=foundJL[j].hours_worked
             if(j==foundJL.length-1){
-
               let foundJR=await this.JobReportsModel.findAll({
                 where:{[Op.and]: 
                   [
@@ -3429,7 +3328,7 @@ console.log(myNewDateIn)
                   last_name:foundU.last_name,
                   image:foundU.image,
                   email:foundU.email,
-                  money_earned,
+                  hours_worked,
                   guard_id:foundU.id,
                   no_of_report:foundJR.length
 

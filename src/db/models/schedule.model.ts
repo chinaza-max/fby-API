@@ -24,8 +24,8 @@ class Schedule
   declare max_check_in_time:number;
   declare settlement_status:boolean;
   declare schedule_length: ScheduleLengthTypes;
-  declare created_at: CreationOptional<Date>;
-  declare updated_at: CreationOptional<Date>;
+  declare created_at: Date;
+  declare updated_at: Date;
   declare is_archived: CreationOptional<boolean>;
 }
 

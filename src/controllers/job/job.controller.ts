@@ -774,8 +774,6 @@ export default class JobController {
         longitude:data3.longitude
       }
 
-      
-      console.log(data2)
       const obj = await jobService.sheduleDate(data2);
 
       return res.status(200).json({

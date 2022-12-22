@@ -10,8 +10,7 @@ export interface IAgendas {
   agenda_type: AgendaTypes;
   created_at: Date;
   updated_at: Date;
-  check_in_date?: Date;
-  time?: Date;
-
-  
+  operation_date?: Date;
+  time?: string;
+  agenda_done:boolean;
 }

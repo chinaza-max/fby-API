@@ -20,13 +20,11 @@ class Agendas
   declare job_id: number;
   declare guard_id: number;
   declare agenda_type: AgendaTypes;
-  declare created_at: CreationOptional<Date>;
-  declare updated_at: CreationOptional<Date>;
-  declare start_time?: Date;
-  declare end_time?: Date;
-  declare check_in_date?: Date;
-  declare time?: Date;
-
+  declare created_at: Date;
+  declare updated_at: Date;
+  declare operation_date?: Date;
+  declare time?: string;
+  declare agenda_done:boolean;
 }
 
 export function init(connection: Sequelize) {
@@ -61,29 +59,29 @@ export function init(connection: Sequelize) {
         type: DataTypes.ENUM("PENDING", "ACTIVE" , "DECLINE"),
         allowNull: false,
       },
-      time: {
+      time:{
         type: DataTypes.STRING,
         allowNull: true,
       },
-      check_in_date: {
+      operation_date: {
         type: DataTypes.DATE,
-        defaultValue: new Date(),
         allowNull: false,
+      },
+      agenda_done: {
+        type: DataTypes.BOOLEAN,
+        defaultValue:false,
       },
       created_at: {
         type: DataTypes.DATE,
-        defaultValue: new Date(),
         allowNull: false,
       },
       updated_at: {
         type: DataTypes.DATE,
-        defaultValue: new Date(),
         allowNull: false,
       },
     },
     {
       tableName: "agendas",
-      timestamps: false,
       sequelize: connection,
     }
   );

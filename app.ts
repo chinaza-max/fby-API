@@ -75,7 +75,10 @@ class Server {
       DEBUG(
         `server running on http://localhost:${this.port} in ${serverConfig.NODE_ENV} mode.\npress CTRL-C to stop`
       );
-    });
+    }).on('error', (e) => {
+      console.log('Error happened: ', e.message)
+   });
+   
   }
 
   private getSocketProgress(socket) {

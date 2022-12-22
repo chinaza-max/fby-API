@@ -27,10 +27,8 @@ class UserService {
     try{
         
         var filePath =global.__basedir+"\\"+"public"+user.image.slice(serverConfig.DOMAIN.length, user.image.length); 
-        console.log("DELETING " ,filePath)
-        console.log("SAVING ",serverConfig.DOMAIN+file.path.slice(6, file.path.length) )
-
-        if(filePath=="C:\Users\Chinaza\Downloads\Programming\project\fby-security-api\public\images\avatars\images.png"){
+    
+        if(filePath.includes("fbyDefaultIMG.png")){
         }
         else{
         fs.unlinkSync(filePath);

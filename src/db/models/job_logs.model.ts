@@ -15,7 +15,7 @@ class JobLogs
   declare id: CreationOptional<number>;
   declare coordinates_id: number;
   declare message: string;
-  declare check_in_time: string;
+  declare check_in_time: string;   
   declare check_out_time: string;
   declare check_out_status:boolean;
   declare job_id: number;

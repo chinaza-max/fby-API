@@ -6,6 +6,7 @@ import {
     Model,
     Sequelize,
   } from "sequelize";
+import serverConfig from "../../config/server.config";
 import ICustomer from "../../interfaces/customer.interface";
   import { IStaff } from "../../interfaces/staff.interface";
   import { GenderTypes } from "../../interfaces/types.interface";
@@ -42,7 +43,7 @@ import ICustomer from "../../interfaces/customer.interface";
           type: DataTypes.STRING,
           allowNull: true,    
           defaultValue:
-          "http://localhost:3000/images/avatars/images.png",
+          `${serverConfig.DOMAIN}/images/avatars/fbyDefaultIMG.png`,
         },
         first_name: {
           type: DataTypes.STRING,
