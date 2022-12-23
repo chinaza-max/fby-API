@@ -103,8 +103,9 @@ import ICustomer from "../../interfaces/customer.interface";
       },
       {
         tableName: "customers",
-        underscored: true,
+        timestamps: false,
         sequelize: connection,
+        underscored: true,
       }
     );
   }

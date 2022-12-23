@@ -83,6 +83,8 @@ export function init(connection: Sequelize) {
     {
       tableName: "agendas",
       sequelize: connection,
+      timestamps: false,
+      underscored: true,
     }
   );
 }

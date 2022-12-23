@@ -98,8 +98,9 @@ export function init(connection: Sequelize) {
     },
     {
       tableName: "schedule",
-      underscored: true,
+      timestamps: false,
       sequelize: connection,
+      underscored: true,
     }
   );
 }

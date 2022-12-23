@@ -77,8 +77,9 @@ import IJob from "../../interfaces/job.interface";
       },
       {
         tableName: "facility",
-         underscored: true,
+        timestamps: false,
         sequelize: connection,
+        underscored: true,
       }
     );
   }

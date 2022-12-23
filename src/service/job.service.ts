@@ -595,9 +595,13 @@ async getJobsForStaff(req: any): Promise<any[]> {
           where: {[Op.and]: [{job_id:shedule_agenda[0].job_id },
           {agenda_type:shedule_agenda[0].agenda_type }]}
         }
-      );
+      )
+
+      console.log("''''''''''''''''''''''''''''''''''''")
 
      console.log(shedule_agenda)
+     console.log("''''''''''''''''''''''''''''''''''''")
+
       //CHECK FOR DUBPLICATE
       let cleanShedule=[]
       
@@ -631,9 +635,11 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
               if(cleanShedule.length!=0){      
                 let scheduleWithTimeStamp=await this.addTimeStampToArr(cleanShedule,dateStamp)
-                return  await this.AgendasModel.bulkCreate(scheduleWithTimeStamp);
+                let createdA=  await this.AgendasModel.bulkCreate(scheduleWithTimeStamp);
 
-              }else{
+                console.log(createdA)
+              }
+              else{
                 throw new DateSheduleError("no new shedule was created dublicate found");
               }
 
@@ -642,7 +648,30 @@ async getJobsForStaff(req: any): Promise<any[]> {
         }
         else{
           let scheduleWithTimeStamp=await this.addTimeStampToArr(shedule_agenda,dateStamp)
-          await this.AgendasModel.bulkCreate(scheduleWithTimeStamp);
+
+
+          let createdA= await this.AgendasModel.bulkCreate(scheduleWithTimeStamp);
+
+          let security_code=authService.generatePassword(true, 19)+createdA[0].operation_date
+
+          for(let k=0;k<createdA.length;k++){
+
+            if(createdA[k].agenda_type=="INSTRUCTION"){
+              
+              let myObj={
+                agenda_id:createdA[k].id,
+                guard_id:createdA[k].guard_id,
+                job_id:createdA[k].job_id,
+                security_code,
+                created_at:dateStamp,
+                updated_at:dateStamp
+              }
+
+              await this.JobSecurityModel.create(myObj)
+            }
+         
+          }
+
         }
       
     } catch (error) {

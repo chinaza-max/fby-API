@@ -47,8 +47,9 @@ export function init(connection: Sequelize) {
     },
     {
       tableName: "location",
-      underscored: true,
+      timestamps: false,
       sequelize: connection,
+      underscored: true,
     }
   );
 }

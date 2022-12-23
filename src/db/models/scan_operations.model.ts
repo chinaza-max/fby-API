@@ -50,6 +50,7 @@ import FacilityLocation from "./facility_location.model";
         tableName: "scan_operations",
         timestamps: false,
         sequelize: connection,
+        underscored: true,
       }
     );
   }

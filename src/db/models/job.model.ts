@@ -98,8 +98,9 @@ import IJob from "../../interfaces/job.interface";
       },
       {
         tableName: "jobs",
-        underscored: true,
+        timestamps: false,
         sequelize: connection,
+        underscored: true,
       }
     );
   }

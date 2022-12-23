@@ -127,8 +127,9 @@ import IAdmin from "../../interfaces/admin.interface";
       },
       {
         tableName: "users",
-        underscored: true,
         sequelize: connection,
+        timestamps: false,
+        underscored: true,
       }
     );
   }

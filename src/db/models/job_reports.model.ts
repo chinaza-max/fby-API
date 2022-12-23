@@ -91,8 +91,9 @@ export function init(connection: Sequelize) {
     },
     {
       tableName: "job_reports",
-      underscored: true,
+      timestamps: false,
       sequelize: connection,
+      underscored: true,
     }
   );
 }
