@@ -39,7 +39,15 @@ export default class CustomerController {
     try {
       const data = req.body;
 
-      const obj = await customerService.handleCreateFacility(data);
+      let my_bj={
+        ...data,
+        my_time_zone:req["user_time_zone"]
+      }
+
+      console.log(my_bj)
+      console.log("''''''''''''''''''''''''''''oooooooooo''''''''''''''''''''''''''''")
+      
+      const obj = await customerService.handleCreateFacility(my_bj);
 
       return res.status(200).json({
         status: 200,
@@ -121,10 +129,16 @@ export default class CustomerController {
   ): Promise<Response> {
     try {
       const data = req.body;
+      let my_bj={
+        ...data,
+        my_time_zone:req["user_time_zone"]
+      }
 
-      console.log(data)
+      console.log(my_bj)
+      console.log("''''''''''''''''''''''''''''my_bj''''''''''''''''''''''''''''")
+
       
-      const obj = await customerService.handleCustomerCreation(data);
+      const obj = await customerService.handleCustomerCreation(my_bj);
 
       try {
 

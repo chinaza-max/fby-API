@@ -166,8 +166,7 @@ class JobUtil {
     description: Joi.string().trim().min(1),
     customer_id: Joi.number().required(),
     site_id: Joi.number().required(),
-    latitude: Joi.number().required(),
-    longitude: Joi.number().required(),
+    my_time_zone: Joi.string().required(),
     job_status: Joi.string()
       .valid("ACTIVE", "PENDING", "COMPLETED"),
     staff_charge: Joi.number().required(),

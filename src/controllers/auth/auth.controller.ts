@@ -127,7 +127,16 @@ export default class AuthenticationController {
     try {
       const data = req.body;
       console.log(data)
-      const obj = await authService.handleAdminCreation(data);
+
+      let my_bj={
+        ...data,
+        my_time_zone:req["user_time_zone"]
+      }
+
+      console.log(my_bj)
+      console.log("''''''''''''''''''''''''''''aaaaaaaaaaaaaaa''''''''''''''''''''''''''''")
+
+      const obj = await authService.handleAdminCreation(my_bj);
 
       try {
         if (obj != null) {

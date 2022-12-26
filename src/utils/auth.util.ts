@@ -3,8 +3,7 @@ import Joi from "joi";
 class AdminUtil {
 
   public verifyUserCreationData = Joi.object().keys({
-    latitude: Joi.number().required(),
-    longitude: Joi.number().required(),
+    my_time_zone: Joi.string().required(),
     first_name: Joi.string().required(),
     last_name: Joi.string().required(),
     phone_number: Joi.number().required(),

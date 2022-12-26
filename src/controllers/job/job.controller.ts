@@ -58,9 +58,7 @@ export default class JobController {
   ): Promise<Response> {
     try {
       const data = req.body;
-
-
-      const obj = await jobService.getDeclinedJob(req);
+      const obj = await jobService.getDeclinedJob();
       
       return res.status(200).json({
         status: 200,
@@ -815,7 +813,15 @@ export default class JobController {
     try {
       const data = req.body;
 
-      const obj = await jobService.createJob(data);
+      let my_bj={
+        ...data,
+        my_time_zone:req["user_time_zone"]
+      }
+
+      console.log(my_bj)
+      console.log("''''''''''''''''''''''''''''jjjjjjjjjjjj''''''''''''''''''''''''''''")
+
+      const obj = await jobService.createJob(my_bj);
 
       return res.status(200).json({
         status: 200,

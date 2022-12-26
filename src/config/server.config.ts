@@ -50,9 +50,6 @@ class ServerConfig {
   public GOOGLE_KEY = process.env.GOOGLE_KEY;
   public DOMAIN = process.env.DOMAIN;
 
-
-  
-
 }
 
 export default new ServerConfig();

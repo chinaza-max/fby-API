@@ -39,8 +39,7 @@ class CustomerService {
     const {
       longitude,
       latitude,
-      longitude_admin,
-      latitude_admin,
+      my_time_zone,
       operations_area_constraint,
       client_charge,
       guard_charge,
@@ -61,9 +60,8 @@ class CustomerService {
       }
       else{
 
-        let get_time_zone_admin= await this.getTimeZone(latitude_admin ,longitude_admin)
         let get_time_zone= await this.getTimeZone(latitude ,longitude)
-        let dateStamp=await this.getDateAndTimeForStamp(get_time_zone_admin)
+        let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
 
         
@@ -213,11 +211,10 @@ class CustomerService {
       address,
       sites,
       phone_number,
-      latitude,
-      longitude
+      my_time_zone
     } = await customerUtil.verifyUserCreationData.validateAsync(data);
 
-    let my_time_zone= await this.getTimeZone(latitude ,longitude)
+
     let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
     var password = authService.generatePassword();
     let hashedPassword;
@@ -241,6 +238,7 @@ class CustomerService {
       updated_at:dateStamp
     })
     console.log(createdLocation.id);
+
     const user = await this.UserModel.create({
       first_name,
       last_name,

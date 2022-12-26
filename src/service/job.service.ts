@@ -586,6 +586,9 @@ async getJobsForStaff(req: any): Promise<any[]> {
         longitude
       } = await jobUtil.verifySheduleAgenda.validateAsync(data);
 
+
+
+      
       let my_time_zone= await this.getTimeZone(latitude ,longitude)
       let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
@@ -869,11 +872,9 @@ async getJobsForStaff(req: any): Promise<any[]> {
         payment_status,
         job_status,
         job_type,
-        latitude,
-        longitude,
+        my_time_zone,
       } = await jobUtil.verifyJobCreationData.validateAsync(data);
 
-      let my_time_zone= await this.getTimeZone(latitude ,longitude)
       let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
       await this.JobModel.create({
@@ -1912,7 +1913,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
               site
           }
 
-         
+      
 
           return detail
         }
@@ -1937,29 +1938,31 @@ async getJobsForStaff(req: any): Promise<any[]> {
   
   
   
-  async getDeclinedJob(obj) {
+  async getDeclinedJob() {
+
+
+   
+
 
     let foundS=await  this.ScheduleModel.findAll({
       where:{
         status_per_staff:'DECLINE'
       },
+      attributes: [
+        "job_id",
+        "guard_id"
+      ],
       group: ['job_id','guard_id']
     })
 
-  
-
-
-    
     let decline=[]
 
     if(foundS.length!=0){
       for(let i=0; i<foundS.length; i++){
         let obj={}
   
-  
         let guardName= await this.getSingleGuardDetail(foundS[i].guard_id)
         
-
         let foundJ=await  this.JobModel.findOne({
           where:{
             id:foundS[i].job_id
@@ -1989,9 +1992,10 @@ async getJobsForStaff(req: any): Promise<any[]> {
   
       }
     }
-    return decline
+    else{
+      return decline
+    }
    
-
   }
 
 
@@ -2010,6 +2014,10 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
     let foundS=await  this.ScheduleModel.findAll({
         where:{guard_id:req.user.id},
+        attributes: [
+          "job_id",
+          "guard_id"
+        ],
         group: ['job_id','guard_id']
     })
     let active=0
@@ -3680,7 +3688,7 @@ for(let i=0;i<combinedArray.length ;i++){
       }
     }
   }
-
+  
 
   isSameDay(date1, date2) {
     if (

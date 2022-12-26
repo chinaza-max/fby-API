@@ -1,4 +1,4 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response,  NextFunction } from "express";
 import { NotFoundError } from "../errors";
 import authMiddleware from "../middlewares/auth.middleware";
 import authRoute from "./auth.route";
@@ -6,6 +6,7 @@ import userRoute from "./user.route";
 import customerRoute from "./customer.route";
 import jobRoute from "./job.route";
 import utilRoute from "./util.route";
+import  geoip from 'geoip-lite';
 
 class Routes {
   public router: Router;
@@ -28,12 +29,32 @@ class Routes {
       });
     });
 
+    this.router.use((req: Request, res: Response,  next: NextFunction  )=>{
+
+      let ip = req.header('x-forwarded-for') || req.socket.remoteAddress;
+      ip="::ffff:190.2.138.12"
+  
+      console.log("::ffff:"+ip.substr(0, 7))
+      console.log("always always always always always always")
+
+            if (ip.substr(0, 7) == "::ffff:") {
+              ip = ip.substr(7)
+              var geo = geoip.lookup(ip);
+              console.log(geo)
+              req["user_time_zone"]=geo.timezone            
+            }
+           
+      next()
+    });
 
     this.router.use(`${rootAPI}/auth`, authRoute);
 
     this.router.use(`${rootAPI}/util`, utilRoute);
 
-    //this.router.use(authMiddleware.validateUserToken);
+    this.router.use(authMiddleware.validateUserToken);
+    
+  
+
 
     this.router.use(`${rootAPI}/customer`, customerRoute);
 

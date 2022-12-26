@@ -43,8 +43,13 @@ class AuthenticationMiddlewares {
     try {
       const { authorization } = req.headers;
       const token = authorization ? authorization.split(" ")[1] : undefined;
+
+      console.log("ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp")
+      console.log(token)
+
       if (token) {
         const { payload, expired } = authService.verifyToken(token);
+        
         req.user = !expired ? payload : undefined;
       }
       return next();

@@ -149,13 +149,11 @@ class AuthenticationService {
       gender,
       password,
       address,
-      latitude,
-      longitude,
+      my_time_zone,
       phone_number
     } = await authUtil.verifyUserCreationData.validateAsync(data);
 
 
-    let my_time_zone= await this.getTimeZone(latitude ,longitude)
     let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
     let hashedPassword;

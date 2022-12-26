@@ -34,7 +34,7 @@ class CustomerRoutes extends CustomerController {
     );
     this.router.post(
       "/createFacility",
-   //   authMiddleware.validateUserToken,
+      authMiddleware.validateUserToken,
       this.createFacility 
     );
     this.router.post(
