@@ -36,7 +36,10 @@ class UserService {
     }
     finally {
     
-    if (file) await user.update({ image:serverConfig.DOMAIN+file.path.slice(6, file.path.length) });
+    if (file){
+      await user.update({ image:serverConfig.DOMAIN+file.path.slice(6, file.path.length) });
+    }
+    
     var relatedLocation = await this.LocationModel.findOrCreate({
       where: {
         id: user.location_id,

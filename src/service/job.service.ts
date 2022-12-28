@@ -719,12 +719,9 @@ async getJobsForStaff(req: any): Promise<any[]> {
     try {
       const {
         date_time_staff_shedule ,
-        latitude,
-        longitude
+        my_time_zone,
       } = await jobUtil.verifysheduleDateCreation.validateAsync(data);
 
-
-      let my_time_zone= await this.getTimeZone(latitude ,longitude)
       let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
       //GETTING ALL THE THE JOBS SPECIFIC TO THE SHEDULE

@@ -45,7 +45,7 @@ export default class CustomerController {
       }
 
       console.log(my_bj)
-      console.log("''''''''''''''''''''''''''''oooooooooo''''''''''''''''''''''''''''")
+      console.log("''''''''''''''''''''''''''''fffffffffffffffffff''''''''''''''''''''''''''''")
       
       const obj = await customerService.handleCreateFacility(my_bj);
 

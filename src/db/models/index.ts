@@ -76,6 +76,7 @@ function associate() {
     as: "location",
   });
   FacilityLocation.belongsTo(Coordinates, {
+    onDelete: 'cascade',
     foreignKey: {
       allowNull: false,
       name: "coordinates_id",

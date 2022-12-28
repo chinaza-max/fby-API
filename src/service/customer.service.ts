@@ -71,6 +71,21 @@ class CustomerService {
           updated_at:dateStamp
         });
         console.log(createdLocation.id);
+
+       this.CoordinatesModel.create({
+          longitude,
+          latitude,
+          created_at:dateStamp, 
+          updated_at:dateStamp
+        }).then((e)=>{
+          console.log(e)
+        }).catch((e)=>{
+          console.log(e)
+        })
+        
+        
+
+        
             const createdCoordinates = await this.CoordinatesModel.create({
               longitude,
               latitude,
@@ -159,7 +174,10 @@ class CustomerService {
 
 
     //let lo=await this.FacilityLocationModel.findOne({ where: { id:156} });
-    //console.log(lo)
+
+    console.log("llllllllllllllllllllllllllllllllllllll")
+
+    console.log(site_id)
 
     this.FacilityModel.destroy({
         where: {
@@ -168,16 +186,17 @@ class CustomerService {
     })
     .then(function (deletedRecord) {
         if(deletedRecord === 1){
+          console.log("llllllllllllllllllllllllllllllllllllll")
+
           return "Deleted successfully"
         }
         else
         {
-         // throw new NotFoundError("record not found");
+         throw new NotFoundError("record not found");
         }
     })
-    
     .catch(function (error){
-      //throw new NotFoundError(error);
+      throw new NotFoundError(error);
     });
    
   }
@@ -215,6 +234,9 @@ class CustomerService {
     } = await customerUtil.verifyUserCreationData.validateAsync(data);
 
 
+
+
+
     let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
     var password = authService.generatePassword();
     let hashedPassword;
@@ -238,6 +260,7 @@ class CustomerService {
       updated_at:dateStamp
     })
     console.log(createdLocation.id);
+
 
     const user = await this.UserModel.create({
       first_name,

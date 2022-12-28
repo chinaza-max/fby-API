@@ -768,9 +768,11 @@ export default class JobController {
       const data3 = req.body;
       const data2 ={
         date_time_staff_shedule:data,
-        latitude :data3.latitude,
-        longitude:data3.longitude
+        my_time_zone:req["user_time_zone"]
       }
+      console.log(data2)
+      console.log("------------ssssssssssssssssssssssssss -------")
+
 
       const obj = await jobService.sheduleDate(data2);
 

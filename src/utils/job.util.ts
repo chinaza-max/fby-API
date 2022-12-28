@@ -125,8 +125,7 @@ class JobUtil {
   });
   
   public verifysheduleDateCreation = Joi.object().keys({
-    latitude: Joi.number().required(),
-    longitude: Joi.number().required(),
+    my_time_zone: Joi.string().required(),
     date_time_staff_shedule: Joi.array().min(1).required().items({
       guard_id: Joi.number().required(),
       job_id: Joi.number().required(),

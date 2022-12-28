@@ -89,19 +89,28 @@ export default class AuthenticationController {
     try {
       const { authType } = req.query;
       const data = req.body;
+
+      let my_bj={
+        ...data,
+        my_time_zone:req["user_time_zone"]
+      }
+
+      console.log(my_bj)
+      console.log("''''''''''''''''''''''''''''ggggggggggggggggg''''''''''''''''''''''''''''")
+
       
-      const obj = await authService.handleUserCreation(data);
+      const obj = await authService.handleUserCreation(my_bj);
 
       try {
         if (obj != null) {
           await mailService.sendMail({
-            to: obj.transfromedUser.email,
+            to: "mosesogbonna68@gmail.com",
             subject: "Welcome to FBY Security",
             templateName: "welcome",
             variables: {
               userRole: "Guard",
               website: "https://fbysecuritysvs.com",
-              email: obj.transfromedUser.email,
+              email: "mosesogbonna68@gmail.com",
               password: data.password,
             },
           });

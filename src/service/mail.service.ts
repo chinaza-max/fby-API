@@ -35,9 +35,14 @@ class MailService {
 
     this.transporter.sendMail(mailData, (error) => {
       if (error) {
+
+        console.log("error error error error")
+
+        console.log(error)
         DEBUG(`Error sending email: ${error}`)
         return false;
       }
+      console.log("sent sent sent sent sent sent")
 
       return true;
     })

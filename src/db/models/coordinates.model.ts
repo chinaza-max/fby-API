@@ -32,11 +32,11 @@ export function init(connection: Sequelize) {
         primaryKey: true,
       },
       longitude: {
-        type: DataTypes.DECIMAL(10, 10),
+        type: DataTypes.DECIMAL(9, 7),
         allowNull: false,
       },
       latitude: {
-        type: DataTypes.DECIMAL(10, 10),
+        type: DataTypes.DECIMAL(9, 7),
         allowNull: false,
       },
       created_at: {
