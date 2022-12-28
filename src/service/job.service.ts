@@ -2013,25 +2013,37 @@ async getJobsForStaff(req: any): Promise<any[]> {
         where:{guard_id:req.user.id},
         attributes: [
           "job_id",
-          "guard_id"
+          "guard_id",
+          "status_per_staff"
         ],
-        group: ['job_id','guard_id']
+        group: ['job_id','guard_id',"status_per_staff"]
     })
     let active=0
     let completed=0
     let pending=0
     let obj={}
 
+  
+
 
   
     if(foundS.length!=0){
 
         for(let i=0;i<foundS.length;i++){
+
+          console.log(foundS)
+          console.log(foundS.length)
+      
+          console.log("my schedules my schedules")
+
           let foundJ=await  this.JobModel.findOne({
             where:{id:foundS[i].job_id}
           })
 
-   
+          console.log(foundJ.job_status)
+          console.log(foundS[i].status_per_staff)
+          console.log("foundS[i].status_per_staff")
+
 
           if(foundJ.job_status=='ACTIVE'&&foundS[i].status_per_staff=='ACTIVE'){
             active++

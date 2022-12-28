@@ -30,7 +30,7 @@ class MailService {
       from: `${options.from ? options.from : serverConfig.EMAIL_SENDER} <${serverConfig.EMAIL_USER}>`,
       to: options.to,
       subject: options.subject,
-      html: html
+      html:html
     }
 
     this.transporter.sendMail(mailData, (error) => {

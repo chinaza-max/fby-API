@@ -103,14 +103,19 @@ export default class AuthenticationController {
 
       try {
         if (obj != null) {
+
+
+          console.log(obj)
+          console.log("emial obj")
+
           await mailService.sendMail({
-            to: "mosesogbonna68@gmail.com",
+            to: obj.transfromedUser.email,
             subject: "Welcome to FBY Security",
             templateName: "welcome",
             variables: {
               userRole: "Guard",
               website: "https://fbysecuritysvs.com",
-              email: "mosesogbonna68@gmail.com",
+              email:obj.transfromedUser.email,
               password: data.password,
             },
           });

@@ -26,6 +26,7 @@ import IJob from "../../interfaces/job.interface";
     declare job_type: JobTypes;
     declare created_at: Date;
     declare updated_at: Date;
+    declare max_check_in_time: string;
     declare is_archived: CreationOptional<boolean>;
   }
   
@@ -78,6 +79,10 @@ import IJob from "../../interfaces/job.interface";
           ),
           allowNull: false,
         },
+        max_check_in_time:{
+          type: DataTypes.STRING,
+          defaultValue: "60",
+        },
         payment_status:{
           type: DataTypes.STRING,
           allowNull: false,
@@ -90,6 +95,7 @@ import IJob from "../../interfaces/job.interface";
           type: DataTypes.DATE,
           allowNull: false,
         },
+
         is_archived: {
           type: DataTypes.BOOLEAN,
           allowNull: false,
