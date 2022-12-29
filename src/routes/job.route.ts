@@ -26,6 +26,8 @@ class JobRoutes extends JobController {
     this.router.post("/delete_job", this.deleteJob);
     this.router.get("/allJobs", this.getAllJobs);
     this.router.post("/allJobs/guard", this.getGuardPerJob);
+    this.router.post("/allJobs/security_code", this.getSecurityCodePerJob);
+
 
 
     //GET ALL REPORT FOR A SINGLE GUARD ON A PARTICULAR JOB

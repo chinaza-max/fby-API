@@ -37,6 +37,28 @@ class SystemMiddlewares {
     }
 
     if (error instanceof SystemError) {
+
+
+
+
+      console.log("==============================================")
+      console.log("==                                          ==")
+      console.log("==                                          ==")
+      console.log("==                                          ==")
+      console.log("==               errorr                     ==")
+      console.log("==                                          ==")
+      console.log("==                                          ==")
+      console.log("==                                          ==")
+      console.log("==============================================")
+
+
+
+      console.log(error)
+      console.log(error.name)
+
+
+
+
       switch (error.name) {
         case "NotFoundError":
           return res.status(404).json({

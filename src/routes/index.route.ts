@@ -51,7 +51,7 @@ class Routes {
 
     this.router.use(`${rootAPI}/util`, utilRoute);
 
-    this.router.use(authMiddleware.validateUserToken);
+   // this.router.use(authMiddleware.validateUserToken);
     
   
 

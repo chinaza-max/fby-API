@@ -20,7 +20,8 @@ import {
   SystemError,
   TimeError,
   DateSheduleError,
-  LocationError
+  LocationError,
+  AgendaSheduleError
 } from "../errors";
 import { fn, col, Op, QueryError, where, FLOAT } from "sequelize";
 import moment from "moment";
@@ -586,24 +587,22 @@ async getJobsForStaff(req: any): Promise<any[]> {
         longitude
       } = await jobUtil.verifySheduleAgenda.validateAsync(data);
 
-
-
       
       let my_time_zone= await this.getTimeZone(latitude ,longitude)
       let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
-      //GETTING ALL THE THE JOBS SPECIFIC TO THE SHEDULE
+      let isAgendaOk=await this.checkifAgendaDateIsInScheduleDate(shedule_agenda)
+
+
+    if(isAgendaOk.status){
+
+      //GETTING ALL THE JOBS SPECIFIC TO THE SHEDULE
       let myShedule=await this.AgendasModel.findAll(
         {
           where: {[Op.and]: [{job_id:shedule_agenda[0].job_id },
           {agenda_type:shedule_agenda[0].agenda_type }]}
         }
       )
-
-      console.log("''''''''''''''''''''''''''''''''''''")
-
-     console.log(shedule_agenda)
-     console.log("''''''''''''''''''''''''''''''''''''")
 
       //CHECK FOR DUBPLICATE
       let cleanShedule=[]
@@ -655,31 +654,40 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
           let createdA= await this.AgendasModel.bulkCreate(scheduleWithTimeStamp);
 
-          let security_code=authService.generatePassword(true, 19)+createdA[0].operation_date
+          if(createdA[0].agenda_type=="INSTRUCTION"){
 
-          for(let k=0;k<createdA.length;k++){
+            for(let k=0;k<createdA.length;k++){
+              let security_code=(""+createdA[k].operation_date).replace(/\s+/g, '')
 
-            if(createdA[k].agenda_type=="INSTRUCTION"){
+                
+                let myObj={
+                  agenda_id:createdA[k].id,
+                  guard_id:createdA[k].guard_id,
+                  job_id:createdA[k].job_id,
+                  security_code,
+                  created_at:dateStamp,
+                  updated_at:dateStamp
+                }
+
+                await this.JobSecurityModel.create(myObj)
               
-              let myObj={
-                agenda_id:createdA[k].id,
-                guard_id:createdA[k].guard_id,
-                job_id:createdA[k].job_id,
-                security_code,
-                created_at:dateStamp,
-                updated_at:dateStamp
-              }
-
-              await this.JobSecurityModel.create(myObj)
+          
             }
-         
           }
 
         }
+
+    
+    }
+    else{
+      throw(isAgendaOk)
+    }
+    
       
     } catch (error) {
-      console.log(error);
-      throw new SystemError(error.toString());
+
+      throw new AgendaSheduleError(JSON.stringify(error));
+
     }
   }
 
@@ -1870,6 +1878,55 @@ async getJobsForStaff(req: any): Promise<any[]> {
   }
 
 
+  
+
+  async getSecurityCodePerJob(obj) {
+    var { job_id,
+    }
+  
+    =  await jobUtil.verifygetGetSecurityCodePerJob.validateAsync(obj);
+      
+    
+    let foundJC=await  this.JobSecurityModel.findAll({
+      where:{
+        job_id
+      },
+      attributes: [
+        "job_id",
+        "security_code",
+        "agenda_id"
+      ],
+      group: ['job_id','security_code']
+    })
+    let detail=[]
+    for(let i=0; i<foundJC.length;i++){
+
+      let foundA=await  this.AgendasModel.findOne({
+        where:{
+          id:foundJC[i].agenda_id
+        }
+      })
+     
+
+      let obj={
+        job_id:foundJC[i].job_id,
+        security_code:foundJC[i].security_code,
+        agenda_id:foundJC[i].agenda_id,
+        operation_date: await this.getDateAndTime(foundA.operation_date)
+      }
+
+      detail.push(obj)
+      console.log(i==foundJC.length-1)
+
+
+     if(i==foundJC.length-1){
+
+        return detail 
+      }
+    }
+
+  }
+
   async getGuardPerJob(obj) {
     var { job_id,
     }
@@ -1879,7 +1936,9 @@ async getJobsForStaff(req: any): Promise<any[]> {
     const  foundS =await  this.ScheduleModel.findAll({
     where: {job_id}
     })
+    console.log("tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt")
 
+      console.log(foundS)
     let all_guard_id=[]
 
    if(foundS.length!=0){
@@ -3210,7 +3269,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
     //console.log(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude))
 
     if(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude)>objLatLog.radius){
-      return true
+      return false
     }
     else{
       return true
@@ -3300,6 +3359,8 @@ async getJobsForStaff(req: any): Promise<any[]> {
     else{
       obj["first_name"]="deleted",
       obj["last_name"]="deleted"
+      obj["phone_number"]="deleted"
+
     }
 
      return obj;
@@ -3311,78 +3372,93 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
   for(let i=0;i<val.length;i++ ){
 
+   
       const  foundU =await  this.UserModel.findOne({
         where: {id:val[i]}
       })
 
+  console.log(foundU)
+  if(foundU){
+    if(foundU){
+      
+    }
 
-      const  foundJL =await  this.JobLogsModel.findAll({
-        where: {[Op.and]: 
-          [{check_in_status:true},
-          {check_out_status: true},
-          {job_id},
-          {guard_id:val[i]}
-          ]}
+    const  foundJL =await  this.JobLogsModel.findAll({
+      where: {[Op.and]: 
+        [{check_in_status:true},
+        {check_out_status: true},
+        {job_id},
+        {guard_id:val[i]}
+        ]}
+      })
+
+
+     console.log(foundJL)
+      let hours_worked=0
+
+      if(foundJL.length==0){
+
+
+        let foundJR=await this.JobReportsModel.findAll({
+          where:{[Op.and]: 
+            [
+              {job_id},
+              {guard_id:val[i]}
+            ]},
+      
         })
 
-
-       console.log(foundJL)
-        let hours_worked=0
-
-        if(foundJL.length==0){
-
-
-          let foundJR=await this.JobReportsModel.findAll({
-            where:{[Op.and]: 
-              [
-                {job_id},
-                {guard_id:val[i]}
-              ]},
-        
-          })
-
-          let guard={
-            first_name:foundU.first_name,
-            last_name:foundU.last_name,
-            image:foundU.image,
-            email:foundU.email,
-            phone_number:foundU.phone_number,
-            hours_worked,
-            guard_id:foundU.id,
-            no_of_report:foundJR.length
+        let guard={
+          first_name:foundU.first_name,
+          last_name:foundU.last_name,
+          image:foundU.image,
+          email:foundU.email,
+          phone_number:foundU.phone_number,
+          hours_worked,
+          guard_id:foundU.id,
+          no_of_report:foundJR.length
 
 
+        }
+        guard_detail.push(guard)
+      }else{
+        for(let j=0;j<foundJL.length;j++ ){
+
+          hours_worked+=foundJL[j].hours_worked
+          if(j==foundJL.length-1){
+            let foundJR=await this.JobReportsModel.findAll({
+              where:{[Op.and]: 
+                [
+                  {job_id},
+                  {guard_id:val[i]}
+                ]},
+          
+            })
+
+              
+              let guard={
+                first_name:foundU.first_name,
+                last_name:foundU.last_name,
+                image:foundU.image,
+                email:foundU.email,
+                phone_number:foundU.phone_number,
+                hours_worked,
+                guard_id:foundU.id,
+                no_of_report:foundJR.length
+
+              }
+              guard_detail.push(guard)
           }
-          guard_detail.push(guard)
-        }else{
-          for(let j=0;j<foundJL.length;j++ ){
+        }
+    }
 
-            hours_worked+=foundJL[j].hours_worked
-            if(j==foundJL.length-1){
-              let foundJR=await this.JobReportsModel.findAll({
-                where:{[Op.and]: 
-                  [
-                    {job_id},
-                    {guard_id:val[i]}
-                  ]},
-            
-              })
+  }
+  else{
+    
+  }
 
-                
-                let guard={
-                  first_name:foundU.first_name,
-                  last_name:foundU.last_name,
-                  image:foundU.image,
-                  email:foundU.email,
-                  hours_worked,
-                  guard_id:foundU.id,
-                  no_of_report:foundJR.length
+  
 
-                }
-                guard_detail.push(guard)
-            }
-          }
-      }
   if(i==val.length-1){
 
       return guard_detail
@@ -3534,6 +3610,49 @@ async combineUnsettleShift(val){
     }      
       
   }
+
+async checkifAgendaDateIsInScheduleDate(agendaSchedule){
+
+  for(let i=0; i<agendaSchedule.length;i++){
+
+    let operation_date=new Date( moment(new Date(agendaSchedule[i].operation_date)).format('YYYY-MM-DD hh:mm:ss a'));
+    const foundItemS =await this.ScheduleModel.findAll(
+      {
+        where: {[Op.and]: 
+          [{check_in_date: {[Op.lte]:operation_date} },
+          {check_out_date: {[Op.gte]:operation_date} },
+          {job_id:agendaSchedule[i].job_id},
+          {guard_id:agendaSchedule[i].guard_id }
+          ]}
+      }
+    )
+
+    if(foundItemS.length==0){
+      let guardDetail= await this.getSingleGuardDetail(agendaSchedule[i].guard_id)
+      let obj={
+        status:false,
+        info:{
+          fullName:guardDetail["first_name"]+" "+guardDetail["last_name"],
+          operation_date:operation_date,
+          issues:"instruction date not found in guard shift"
+        }
+      }
+
+      return obj
+    }
+    
+    if(i==agendaSchedule.length-1){
+
+
+      let obj={
+        status:true
+      }
+      return obj
+    }
+  }
+
+
+}
 
 
 async checkIfDateAreApart(postedDate){

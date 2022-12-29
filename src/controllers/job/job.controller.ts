@@ -496,6 +496,33 @@ export default class JobController {
     }
   }
 
+  
+
+  protected async getSecurityCodePerJob(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      //REMOVE THIS AFTER TEST
+      req.user = req.body.guard_id;
+
+      const obj = await jobService.getSecurityCodePerJob(data);
+
+
+      console.log(obj)
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
 
   protected async getGuardPerJob(
     req: Request,

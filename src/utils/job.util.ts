@@ -70,8 +70,12 @@ class JobUtil {
   });
 
 
+  
+  public verifygetGetSecurityCodePerJob= Joi.object().keys({
+    job_id: Joi.number().required(),
+  });
 
-  //THIS MAY THROW ERROR BECAUSE CHANGES WAS MADE HERE WITH NO TEST
+
   public verifygetGuardPerJob = Joi.object().keys({
     job_id: Joi.number().required(),
   });

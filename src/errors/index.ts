@@ -98,3 +98,12 @@ export class DateSheduleError extends SystemError {
     Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
   }
 }
+
+
+export class AgendaSheduleError extends SystemError {
+  constructor(message?: string) {
+    super("Agenda_not_Found_in_guard_shift", message); // 'Error' breaks prototype chain here
+    this.name = "AgendaSheduleError";
+    Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
+  }
+}

@@ -1,4 +1,4 @@
-import { Admin, Location } from "../db/models";
+import { Admin, Location, PasswordReset } from "../db/models";
 import { NotFoundError } from "../errors";
 import { fn, col, Op } from "sequelize";
 import  fs from 'fs';
@@ -9,6 +9,8 @@ import serverConfig from "../config/server.config";
 class UserService {
   private UserModel = Admin;
   private LocationModel = Location;
+  private PasswordResetModel =PasswordReset
+
 
   async updateUser(
     id: number,
@@ -70,6 +72,24 @@ class UserService {
   
   async deleteStaff(address_id: any) {
 
+    let foundU=await this.UserModel.findOne({
+                where:{
+                  location_id:address_id
+                }
+              });
+
+    
+    let foundP=  await this.PasswordResetModel.findOne({
+          where:{
+            user_id:foundU.id }
+        });  
+
+    if(foundP){
+      await this.PasswordResetModel.destroy({
+        where:{user_id:foundU.id}
+      });  
+    }   
+      
 
     await this.LocationModel.destroy({
       where:{
