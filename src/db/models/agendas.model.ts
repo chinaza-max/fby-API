@@ -23,8 +23,8 @@ class Agendas
   declare created_at: Date;
   declare updated_at: Date;
   declare operation_date?: Date;
-  declare time?: string;
   declare agenda_done:boolean;
+  declare coordinates_id:number;
 }
 
 export function init(connection: Sequelize) {
@@ -38,6 +38,7 @@ export function init(connection: Sequelize) {
       title: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue:'',
       },
       description: {
         type: DataTypes.STRING,
@@ -59,10 +60,6 @@ export function init(connection: Sequelize) {
         type: DataTypes.ENUM("PENDING", "ACTIVE" , "DECLINE"),
         allowNull: false,
       },
-      time:{
-        type: DataTypes.STRING,
-        allowNull: true,
-      },
       operation_date: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -70,6 +67,11 @@ export function init(connection: Sequelize) {
       agenda_done: {
         type: DataTypes.BOOLEAN,
         defaultValue:false,
+      },
+      coordinates_id: {
+        type: DataTypes.NUMBER,
+        defaultValue:0,
+        allowNull: true,
       },
       created_at: {
         type: DataTypes.DATE,

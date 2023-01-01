@@ -107,3 +107,12 @@ export class AgendaSheduleError extends SystemError {
     Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
   }
 }
+
+
+export class SecurityCodeVerificationError extends SystemError {
+  constructor(message?: string) {
+    super("security_code_verification_error", message); // 'Error' breaks prototype chain here
+    this.name = "SecurityCodeVerificationError";
+    Object.setPrototypeOf(this, new.target.prototype); // restore prototype chain
+  }
+}

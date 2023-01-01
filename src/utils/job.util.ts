@@ -87,8 +87,28 @@ class JobUtil {
   });
 
 
+  
+
+  public verifyCheckTaskGuard = Joi.object().keys({
+    my_time_zone: Joi.string().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
+    agenda_id: Joi.number().required()
+
+});
+
+  public verifyVerifySecurityCode = Joi.object().keys({
+    my_time_zone: Joi.string().required(),
+    job_id: Joi.number().required(),
+    guard_id: Joi.number().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
+    security_code: Joi.string().required()
+
+});
+
+
   public verifySettleShift = Joi.object().keys({
-   
     schedule_id: Joi.array().required(),
 
 });
@@ -153,7 +173,6 @@ class JobUtil {
       shedule_agenda: Joi.array().min(1).required().items({
       guard_id: Joi.number().required(),
       job_id: Joi.number().required(),
-      time: Joi.string(),
       description: Joi.string().required(),
       title: Joi.string(),
       status_per_staff: Joi.string().required(),

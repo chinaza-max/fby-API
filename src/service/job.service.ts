@@ -21,6 +21,7 @@ import {
   TimeError,
   DateSheduleError,
   LocationError,
+  SecurityCodeVerificationError,
   AgendaSheduleError
 } from "../errors";
 import { fn, col, Op, QueryError, where, FLOAT } from "sequelize";
@@ -165,7 +166,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
   let myObj={
     id,
     jobType:req.query.jobType
-}
+  }
 
 
   try {
@@ -590,12 +591,10 @@ async getJobsForStaff(req: any): Promise<any[]> {
       
       let my_time_zone= await this.getTimeZone(latitude ,longitude)
       let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
-
       let isAgendaOk=await this.checkifAgendaDateIsInScheduleDate(shedule_agenda)
 
 
     if(isAgendaOk.status){
-
       //GETTING ALL THE JOBS SPECIFIC TO THE SHEDULE
       let myShedule=await this.AgendasModel.findAll(
         {
@@ -623,7 +622,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
               let dateNowFormatted2 = oldDate.format('YYYY-MM-DD hh:mm:ss a');
         
               if(obj.agenda_type=="INSTRUCTION"){
-                if((dateNowFormatted1==dateNowFormatted2)&&(obj.guard_id==obj2.guard_id)&&(obj.time==obj2.time)){
+                if((dateNowFormatted1==dateNowFormatted2)&&(obj.guard_id==obj2.guard_id)){
                   break;
                 }
               }
@@ -642,7 +641,15 @@ async getJobsForStaff(req: any): Promise<any[]> {
                 console.log(createdA)
               }
               else{
-                throw new DateSheduleError("no new shedule was created dublicate found");
+
+                let obj={
+                  info:{
+                    fullName:'',
+                    operation_date:'',
+                    issues:"no new shedule was created dublicate found"
+                  }
+                }
+                throw(obj)
               }
 
             }
@@ -650,7 +657,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
         }
         else{
           let scheduleWithTimeStamp=await this.addTimeStampToArr(shedule_agenda,dateStamp)
-
 
           let createdA= await this.AgendasModel.bulkCreate(scheduleWithTimeStamp);
 
@@ -680,6 +686,8 @@ async getJobsForStaff(req: any): Promise<any[]> {
     
     }
     else{
+
+     // return isAgendaOk
       throw(isAgendaOk)
     }
     
@@ -751,16 +759,12 @@ async getJobsForStaff(req: any): Promise<any[]> {
             for(let j=0;  j<myShedule.length; j++){
               let obj2=myShedule[j]
 
-
             //  console.log(moment(new Date(obj.check_in_date)).format('YYYY-MM-DD hh:mm:ss a'))
-
 
               let newDate= moment(new Date(obj.check_in_date));
               let newDate2= moment(new Date(obj.check_out_date));
               let dateNowFormatted1 = newDate.format('YYYY-MM-DD');
               let dateNowFormatted2 = newDate2.format('YYYY-MM-DD');
-
-
 
               let myNewDateIn=new Date( moment(new Date(obj.check_in_date)).format('YYYY-MM-DD hh:mm:ss a'));
               let myNewDateOut= moment(new Date(obj.check_out_date));
@@ -1391,6 +1395,9 @@ async getJobsForStaff(req: any): Promise<any[]> {
         ],
      }
     )
+
+
+
 
     let all_shift=[]     
    if(foundS.length!=0){
@@ -2557,6 +2564,185 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
 
 
+  
+  async checkTaskGuard(obj) {
+    var { 
+      agenda_id,
+      longitude,
+      latitude,
+      my_time_zone
+    }
+    = await jobUtil.verifyCheckTaskGuard.validateAsync(obj);
+      
+
+    
+      const foundA =await this.AgendasModel.findOne(
+        {
+          where: 
+            {id:agenda_id}
+            
+        }
+      )
+
+
+      if(foundA){
+        
+          const foundJ2 =await this.JobModel.findOne(
+            {
+              where: {id:foundA.job_id}
+            }
+          )
+
+          let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
+          let currentTimeOfFacility=moment(new Date(new Date().toLocaleString('en', {timeZone:foundJ2.time_zone})), "YYYY-MM-DD")
+          let operation_date=moment(new Date(foundA.operation_date),"YYYY-MM-DD")
+          if(currentTimeOfFacility.isSameOrAfter(operation_date)){
+            
+            const createdC=await this.CoordinatesModel.create({
+              longitude,
+              latitude,
+              created_at:dateStamp,
+              updated_at:dateStamp
+            })
+
+            let obj={
+              agenda_done:!foundA.agenda_done,
+              coordinates_id:createdC.id,
+              updated_at:dateStamp
+            }
+
+            await this.AgendasModel.update(obj,
+              {
+                where: {id:agenda_id}
+              }
+            )
+
+          }
+          else{
+            throw new SecurityCodeVerificationError("not yet time")
+          }
+      
+
+
+      }
+      else{
+        throw new SecurityCodeVerificationError("no schedule task found")
+      }
+
+    
+  }
+  
+
+  
+  async verifySecurityCode(obj) {
+    var { 
+      job_id,
+      guard_id,
+      security_code,
+      longitude,
+      latitude,
+      my_time_zone
+    }
+  
+    =  await jobUtil.verifyVerifySecurityCode.validateAsync(obj);
+      
+
+  
+      const foundSC =await this.JobSecurityModel.findOne(
+        {
+          where: {[Op.and]: 
+            [
+            {job_id},
+            {guard_id},
+            {security_code}
+            ]}
+        }
+      )
+
+
+      if(foundSC){
+        
+        const foundA =await this.AgendasModel.findOne(
+          {
+            where: {id:foundSC.agenda_id}
+          }
+        )
+
+        if(foundA.agenda_done){
+
+          const foundJ =await this.JobModel.findOne(
+            {
+              where: {id:job_id}
+            }
+          )
+
+          const foundItemFac =await  this.FacilityModel.findOne(
+            { where: {id:foundJ.facility_id } })
+
+          const foundItemFacLo =await  this.FacilityLocationModel.findOne(
+            { where: {id:foundItemFac.facility_location_id } })
+          const foundItemCoor =await  this.CoordinatesModel.findOne(
+            { where: {id:foundItemFacLo.coordinates_id } })
+
+          let objLatLog={
+            latitude:foundItemCoor.latitude,
+            longitude:foundItemCoor.longitude,
+            radius:foundItemFacLo.operations_area_constraint
+          }
+          if(this.isInlocation(latitude, longitude, objLatLog)){
+
+             throw new SecurityCodeVerificationError("QR code has been scan")
+          }else{
+            throw new SecurityCodeVerificationError("you are not in location")
+          }
+        }
+        else{
+          const foundJ2 =await this.JobModel.findOne(
+            {
+              where: {id:foundA.job_id}
+            }
+          )
+
+          let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
+          let currentTimeOfFacility=moment(new Date(new Date().toLocaleString('en', {timeZone:foundJ2.time_zone})))
+          let operation_date=moment(new Date(foundA.operation_date))
+          if(currentTimeOfFacility.isSameOrAfter(operation_date)){
+            
+            const createdC =await this.CoordinatesModel.create({
+              longitude,
+              latitude,
+              created_at:dateStamp,
+              updated_at:dateStamp
+            })
+
+            let obj={
+              agenda_done:true,
+              coordinates_id:createdC.id,
+              updated_at:dateStamp
+            }
+
+            await this.AgendasModel.update(obj,
+              {
+                where: {id:foundSC.agenda_id}
+              }
+            )
+
+          }
+          else{
+            throw new SecurityCodeVerificationError("not yet time")
+          }
+        }
+
+
+      }
+      else{
+        throw new SecurityCodeVerificationError("no security code found")
+      }
+
+    
+  }
+  
+
   async settleShift(obj) {
     var { 
       schedule_id
@@ -3475,10 +3661,25 @@ async getJobsForStaff(req: any): Promise<any[]> {
    return moment(val).format('YYYY-MM-DD')
 }
 
+
+async compareDateOnlySame(val1,val2){
+
+
+  if(moment(val1,'YYYY-MM-DD').isSame(val2)){
+    return true
+  }
+  else{
+    return false
+  }
+}
+
 async getDateAndTime(val){
 
   return moment(val).format('YYYY-MM-DD hh:mm:ss a')
 }
+
+
+
 
 
 
@@ -3613,19 +3814,30 @@ async combineUnsettleShift(val){
 
 async checkifAgendaDateIsInScheduleDate(agendaSchedule){
 
+
   for(let i=0; i<agendaSchedule.length;i++){
 
+    //THIS ONE IS USE BY INSTRUCTION TO MATCH DATE PROPERLY FOR SEARCH
     let operation_date=new Date( moment(new Date(agendaSchedule[i].operation_date)).format('YYYY-MM-DD hh:mm:ss a'));
-    const foundItemS =await this.ScheduleModel.findAll(
-      {
-        where: {[Op.and]: 
-          [{check_in_date: {[Op.lte]:operation_date} },
-          {check_out_date: {[Op.gte]:operation_date} },
-          {job_id:agendaSchedule[i].job_id},
-          {guard_id:agendaSchedule[i].guard_id }
-          ]}
-      }
-    )
+
+    //THIS ONE IS USE BY TASK TO MATCH DATE PROPERLY FOR SEARCH
+    let operation_date2=moment(new Date(agendaSchedule[i].operation_date)).format('YYYY-MM-DD')
+
+    let foundItemS =[]
+
+
+    if(agendaSchedule[i].agenda_type=="INSTRUCTION"){
+       foundItemS =   await this.ScheduleModel.findAll(
+        {
+          where: {[Op.and]: 
+            [{check_in_date:{[Op.lte]:operation_date} },
+            {check_out_date: {[Op.gte]:operation_date} },
+            {job_id:agendaSchedule[i].job_id},
+            {guard_id:agendaSchedule[i].guard_id }
+            ]}
+        }
+        
+      )
 
     if(foundItemS.length==0){
       let guardDetail= await this.getSingleGuardDetail(agendaSchedule[i].guard_id)
@@ -3633,13 +3845,61 @@ async checkifAgendaDateIsInScheduleDate(agendaSchedule){
         status:false,
         info:{
           fullName:guardDetail["first_name"]+" "+guardDetail["last_name"],
-          operation_date:operation_date,
-          issues:"instruction date not found in guard shift"
+          operation_date:   agendaSchedule[i].agenda_type=="INSTRUCTION" ?await this.getDateAndTime(operation_date):await this.getDateOnly(operation_date),
+          issues: agendaSchedule[i].agenda_type=="INSTRUCTION" ? "instruction date not found in guard shift":"task date not found in guard shift"
         }
       }
 
       return obj
+
     }
+      
+    }
+    else{
+      
+      const foundItemS2 =  await this.ScheduleModel.findAll(
+                            {
+                              where: {[Op.and]: 
+                                [{job_id:agendaSchedule[i].job_id},
+                                {guard_id:agendaSchedule[i].guard_id }
+                                ]}
+                            }
+                          )
+
+            for(let k=0; k< foundItemS2.length;k++){
+
+              if(await this.compareDateOnlySame(moment(foundItemS2[k].check_in_date).format('YYYY-MM-DD'),operation_date2)||await this.compareDateOnlySame(moment(foundItemS2[k].check_out_date).format('YYYY-MM-DD'),operation_date2) ){
+
+                let obj={
+                  status:true
+                }
+                return obj
+             
+            
+              }
+
+
+              if(k==foundItemS2.length-1){
+
+                let guardDetail= await this.getSingleGuardDetail(agendaSchedule[i].guard_id)
+                let obj={
+                  status:false,
+                  info:{
+                    fullName:guardDetail["first_name"]+" "+guardDetail["last_name"],
+                    operation_date:   agendaSchedule[i].agenda_type=="INSTRUCTION" ?await this.getDateAndTime(operation_date):await this.getDateOnly(operation_date),
+                    issues: agendaSchedule[i].agenda_type=="INSTRUCTION" ? "instruction date not found in guard shift":"task date not found in guard shift"
+                  }
+                }
+
+                return obj
+
+                
+              }
+            }
+
+    
+    }
+
     
     if(i==agendaSchedule.length-1){
 
@@ -3650,7 +3910,6 @@ async checkifAgendaDateIsInScheduleDate(agendaSchedule){
       return obj
     }
   }
-
 
 }
 

@@ -41,7 +41,8 @@ class Routes {
               ip = ip.substr(7)
               var geo = geoip.lookup(ip);
               console.log(geo)
-              req["user_time_zone"]=geo.timezone            
+              req["user_time_zone"]=geo.timezone    
+              req["objLatLon"]=geo.ll
             }
            
       next()

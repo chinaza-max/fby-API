@@ -85,6 +85,16 @@ class SystemMiddlewares {
             status: error.code,
             message: error.message,
           });
+        case "AgendaSheduleError":
+          return res.status(409).json({
+            status: error.code,
+            message: error.message,
+          });
+          case "SecurityCodeVerificationError":
+            return res.status(403).json({
+              status: error.code,
+              message: error.message,
+            });
         case "ServerError":
         case "SystemError":
         default:

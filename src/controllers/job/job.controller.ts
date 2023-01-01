@@ -215,6 +215,72 @@ export default class JobController {
     }
   }
 
+
+  
+  protected async checkTaskGuard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data =req.body
+      
+      const data2 ={
+        ...data,
+        my_time_zone:req["user_time_zone"],
+        longitude:req["objLatLon"][1],
+        latitude:req["objLatLon"][0],
+      }
+
+      const obj = await jobService.checkTaskGuard(data2);
+      
+      return res.status(200).json({
+        status: 200,
+        message: `done successfully`,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  
+  protected async verifySecurityCode(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data =req.body
+      
+      const data2 ={
+        ...data,
+        my_time_zone:req["user_time_zone"],
+        longitude:req["objLatLon"][1],
+        latitude:req["objLatLon"][0],
+      }
+
+      console.log(data2)
+    
+
+      const obj = await jobService.verifySecurityCode(data2);
+      
+      return res.status(200).json({
+        status: 200,
+        message: `done successfully`,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+
+
+
+
+
   protected async settleShift(
     req: Request,
     res: Response,
@@ -771,11 +837,17 @@ export default class JobController {
     try {
       const data = req.body;
 
-      const obj = await jobService.sheduleAgenda(data);
+      let data2={
+        ...data,
+        longitude:req["objLatLon"][1],
+        latitude:req["objLatLon"][0],
+      }
+
+      const obj = await jobService.sheduleAgenda(data2);
 
       return res.status(200).json({
         status: 200,
-        message: "Job created successfully",
+        message: "schedule created successfully",
       });
     } catch (error) {
       next(error);
