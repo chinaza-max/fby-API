@@ -31,11 +31,13 @@ class JobUtil {
   });
 
   
-  public verifyGetgetGeneralShift = Joi.object().keys({
-    
+  public verifyGetOneAgendaPerGuard = Joi.object().keys({
+    job_id: Joi.number().required(),
+    guard_id: Joi.number().required(),
+    type: Joi.string().required(),
   });
-
-  public verifygetOneShedulePerGuard = Joi.object().keys({
+  
+  public verifyGetOneShedulePerGuard = Joi.object().keys({
     job_id: Joi.number().required(),
     guard_id: Joi.number().required(),
   });
@@ -86,7 +88,14 @@ class JobUtil {
     settlement:Joi.boolean().required()
   });
 
-
+  
+  
+  public verifyDeleteAgenda = Joi.object().keys({
+    my_time_zone: Joi.string().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
+    agenda_id: Joi.number().required()
+});
   
 
   public verifyCheckTaskGuard = Joi.object().keys({

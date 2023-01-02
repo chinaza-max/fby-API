@@ -25,6 +25,7 @@ class Agendas
   declare operation_date?: Date;
   declare agenda_done:boolean;
   declare coordinates_id:number;
+  declare schedule_id:number;
 }
 
 export function init(connection: Sequelize) {
@@ -49,6 +50,10 @@ export function init(connection: Sequelize) {
         allowNull: false,
       },
       guard_id: {
+        type: DataTypes.NUMBER,
+        allowNull: false,
+      },
+      schedule_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
       },

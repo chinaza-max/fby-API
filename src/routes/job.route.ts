@@ -34,6 +34,7 @@ class JobRoutes extends JobController {
     //GET ALL REPORT FOR A SINGLE GUARD ON A PARTICULAR JOB
     this.router.post("/getSingleReportGuard", this.getSingleReportGuard);
     this.router.post("/allJobs/oneShedulePerGuard", this.getOneShedulePerGuard);
+    this.router.post("/allJobs/oneAgendaPerGuard", this.getOneAgendaPerGuard);
     this.router.get("/allJobs/generalshift", this.getGeneralShift);
     this.router.get("/allJobs/generalshiftStarted", this.generalshiftStarted);
 
@@ -69,6 +70,8 @@ class JobRoutes extends JobController {
     this.router.get("/myJobs/getSinglejob", this.getSinglejob);
     this.router.post("/verify_securitycode", this.verifySecurityCode);
     this.router.post("/check_task_guard", this.checkTaskGuard);
+    this.router.post("/deleteAgenda", this.deleteAgenda);
+
 
 
 

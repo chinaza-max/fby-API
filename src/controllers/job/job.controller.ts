@@ -216,6 +216,35 @@ export default class JobController {
   }
 
 
+
+
+  protected async deleteAgenda(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data =req.body
+      
+      const data2 ={
+        ...data,
+        my_time_zone:req["user_time_zone"],
+        longitude:req["objLatLon"][1],
+        latitude:req["objLatLon"][0],
+      }
+
+      const obj = await jobService.deleteAgenda(data2);
+      
+      return res.status(200).json({
+        status: 200,
+        message: `done successfully`,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
   
   protected async checkTaskGuard(
     req: Request,
@@ -508,9 +537,33 @@ export default class JobController {
 
 
 
+  protected async getOneAgendaPerGuard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      
+
+      //REMOVE THIS AFTER TEST
+      req.user = req.body.guard_id;
+
+      const obj = await jobService.getOneAgendaPerGuard(data);
 
 
-
+      console.log(obj)
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
 
   protected async getOneShedulePerGuard(
     req: Request,
@@ -869,9 +922,6 @@ export default class JobController {
         date_time_staff_shedule:data,
         my_time_zone:req["user_time_zone"]
       }
-      console.log(data2)
-      console.log("------------ssssssssssssssssssssssssss -------")
-
 
       const obj = await jobService.sheduleDate(data2);
 

@@ -160,8 +160,12 @@ async getSinglejob(myObj: any): Promise<any[]> {
 async getJobsForStaff(req: any): Promise<any[]> {
 
 
+  //const id = req.user.id;
   const id = req.user.id;
 
+
+
+  console.log(req.query.jobType)
 
   let myObj={
     id,
@@ -219,8 +223,50 @@ async getJobsForStaff(req: any): Promise<any[]> {
                       where: {id:foundF.facility_location_id}
                     })
 
+
+
+                    const foundI = await this.AgendasModel.findAll({
+                      where: {[Op.and]: [{agenda_type:"INSTRUCTION"},
+                      {guard_id:myObj.id },
+                      {job_id:sheduleObj.job_id}]}
+                    })
+
+                    let Instruction=[]
+                    for(let k=0; k<foundI.length;k++){
+                      let obj2={};
+                      obj2["id"]= foundI[k].id
+                      obj2["title"]= foundI[k].title
+                      obj2["description"]=foundI[k].description
+                      obj2["operation_date"]=moment(foundI[k].operation_date).format('YYYY-MM-DD hh:mm:ss a')
+                      obj2["agenda_done"]= foundI[k].agenda_done
+                      obj2["time"]=moment(foundI[k].operation_date).format('hh:mm:ss a')
+                    
+                      Instruction.push(obj2)
+                    }
+
+                    const foundT = await this.AgendasModel.findAll({
+                      where: {[Op.and]: [{agenda_type:"TASK"},
+                      {guard_id:myObj.id },
+                      {job_id:sheduleObj.job_id}]}
+                    })
+
+                    let Task=[]
+                    for(let l=0; l<foundT.length;l++){
+                      let obj3={};
+                      obj3["id"]= foundT[l].id
+                      obj3["title"]= foundT[l].title
+                      obj3["description"]=foundT[l].description
+                      obj3["operation_date"]=moment(foundT[l].operation_date).format('YYYY-MM-DD')
+                      obj3["agenda_done"]= foundT[l].agenda_done
+                    
+                      Task.push(obj3)
+                    }
+
+
                     
                     jobDetail.push({schedule,
+                      Task,
+                      Instruction,
                       job_id:sheduleObj.job_id,
                       description:foundJ2.description,
                       job_type:foundJ2.job_type,
@@ -228,7 +274,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
                       time_zone:foundF.time_zone,
                       facility_name:foundF.name,
                       address:foundFL.address,
-                      job_status:foundFL.address,
+                      job_status:foundJ[i].job_status
 
                   })
                   } 
@@ -251,14 +297,9 @@ async getJobsForStaff(req: any): Promise<any[]> {
     }
     else if(myObj.jobType=="PENDING"){
 
-
-
-
-
       const foundJ = await this.JobModel.findAll({
         where: {job_status:'ACTIVE'}
       })
-
     
       if(foundJ.length!=0){
         for(let i=0;i<foundJ.length;i++){
@@ -294,8 +335,47 @@ async getJobsForStaff(req: any): Promise<any[]> {
                       where: {id:foundF.facility_location_id}
                     })
 
+                    const foundI = await this.AgendasModel.findAll({
+                      where: {[Op.and]: [{agenda_type:"INSTRUCTION"},
+                      {guard_id:myObj.id },
+                      {job_id:sheduleObj.job_id}]}
+                    })
+
+                    let Instruction=[]
+                    for(let k=0; k<foundI.length;k++){
+                      let obj2={};
+                      obj2["id"]= foundI[k].id
+                      obj2["title"]= foundI[k].title
+                      obj2["description"]=foundI[k].description
+                      obj2["operation_date"]=moment(foundI[k].operation_date).format('YYYY-MM-DD hh:mm:ss a')
+                      obj2["agenda_done"]= foundI[k].agenda_done
+                      obj2["time"]=moment(foundI[k].operation_date).format('hh:mm:ss a')
                     
+                      Instruction.push(obj2)
+                    }
+
+                    const foundT = await this.AgendasModel.findAll({
+                      where: {[Op.and]: [{agenda_type:"TASK"},
+                      {guard_id:myObj.id },
+                      {job_id:sheduleObj.job_id}]}
+                    })
+
+                    let Task=[]
+                    for(let l=0; l<foundT.length;l++){
+                      let obj3={};
+                      obj3["id"]= foundT[l].id
+                      obj3["title"]= foundT[l].title
+                      obj3["description"]=foundT[l].description
+                      obj3["operation_date"]=moment(foundT[l].operation_date).format('YYYY-MM-DD')
+                      obj3["agenda_done"]= foundT[l].agenda_done
+                    
+                      Task.push(obj3)
+                    }
+
+
                     jobDetail.push({schedule,
+                      Task,
+                      Instruction,
                       job_id:sheduleObj.job_id,
                       description:foundJ2.description,
                       job_type:foundJ2.job_type,
@@ -303,7 +383,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
                       time_zone:foundF.time_zone,
                       facility_name:foundF.name,
                       address:foundFL.address,
-                      job_status:foundFL.address,
+                      job_status:foundJ[i].job_status,
 
                   })
                   } 
@@ -380,8 +460,48 @@ async getJobsForStaff(req: any): Promise<any[]> {
                       where: {id:foundF.facility_location_id}
                     })
 
+
+                    const foundI = await this.AgendasModel.findAll({
+                      where: {[Op.and]: [{agenda_type:"INSTRUCTION"},
+                      {guard_id:myObj.id },
+                      {job_id:sheduleObj.job_id}]}
+                    })
+
+                    let Instruction=[]
+                    for(let k=0; k<foundI.length;k++){
+                      let obj2={};
+                      obj2["id"]= foundI[k].id
+                      obj2["title"]= foundI[k].title
+                      obj2["description"]=foundI[k].description
+                      obj2["operation_date"]=moment(foundI[k].operation_date).format('YYYY-MM-DD hh:mm:ss a')
+                      obj2["agenda_done"]= foundI[k].agenda_done
+                      obj2["time"]=moment(foundI[k].operation_date).format('hh:mm:ss a')
+                    
+                      Instruction.push(obj2)
+                    }
+
+                    const foundT = await this.AgendasModel.findAll({
+                      where: {[Op.and]: [{agenda_type:"TASK"},
+                      {guard_id:myObj.id },
+                      {job_id:sheduleObj.job_id}]}
+                    })
+
+                    let Task=[]
+                    for(let l=0; l<foundT.length;l++){
+                      let obj3={};
+                      obj3["id"]= foundT[l].id
+                      obj3["title"]= foundT[l].title
+                      obj3["description"]=foundT[l].description
+                      obj3["operation_date"]=moment(foundT[l].operation_date).format('YYYY-MM-DD')
+                      obj3["agenda_done"]= foundT[l].agenda_done
+                    
+                      Task.push(obj3)
+                    }
+
                     
                     jobDetail.push({schedule,
+                      Task,
+                      Instruction,
                       job_id:sheduleObj.job_id,
                       description:foundJ2.description,
                       job_type:foundJ2.job_type,
@@ -389,7 +509,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
                       time_zone:foundF.time_zone,
                       facility_name:foundF.name,
                       address:foundFL.address,
-                      job_status:foundFL.address,
+                      job_status:foundJ[i].job_status
 
                   })
                   } 
@@ -746,7 +866,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
       })
 
 
-        
      if(await this.checkIfDateAreApart(date_time_staff_shedule)){
          //CHECK FOR DUBPLICATE
       let cleanShedule=[]
@@ -1785,56 +1904,120 @@ async getJobsForStaff(req: any): Promise<any[]> {
     
 
 
-  async getOneShedulePerGuard(obj) {
-    var { job_id,
-      guard_id
-    }
-  
-    =  await jobUtil.verifygetOneShedulePerGuard.validateAsync(obj);
-      
-    
-    const  foundS =await  this.ScheduleModel.findAll({
-      where: {[Op.and]: 
-        [{job_id},
-        {guard_id}
-        ]}
-        , 
-        order: [
-            ['check_in_date', 'ASC'],
-            ['check_out_date', 'ASC'],
-        ],
-      })
-
-    let all_shedule=[]     
-   if(foundS.length!=0){
-
-        for(let i=0;i<foundS.length;i++ ){
-
-          let obj={
-            check_in_date:await this.getDateOnly(foundS[i].check_in_date) ,
-            start_time:foundS[i].start_time,
-            check_out_date:await this.getDateOnly(foundS[i].check_out_date) ,
-            end_time:foundS[i].end_time,
-            hours:await this.calculateHoursSetToWork(foundS[i].check_out_date,foundS[i].check_in_date),
-            shedule_id:foundS[i].id,
-            guard_id:foundS[i].guard_id,
-            job_id:foundS[i].job_id
 
 
-          }
-          all_shedule.push(obj)
-          
-        if(i==foundS.length-1){
-          return all_shedule
-        }
-      }
-   }
-   else{
-    console.log("jjjjjjjjjjjjjjjjj")
-    return []
-   }
 
+
+async getOneAgendaPerGuard(obj) {
+  var { job_id,
+    guard_id,
+    type
   }
+
+  =  await jobUtil.verifyGetOneAgendaPerGuard.validateAsync(obj);
+    
+  
+ if(type== "INSTRUCTION"){
+
+    const foundI = await this.AgendasModel.findAll({
+      where: {[Op.and]: [{agenda_type:"INSTRUCTION"},
+      {guard_id},
+      {job_id}]}
+    })
+
+  let Instruction=[]
+  for(let k=0; k<foundI.length;k++){
+    let obj={};
+    obj["id"]= foundI[k].id
+    obj["title"]= foundI[k].title
+    obj["description"]=foundI[k].description
+    obj["operation_date"]=moment(foundI[k].operation_date).format('YYYY-MM-DD hh:mm:ss a')
+    obj["agenda_done"]= foundI[k].agenda_done
+    obj["time"]=moment(foundI[k].operation_date).format('hh:mm:ss a')
+  
+    Instruction.push(obj)
+
+    if(k==foundI.length-1 ){
+        return Instruction
+    }
+  }
+ }
+ else{
+  const foundT = await this.AgendasModel.findAll({
+    where: {[Op.and]: [{agenda_type:"TASK"},
+    {guard_id},
+    {job_id}]}
+  })
+
+  let Task=[]
+  for(let l=0; l<foundT.length;l++){
+    let obj={};
+    obj["id"]= foundT[l].id
+    obj["title"]= foundT[l].title
+    obj["description"]=foundT[l].description
+    obj["operation_date"]=moment(foundT[l].operation_date).format('YYYY-MM-DD')
+    obj["agenda_done"]= foundT[l].agenda_done
+  
+    Task.push(obj)
+    if(l==foundT.length-1){
+        return Task
+    }
+  }
+ }
+
+
+}
+
+async getOneShedulePerGuard(obj) {
+  var { job_id,
+    guard_id
+  }
+
+  =  await jobUtil.verifyGetOneShedulePerGuard.validateAsync(obj);
+    
+  
+  const  foundS =await  this.ScheduleModel.findAll({
+    where: {[Op.and]: 
+      [{job_id},
+      {guard_id}
+      ]}
+      , 
+      order: [
+          ['check_in_date', 'ASC'],
+          ['check_out_date', 'ASC'],
+      ],
+    })
+
+  let all_shedule=[]     
+  if(foundS.length!=0){
+
+      for(let i=0;i<foundS.length;i++ ){
+
+        let obj={
+          check_in_date:await this.getDateOnly(foundS[i].check_in_date) ,
+          start_time:foundS[i].start_time,
+          check_out_date:await this.getDateOnly(foundS[i].check_out_date) ,
+          end_time:foundS[i].end_time,
+          hours:await this.calculateHoursSetToWork(foundS[i].check_out_date,foundS[i].check_in_date),
+          shedule_id:foundS[i].id,
+          guard_id:foundS[i].guard_id,
+          job_id:foundS[i].job_id
+
+
+        }
+        all_shedule.push(obj)
+        
+      if(i==foundS.length-1){
+        return all_shedule
+      }
+    }
+  }
+  else{
+  console.log("jjjjjjjjjjjjjjjjj")
+  return []
+  }
+
+}
     
 
   
@@ -2563,7 +2746,60 @@ async getJobsForStaff(req: any): Promise<any[]> {
   }
 
 
+  
 
+
+  async deleteAgenda(obj) {
+    var { 
+      agenda_id,
+      longitude,
+      latitude,
+      my_time_zone
+    }
+    = await jobUtil.verifyDeleteAgenda.validateAsync(obj);
+      
+
+    
+      const foundA =await this.AgendasModel.findOne(
+        {
+          where: 
+            {id:agenda_id}
+        }
+      )
+
+
+      if(foundA){
+        
+        if(foundA.agenda_type=="INSTRUCTION"){
+
+          await this.JobSecurityModel.destroy(
+            {
+              where: 
+                {agenda_id:foundA.id}
+                
+            }
+          )
+
+          await this.AgendasModel.destroy(
+            {
+              where: 
+              {id:agenda_id}
+                
+            }
+          )
+
+        }else{
+
+        }
+
+
+      }
+      else{
+        throw new SecurityCodeVerificationError("no schedule task found")
+      }
+
+    
+  }
   
   async checkTaskGuard(obj) {
     var { 
@@ -3677,8 +3913,6 @@ async getDateAndTime(val){
 
   return moment(val).format('YYYY-MM-DD hh:mm:ss a')
 }
-
-
 
 
 
