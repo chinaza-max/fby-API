@@ -19,13 +19,14 @@ class Agendas
   declare status_per_staff: string;
   declare job_id: number;
   declare guard_id: number;
+  declare created_by_id:number;
   declare agenda_type: AgendaTypes;
   declare created_at: Date;
   declare updated_at: Date;
   declare operation_date?: Date;
   declare agenda_done:boolean;
   declare coordinates_id:number;
-  declare schedule_id:number;
+  declare date_schedule_id:number;
 }
 
 export function init(connection: Sequelize) {
@@ -49,11 +50,15 @@ export function init(connection: Sequelize) {
         type: DataTypes.NUMBER,
         allowNull: false,
       },
+      created_by_id: {
+        type: DataTypes.NUMBER,
+        allowNull: false,
+      },
       guard_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
       },
-      schedule_id: {
+      date_schedule_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
       },

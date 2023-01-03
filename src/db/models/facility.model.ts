@@ -22,6 +22,7 @@ import IJob from "../../interfaces/job.interface";
     declare client_charge: number;
     declare guard_charge: number;
     declare customer_id: number;
+    declare created_by_id:number;
     declare created_at: Date;
     declare updated_at: Date;
     declare is_archived: CreationOptional<boolean>;
@@ -54,6 +55,10 @@ import IJob from "../../interfaces/job.interface";
           allowNull: false,
         },
         customer_id: {
+          type: DataTypes.NUMBER,
+          allowNull: false,
+        },
+        created_by_id: {
           type: DataTypes.NUMBER,
           allowNull: false,
         },

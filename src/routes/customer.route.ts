@@ -29,7 +29,7 @@ class CustomerRoutes extends CustomerController {
     );
     this.router.post(
       "/deleteCustomer",
-     // authMiddleware.validateUserToken,
+      authMiddleware.validateUserToken,
       this.deleteCustomer 
     );
     this.router.post(

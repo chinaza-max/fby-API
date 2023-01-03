@@ -10,6 +10,7 @@ export default interface IAdmin {
     date_of_birth: Date;
     gender: GenderTypes;
     location_id?: number;
+    created_by_id:number;
     created_at?: Date;
     updated_at?: Date;
     is_archived?: boolean;

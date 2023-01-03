@@ -84,11 +84,19 @@ class JobUtil {
 
 
   public verifyGetAllUnsettleShiftOneGuard = Joi.object().keys({
-    guard_id: Joi.number().required(),
+    guard_id: Joi.number(),
     settlement:Joi.boolean().required()
   });
 
   
+  
+
+  public verifyCheckPositionQRcode = Joi.object().keys({
+    my_time_zone: Joi.string().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
+    job_id: Joi.number().required()
+});
   
   public verifyDeleteAgenda = Joi.object().keys({
     my_time_zone: Joi.string().required(),
@@ -159,6 +167,7 @@ class JobUtil {
   
   public verifysheduleDateCreation = Joi.object().keys({
     my_time_zone: Joi.string().required(),
+    created_by_id: Joi.number().required(),
     date_time_staff_shedule: Joi.array().min(1).required().items({
       guard_id: Joi.number().required(),
       job_id: Joi.number().required(),
@@ -179,6 +188,7 @@ class JobUtil {
   public verifySheduleAgenda = Joi.object().keys({
       latitude: Joi.number().required(),
       longitude: Joi.number().required(),
+      created_by_id: Joi.number().required(),
       shedule_agenda: Joi.array().min(1).required().items({
       guard_id: Joi.number().required(),
       job_id: Joi.number().required(),
@@ -197,6 +207,7 @@ class JobUtil {
     description: Joi.string().trim().min(1),
     customer_id: Joi.number().required(),
     site_id: Joi.number().required(),
+    created_by_id:Joi.number().required(),
     my_time_zone: Joi.string().required(),
     job_status: Joi.string()
       .valid("ACTIVE", "PENDING", "COMPLETED"),

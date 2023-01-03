@@ -13,5 +13,5 @@ export interface IAgendas {
   updated_at: Date;
   operation_date?: Date;
   agenda_done:boolean;
-  schedule_id:number;
+  date_schedule_id:number;
 }

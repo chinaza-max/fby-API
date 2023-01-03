@@ -26,6 +26,7 @@ class Schedule
   declare schedule_length: ScheduleLengthTypes;
   declare created_at: Date;
   declare updated_at: Date;
+  declare created_by_id:number;
   declare is_archived: CreationOptional<boolean>;
 }
 
@@ -66,6 +67,10 @@ export function init(connection: Sequelize) {
         allowNull: false,
       },
       job_id: {
+        type: DataTypes.NUMBER,
+        allowNull: false,
+      },
+      created_by_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
       },

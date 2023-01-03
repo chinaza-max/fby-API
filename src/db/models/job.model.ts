@@ -18,6 +18,7 @@ import IJob from "../../interfaces/job.interface";
     declare description: string;
     declare customer_id: number;
     declare facility_id: number;
+    declare created_by_id: number;
     declare job_status: JobStatus;
     declare client_charge: number;
     declare staff_charge: number;
@@ -47,6 +48,10 @@ import IJob from "../../interfaces/job.interface";
           allowNull: false,
         },
         facility_id: {
+          type: DataTypes.NUMBER,
+          allowNull: false,
+        },
+        created_by_id: {
           type: DataTypes.NUMBER,
           allowNull: false,
         },

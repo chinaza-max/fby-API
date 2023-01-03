@@ -24,6 +24,7 @@ import ICustomer from "../../interfaces/customer.interface";
     declare date_of_birth: Date;
     declare gender: GenderTypes;
     declare phone_number:number;
+    declare created_by_id:number;
     declare location_id?: CreationOptional<number>;
     declare created_at: Date;
     declare updated_at: Date;
@@ -65,6 +66,10 @@ import ICustomer from "../../interfaces/customer.interface";
         phone_number: {
           type: DataTypes.NUMBER,
           allowNull: true,
+        },
+        created_by_id: {
+          type: DataTypes.NUMBER,
+          allowNull: false,
         },
         date_of_birth: {
           type: DataTypes.DATE,

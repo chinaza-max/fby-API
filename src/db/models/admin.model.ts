@@ -26,6 +26,7 @@ import IAdmin from "../../interfaces/admin.interface";
     declare availability:boolean;
     declare suspended:boolean;
     declare phone_number: number;
+    declare created_by_id: number;
     declare email: string;
     declare password: CreationOptional<string>;
     declare date_of_birth: Date;
@@ -106,6 +107,10 @@ import IAdmin from "../../interfaces/admin.interface";
         location_id: {
           type: DataTypes.STRING,
           allowNull: true,
+        },
+        created_by_id: {
+          type: DataTypes.NUMBER,
+          allowNull: false,
         },
         created_at: {
           type: DataTypes.DATE,

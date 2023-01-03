@@ -73,6 +73,11 @@ class JobRoutes extends JobController {
     this.router.post("/deleteAgenda", this.deleteAgenda);
 
 
+    //check if the person placing the printed QR CODE is with in  location 
+    this.router.post("/check_position_qr_code", this.checkPositionQRcode);
+
+
+
 
 
 

@@ -83,7 +83,7 @@ class AuthenticationService {
       address,
       phone_number,
       my_time_zone,
-
+      created_by_id
     } = await authUtil.verifyUserCreationData.validateAsync(data);
 
     let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
@@ -121,6 +121,7 @@ class AuthenticationService {
       phone_number,
       role: "GUARD",
       availability:true,
+      created_by_id,
       created_at:dateStamp, 
       updated_at:dateStamp
     });
@@ -149,7 +150,8 @@ class AuthenticationService {
       password,
       address,
       my_time_zone,
-      phone_number
+      phone_number,
+      created_by_id
     } = await authUtil.verifyUserCreationData.validateAsync(data);
 
 
@@ -190,6 +192,7 @@ class AuthenticationService {
       location_id: createdLocation.id,
       phone_number,
       role: "ADMIN",
+      created_by_id,
       created_at:dateStamp, 
       updated_at:dateStamp
     });

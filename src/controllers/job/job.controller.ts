@@ -3,17 +3,6 @@ import jobService from "../../service/job.service";
 
 export default class JobController {
 
-
-  
-
-
-
-
-
-
-
-
-
   
   protected async getAllUnsettleShiftOneGuard(
     req: Request,
@@ -21,20 +10,12 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try {
+      
       const data = req.body;
       const myData={
         limit:Number(req.query.limit),
         offset:Number(req.query.offset),
       }
-
-
-      console.log("------------------------")
-
-      console.log(myData)
-      console.log("------------------------")
-
-
-  
       
       const obj = await jobService.getAllUnsettleShiftOneGuard(data,myData);
       
@@ -85,6 +66,8 @@ export default class JobController {
 
       console.log("kkkkkkkkkkkkkkkkkkk")
 
+
+      
       const obj = await jobService.getDashBoardInfoGuard(req);
       
       return res.status(200).json({
@@ -215,7 +198,35 @@ export default class JobController {
     }
   }
 
+  
 
+  
+  protected async checkPositionQRcode(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data =req.body
+      
+      const data2 ={
+        ...data,
+        my_time_zone:req["user_time_zone"],
+        longitude:req["objLatLon"][1],
+        latitude:req["objLatLon"][0],
+      }
+
+      const obj = await jobService.checkPositionQRcode(data2);
+      
+      return res.status(200).json({
+        status: 200,
+        message: `done successfully`,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
 
 
   protected async deleteAgenda(
@@ -237,7 +248,7 @@ export default class JobController {
       
       return res.status(200).json({
         status: 200,
-        message: `done successfully`,
+        message: `deleted  successfully`,
       });
       
     } catch (error) {
@@ -892,8 +903,10 @@ export default class JobController {
 
       let data2={
         ...data,
+        created_by_id:req.user.id,
         longitude:req["objLatLon"][1],
         latitude:req["objLatLon"][0],
+
       }
 
       const obj = await jobService.sheduleAgenda(data2);
@@ -917,9 +930,10 @@ export default class JobController {
 
 
       const data =JSON.parse(req.body.date_time_staff_shedule)
-      const data3 = req.body;
+    
       const data2 ={
         date_time_staff_shedule:data,
+        created_by_id:req.user.id,
         my_time_zone:req["user_time_zone"]
       }
 
@@ -966,6 +980,7 @@ export default class JobController {
 
       let my_bj={
         ...data,
+        created_by_id:req.user.id,
         my_time_zone:req["user_time_zone"]
       }
 

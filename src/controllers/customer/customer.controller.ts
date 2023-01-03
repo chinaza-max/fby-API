@@ -41,12 +41,13 @@ export default class CustomerController {
 
       let my_bj={
         ...data,
-        my_time_zone:req["user_time_zone"]
+        my_time_zone:req["user_time_zone"],
+        created_by_id:req.user.id
       }
 
       console.log(my_bj)
+    
       console.log("''''''''''''''''''''''''''''fffffffffffffffffff''''''''''''''''''''''''''''")
-      
       const obj = await customerService.handleCreateFacility(my_bj);
 
       return res.status(200).json({
@@ -131,13 +132,16 @@ export default class CustomerController {
       const data = req.body;
       let my_bj={
         ...data,
-        my_time_zone:req["user_time_zone"]
+        my_time_zone:req["user_time_zone"],
+        created_by_id:req.user.id
       }
 
+
       console.log(my_bj)
+      console.log(req.user.id)
+
       console.log("''''''''''''''''''''''''''''my_bj''''''''''''''''''''''''''''")
 
-      
       const obj = await customerService.handleCustomerCreation(my_bj);
 
       try {

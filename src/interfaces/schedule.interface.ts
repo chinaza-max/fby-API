@@ -8,6 +8,7 @@ export default interface ISchedule {
     check_out_date:Date;
     job_id: number;
     guard_id: number;
+    created_by_id:number;
     max_check_in_time:number;
     status_per_staff: string;
     schedule_length: ScheduleLengthTypes;

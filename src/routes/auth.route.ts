@@ -30,9 +30,9 @@ class AuthRoutes extends AuthController {
     );
 
     this.router.get("/", authMiddleware.validateUserToken, this.whoAmI);
-    this.router.post("/register", this.signupGuard);
+    this.router.post("/register",authMiddleware.validateUserToken,  this.signupGuard);
     this.router.post("/registerBulk", this.signupGuardBulk);
-    this.router.post("/admin/register", this.signupAdmin);
+    this.router.post("/admin/register",authMiddleware.validateUserToken,  this.signupAdmin);
   }
 }
 

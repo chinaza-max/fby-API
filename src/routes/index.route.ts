@@ -44,18 +44,22 @@ class Routes {
               req["user_time_zone"]=geo.timezone    
               req["objLatLon"]=geo.ll
             }
-           
+/*
+            console.log(`------------------BEGIN REQUEST FROM ALL ROUTE CURRENT PATH ${req.path}-------------------------`)
+           console.log(req)
+           console.log(`------------------ENDS REQUEST FROM ALL ROUTE  CURRENT PATH ${req.path}-------------------------`)
+*/
       next()
     });
+
+
 
     this.router.use(`${rootAPI}/auth`, authRoute);
 
     this.router.use(`${rootAPI}/util`, utilRoute);
 
-   // this.router.use(authMiddleware.validateUserToken);
-    
   
-
+    this.router.use(authMiddleware.validateUserToken);
 
     this.router.use(`${rootAPI}/customer`, customerRoute);
 
@@ -67,8 +71,11 @@ class Routes {
       // return res.status(400).json({
       //   status: 400,
       //   message: "Resource not found."
-      // });
-      throw new NotFoundError("Resource not found.");
+      // })
+
+
+
+      throw new NotFoundError(JSON.stringify(req));
     });
   }
 }

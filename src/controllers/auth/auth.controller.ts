@@ -92,13 +92,10 @@ export default class AuthenticationController {
 
       let my_bj={
         ...data,
+        created_by_id:req.user.id,
         my_time_zone:req["user_time_zone"]
       }
 
-      console.log(my_bj)
-      console.log("''''''''''''''''''''''''''''ggggggggggggggggg''''''''''''''''''''''''''''")
-
-      
       const obj = await authService.handleUserCreation(my_bj);
 
       try {
@@ -144,10 +141,13 @@ export default class AuthenticationController {
 
       let my_bj={
         ...data,
+        created_by_id:req.user.id,
         my_time_zone:req["user_time_zone"]
       }
 
       console.log(my_bj)
+      console.log(req.user)
+
       console.log("''''''''''''''''''''''''''''aaaaaaaaaaaaaaa''''''''''''''''''''''''''''")
 
       const obj = await authService.handleAdminCreation(my_bj);

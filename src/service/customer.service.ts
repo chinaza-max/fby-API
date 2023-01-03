@@ -47,7 +47,8 @@ class CustomerService {
       google_address,
       site_name,
       email,
-      customer_id
+      customer_id,
+      created_by_id
     } = await customerUtil.verifyFacilityCreation.validateAsync(data);
   
     var existingUser = await this.getUserByEmail(email);
@@ -112,6 +113,7 @@ class CustomerService {
               client_charge,
               guard_charge,
               time_zone:get_time_zone,
+              created_by_id,
               created_at:dateStamp, 
               updated_at:dateStamp
             });
@@ -230,7 +232,8 @@ class CustomerService {
       address,
       sites,
       phone_number,
-      my_time_zone
+      my_time_zone,
+      created_by_id
     } = await customerUtil.verifyUserCreationData.validateAsync(data);
 
 
@@ -272,6 +275,7 @@ class CustomerService {
       password: hashedPassword,
       location_id: createdLocation.id,
       phone_number, 
+      created_by_id, 
       created_at:dateStamp, 
       updated_at:dateStamp
     })
@@ -554,9 +558,9 @@ class CustomerService {
               latitude: facility.facility_location.coordinates.latitude,
               longitude: facility.facility_location.coordinates.longitude,
               operations_area_constraint:
-                facility.facility_location.operations_area_constraint,
+              facility.facility_location.operations_area_constraint,
               operations_area_constraint_active:
-                facility.facility_location.operations_area_constraint_active,
+              facility.facility_location.operations_area_constraint_active,
             });
           });
           tempCustomer["sites"] = sites;

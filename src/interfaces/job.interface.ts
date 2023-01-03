@@ -14,4 +14,5 @@ export default interface IJob {
     updated_at?: Date;
     is_archived?: boolean;
     max_check_in_time:string;
+    created_by_id: number;
 }
