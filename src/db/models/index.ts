@@ -37,6 +37,9 @@ import JobSecurityCode, {
   init as initJobSecurityCode,
 } from "./job_security_code.model";
 
+import SecurityCheckLog, {
+  init as initSecurityCheckLog,
+} from "./security_check_log.model";
 
 
 function associate() {
@@ -272,6 +275,7 @@ export {
   Agendas,
   JobReports,
   JobSecurityCode,
+  SecurityCheckLog
 }
 
 export function init(connection: Sequelize) {
@@ -295,5 +299,6 @@ export function init(connection: Sequelize) {
   initAgendas(connection);
   initJobReports(connection);
   initJobSecurityCode(connection);
+  initSecurityCheckLog(connection);
   associate();
 }

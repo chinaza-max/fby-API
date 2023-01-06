@@ -44,10 +44,11 @@ export function init(connection: Sequelize) {
       },
       check_in_time: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
       },
       check_out_time: {
         type: DataTypes.STRING,
+        defaultValue:'0',
         allowNull: true,
       },  
       check_in_status: {
@@ -84,6 +85,7 @@ export function init(connection: Sequelize) {
       },
       check_out_date: {
         type: DataTypes.DATE(),
+        defaultValue:  Sequelize.fn('now'),
         allowNull: true,
       },
       project_check_in_date: {

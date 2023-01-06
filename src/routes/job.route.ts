@@ -48,6 +48,8 @@ class JobRoutes extends JobController {
     //THIS GET SHIFT PER GUARD FOR ALL JOB
     this.router.post("/allJobs/shiftPerGuardAllJob", this.shiftPerGuardAllJob);
 
+
+    this.router.post("/get_perform_security_check_log", this.getPerformSecurityCheckLog);
     this.router.post("/allJobs/logPerGuard", this.getLogPerGuard);
     this.router.post("/updateJobStatus", this.updateJobStatus);
     this.router.post("/settleShift", this.settleShift);
@@ -75,6 +77,9 @@ class JobRoutes extends JobController {
 
     //check if the person placing the printed QR CODE is with in  location 
     this.router.post("/check_position_qr_code", this.checkPositionQRcode);
+    this.router.post("/perform_security_check", this.performSecurityCheck);
+
+
 
 
 

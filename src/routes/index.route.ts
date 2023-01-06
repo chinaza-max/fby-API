@@ -32,6 +32,11 @@ class Routes {
     this.router.use((req: Request, res: Response,  next: NextFunction  )=>{
 
       let ip = req.header('x-forwarded-for') || req.socket.remoteAddress;
+      
+      
+      console.log(ip)
+      console.log("original originaloriginaloriginal")
+
       ip="::ffff:190.2.138.12"
   
       console.log("::ffff:"+ip.substr(0, 7))
@@ -44,11 +49,16 @@ class Routes {
               req["user_time_zone"]=geo.timezone    
               req["objLatLon"]=geo.ll
             }
-/*
-            console.log(`------------------BEGIN REQUEST FROM ALL ROUTE CURRENT PATH ${req.path}-------------------------`)
-           console.log(req)
-           console.log(`------------------ENDS REQUEST FROM ALL ROUTE  CURRENT PATH ${req.path}-------------------------`)
-*/
+
+            console.log(req["objLatLon"])
+            if(req.path=="/api/v1/job/getAllUnsettleShiftOneGuard"){
+              console.log(`------------------BEGIN REQUEST FROM ALL ROUTE CURRENT PATH ${req.path}-------------------------`)
+              console.log(req)
+              console.log(req.body)
+
+              console.log(`------------------ENDS REQUEST FROM ALL ROUTE  CURRENT PATH ${req.path}-------------------------`)
+            }
+
       next()
     });
 
@@ -59,7 +69,7 @@ class Routes {
     this.router.use(`${rootAPI}/util`, utilRoute);
 
   
-    this.router.use(authMiddleware.validateUserToken);
+    //this.router.use(authMiddleware.validateUserToken);
 
     this.router.use(`${rootAPI}/customer`, customerRoute);
 

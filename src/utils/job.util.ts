@@ -5,6 +5,13 @@ class JobUtil {
   
 
 
+
+  
+  public verifyGetPerformSecurityCheckLog = Joi.object().keys({
+    job_id: Joi.number().required(),
+    guard_id: Joi.number().required(),
+
+  });
   
   public verifyGetLogPerGuard = Joi.object().keys({
     job_id: Joi.number().required(),
@@ -90,6 +97,14 @@ class JobUtil {
 
   
   
+  
+  public verifyPerformSecurityCheck = Joi.object().keys({
+    my_time_zone: Joi.string().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
+    job_id: Joi.number().required(),
+    guard_id: Joi.number().required()
+});
 
   public verifyCheckPositionQRcode = Joi.object().keys({
     my_time_zone: Joi.string().required(),

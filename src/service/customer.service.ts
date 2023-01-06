@@ -382,6 +382,7 @@ class CustomerService {
             },
           ]
         });
+        
         let tempCustomers = [];
 
         console.log(allCustomers)

@@ -12,6 +12,8 @@ export default class JobController {
     try {
       
       const data = req.body;
+
+  
       const myData={
         limit:Number(req.query.limit),
         offset:Number(req.query.offset),
@@ -199,7 +201,35 @@ export default class JobController {
   }
 
   
+ 
+  
 
+  protected async performSecurityCheck(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data =req.body
+      
+      const data2 ={
+        ...data,
+        my_time_zone:req["user_time_zone"],
+        longitude:req["objLatLon"][1],
+        latitude:req["objLatLon"][0],
+      }
+
+      const obj = await jobService.performSecurityCheck(data2);
+      
+      return res.status(200).json({
+        status: 200,
+        message: `location good`,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
   
   protected async checkPositionQRcode(
     req: Request,
@@ -220,7 +250,7 @@ export default class JobController {
       
       return res.status(200).json({
         status: 200,
-        message: `done successfully`,
+        message: `location good`,
       });
       
     } catch (error) {
@@ -379,6 +409,29 @@ export default class JobController {
 
 
 
+
+
+  
+
+  protected async getPerformSecurityCheckLog(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+    
+      const obj = await jobService.getPerformSecurityCheckLog(data);
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
   
   protected async getLogPerGuard(
     req: Request,

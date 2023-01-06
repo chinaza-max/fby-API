@@ -12,6 +12,8 @@ import {
   JobSecurityCode,
   JobLogs,
   JobReports,
+  SecurityCheckLog
+  
 } from "../db/models";
 import {
   BadRequestError,
@@ -51,6 +53,8 @@ class UserService {
   private AgendasModel = Agendas;
   private JobReportsModel = JobReports;
   private JobSecurityModel = JobSecurityCode;
+  private SecurityCheckLogModel = SecurityCheckLog;
+
 
 
 
@@ -781,7 +785,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
           let createdA= await this.AgendasModel.bulkCreate(scheduleWithTimeStamp);
 
-          if(createdA[0].agenda_type=="INSTRUCTION"){
+          if(createdA[0].agenda_type=="INSTRUCTION"&&createdA[0].title=="scan-QR-code"){
 
             for(let k=0;k<createdA.length;k++){
               let security_code=(""+createdA[k].operation_date).replace(/\s+/g, '')
@@ -1116,6 +1120,65 @@ async getJobsForStaff(req: any): Promise<any[]> {
     
   }
 
+
+
+  
+
+
+  async getPerformSecurityCheckLog(obj) {
+    var { job_id,
+      guard_id
+    }
+  
+    =  await jobUtil.verifyGetPerformSecurityCheckLog.validateAsync(obj);
+      
+    
+    const  foundSCL =await  this.SecurityCheckLogModel.findAll(
+      {
+        where: {[Op.and]: 
+           [
+             {job_id},
+             {guard_id}
+           ]}
+      }
+    )
+
+    let myLog=[]     
+   if(foundSCL.length!=0){
+        for(let i=0;i<foundSCL.length;i++ ){
+
+            let obj={}
+
+            let latLon =await  this.CoordinatesModel.findOne(
+              {
+                where: {id:foundSCL[i].coordinates_id }
+              }
+            )
+
+           let lat= Number(latLon.latitude)
+           let lon= Number(latLon.longitude) 
+
+          obj["date"]= await this.getDateAndTime(foundSCL[i].created_at) 
+          obj["status"]= foundSCL[i].status 
+          obj["message"]= "Security check"
+          obj["lat"]= lat.toFixed(5)
+          obj["log"]= lon.toFixed(5)
+         
+          myLog.push(obj)
+
+          if(i==foundSCL.length-1){
+            return myLog
+          }
+        }
+   }
+   else{
+    return myLog
+   }
+
+
+
+      
+  }
   
   async getLogPerGuard(obj) {
     var { job_id,
@@ -1149,9 +1212,9 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
 
           obj["check_in_date"]= await this.getDateOnly(foundJL[i].check_in_date) 
-          obj["check_out_date"]=foundJL[i].check_out_date ? await this.getDateOnly(foundJL[i].check_out_date) :'empty'
-          obj["check_in_time"]=foundJL[i].check_in_time ?  foundJL[i].check_in_time:"empty"
-          obj["check_out_time"]=foundJL[i].check_out_time  ?  foundJL[i].check_out_time:"empty"
+          obj["check_out_date"]= foundJL[i].check_out_status ? await this.getDateOnly(foundJL[i].check_out_date) :'None'
+          obj["check_in_time"]=foundJL[i].check_in_time
+          obj["check_out_time"]=foundJL[i].check_out_status  ?  foundJL[i].check_out_time:"None"
           obj["log_id"]=foundJL[i].id
           obj["job_id"]=job_id
           obj["guard_id"]=guard_id
@@ -1161,7 +1224,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
             obj["hours"]= await this.calculateHoursSetToWork( foundJL[i].check_out_date, foundJL[i].check_in_date)
           }
           else{
-            obj["hours"]= 0
+            obj["hours"]= 0.00
           }
           obj["location_message"]= foundJL[i].message
           obj["lat"]= latLon.latitude
@@ -1253,9 +1316,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
   
   
                 unSettledSucessfullShift.push(obj)
-                console.log("lllllllllllllll========================")
-
-                console.log(obj)
+             
 
   
               }
@@ -1285,9 +1346,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
             for(let i=0; i<foundS.length; i++){
   
               let obj={}
-                //JUST FOR GETTING THE CHARGE PER JOB
-             // let foundJ=    await this.JobModel.findOne({where:{id: foundS[i].job_id}})
-                
+        
               let foundJL=    await this.JobLogsModel.findOne({
                 where: {[Op.and]: 
                   [{check_in_status:true},
@@ -1398,11 +1457,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
                 ]}
           })
 
-          console.log("jjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj")
-          console.log(foundJ)
-          //obj["first_name"]= await this.getDateOnly(foundS[i].check_in_date) 
-          //obj["last_name"]=await this.getDateOnly(foundS[i].check_out_date) 
-
+        
           let name=await this.getSingleGuardDetail(foundS[i].guard_id)
           let hours=await this.calculateHoursSetToWork(foundS[i].check_in_date ,foundS[i].check_out_date)
           
@@ -1424,12 +1479,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
           obj["client_charge"]= foundJ.client_charge
 
 
-
-          console.log("=================================")
-          console.log(foundF)
-          console.log("=================================")
-
-
           if(foundJL){
             if(foundJL.check_out_status==true){
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
@@ -1442,23 +1491,21 @@ async getJobsForStaff(req: any): Promise<any[]> {
             else{
 
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
-              obj["check_out"]="none" 
-              obj["hours_worked"]=0
-              obj["earned"]="$"+ 0
-              obj["settlement_status"]="none"
+              obj["check_out"]="None" 
+              obj["hours_worked"]=0.00
+              obj["earned"]="$"+ 0.00
+              obj["settlement_status"]="None"
             }
           
           }
           else{
-            obj["check_in"]="none"
-            obj["check_out"]="none"
-            obj["hours_worked"]=0
-            obj["earned"]="$"+0
+            obj["check_in"]="None"
+            obj["check_out"]="None"
+            obj["hours_worked"]=0.00
+            obj["earned"]="$"+0.00
             obj["settlement_status"]="not eligible"
 
           }
-                
-
           all_shift.push(obj)
         if(i==foundS.length-1){
           return all_shift
@@ -1525,15 +1572,10 @@ async getJobsForStaff(req: any): Promise<any[]> {
                 ]}
           })
 
-          //obj["first_name"]= await this.getDateOnly(foundS[i].check_in_date) 
-          //obj["last_name"]=await this.getDateOnly(foundS[i].check_out_date) 
-
+  
           let name=await this.getSingleGuardDetail(foundS[i].guard_id)
           let hours=await this.calculateHoursSetToWork(foundS[i].check_in_date ,foundS[i].check_out_date)
           
-      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkooooooooooo")
-
-      console.log(hours)
 
 
           obj["start_date"]= await this.getDateOnly(foundS[i].check_in_date) 
@@ -1548,12 +1590,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
           obj["guard_charge"]= foundF.guard_charge
           obj["guard_id"]= foundS[i].guard_id
           obj["client_charge"]= foundF.client_charge
-
-
-
-          console.log("=================================")
-          console.log(foundJL)
-          console.log("=================================")
 
 
           if(foundJL){
@@ -1573,8 +1609,8 @@ async getJobsForStaff(req: any): Promise<any[]> {
           
           }
           else{
-            obj["check_in"]="none"
-            obj["check_out"]="none"
+            obj["check_in"]="None"
+            obj["check_out"]="None"
             obj["hours_worked"]=0
             obj["earned"]= 0
           }
@@ -1687,15 +1723,15 @@ async getJobsForStaff(req: any): Promise<any[]> {
                       else{
           
                         obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
-                        obj["check_out"]="none" 
-                        obj["hours_worked"]=0
+                        obj["check_out"]="None" 
+                        obj["hours_worked"]=0.00
                         obj["earned"]="$0.00"
                       }
                     }
                     else{
-                      obj["check_in"]="none"
-                      obj["check_out"]="none"
-                      obj["hours_worked"]=0
+                      obj["check_in"]="None"
+                      obj["check_out"]="None"
+                      obj["hours_worked"]=0.00
                       obj["earned"]="$0.00"
                     }
               
@@ -1789,14 +1825,14 @@ async getJobsForStaff(req: any): Promise<any[]> {
             else{
 
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
-              obj["check_out"]="none" 
+              obj["check_out"]="None" 
               obj["hours_worked"]=0
               obj["earned"]="$0.00"
             }
           }
           else{
-            obj["check_in"]="none"
-            obj["check_out"]="none"
+            obj["check_in"]="None"
+            obj["check_out"]="None"
             obj["hours_worked"]=0
             obj["earned"]="$0.00"
           }
@@ -1898,8 +1934,7 @@ async getOneAgendaPerGuard(obj) {
   =  await jobUtil.verifyGetOneAgendaPerGuard.validateAsync(obj);
     
   
- if(type== "INSTRUCTION"){
-
+ if(type=="INSTRUCTION"){
     const foundI = await this.AgendasModel.findAll({
       where: {[Op.and]: [{agenda_type:"INSTRUCTION"},
       {guard_id},
@@ -1907,21 +1942,31 @@ async getOneAgendaPerGuard(obj) {
     })
 
   let Instruction=[]
-  for(let k=0; k<foundI.length;k++){
-    let obj={};
-    obj["id"]= foundI[k].id
-    obj["title"]= foundI[k].title
-    obj["description"]=foundI[k].description
-    obj["operation_date"]=moment(foundI[k].operation_date).format('YYYY-MM-DD hh:mm:ss a')
-    obj["agenda_done"]= foundI[k].agenda_done
-    obj["time"]=moment(foundI[k].operation_date).format('hh:mm:ss a')
-  
-    Instruction.push(obj)
+  if(foundI.length!=0){
+    for(let k=0; k<foundI.length;k++){
+      let obj={};
+      obj["agenda_id"]= foundI[k].id
+      obj["guard_id"]= guard_id
+      obj["job_id"]= job_id
+      obj["title"]= foundI[k].title
+      obj["description"]=foundI[k].description
+      obj["operation_date"]=moment(foundI[k].operation_date).format('YYYY-MM-DD hh:mm:ss a')
+      obj["agenda_done"]= foundI[k].agenda_done
+      obj["time"]=moment(foundI[k].operation_date).format('hh:mm:ss a')
+      obj["scanned_at"]=  foundI[k].agenda_done?moment(foundI[k].updated_at).format('YYYY-MM-DD hh:mm:ss a'):"None"
 
-    if(k==foundI.length-1 ){
-        return Instruction
+      Instruction.push(obj)
+  
+      if(k==foundI.length-1 ){
+          return Instruction
+      }
     }
+  }else{
+    return Instruction
   }
+ 
+
+
  }
  else{
   const foundT = await this.AgendasModel.findAll({
@@ -1931,19 +1976,29 @@ async getOneAgendaPerGuard(obj) {
   })
 
   let Task=[]
-  for(let l=0; l<foundT.length;l++){
-    let obj={};
-    obj["id"]= foundT[l].id
-    obj["title"]= foundT[l].title
-    obj["description"]=foundT[l].description
-    obj["operation_date"]=moment(foundT[l].operation_date).format('YYYY-MM-DD')
-    obj["agenda_done"]= foundT[l].agenda_done
-  
-    Task.push(obj)
-    if(l==foundT.length-1){
-        return Task
+
+
+  if(foundT.length!=0){
+    for(let l=0; l<foundT.length;l++){
+      let obj={};
+      obj["agenda_id"]= foundT[l].id
+      obj["guard_id"]= guard_id
+      obj["job_id"]= job_id
+      obj["title"]= "Task"
+      obj["description"]=foundT[l].description
+      obj["operation_date"]=moment(foundT[l].operation_date).format('YYYY-MM-DD')
+      obj["agenda_done"]= foundT[l].agenda_done
+      obj["scanned_at"]=  foundT[l].agenda_done?moment(foundT[l].updated_at).format('YYYY-MM-DD hh:mm:ss a'):"None"
+
+      Task.push(obj)
+      if(l==foundT.length-1){
+          return Task
+      }
     }
+  }else{
+    return Task
   }
+ 
  }
 
 
@@ -1979,7 +2034,7 @@ async getOneShedulePerGuard(obj) {
           start_time:foundS[i].start_time,
           check_out_date:await this.getDateOnly(foundS[i].check_out_date) ,
           end_time:foundS[i].end_time,
-          hours:await this.calculateHoursSetToWork(foundS[i].check_out_date,foundS[i].check_in_date),
+          hours:(await this.calculateHoursSetToWork(foundS[i].check_out_date,foundS[i].check_in_date)).toFixed(2),
           shedule_id:foundS[i].id,
           guard_id:foundS[i].guard_id,
           job_id:foundS[i].job_id
@@ -1994,7 +2049,6 @@ async getOneShedulePerGuard(obj) {
     }
   }
   else{
-  console.log("jjjjjjjjjjjjjjjjj")
   return []
   }
 
@@ -2721,6 +2775,81 @@ async getOneShedulePerGuard(obj) {
 
   }
 
+
+
+
+
+  async performSecurityCheck(obj) {
+    var { 
+      job_id,
+      guard_id,
+      longitude,
+      latitude,
+      my_time_zone
+    }
+    = await jobUtil.verifyPerformSecurityCheck.validateAsync(obj);
+      
+    const foundItemJob =await  this.JobModel.findOne(
+      { where: {id:job_id } })
+
+      const foundItemFac =await  this.FacilityModel.findOne(
+        { where: {id:foundItemJob.facility_id } })
+
+      
+      const foundItemFacLo =await  this.FacilityLocationModel.findOne(
+        { where: {id:foundItemFac.facility_location_id } })
+        
+      const foundItemCoor =await  this.CoordinatesModel.findOne(
+        { where: {id:foundItemFacLo.coordinates_id } })
+
+
+    let objLatLog={
+      latitude:foundItemCoor.latitude,
+      longitude:foundItemCoor.longitude,
+      radius:foundItemFacLo.operations_area_constraint
+    }
+
+    let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
+
+    const createdC=await this.CoordinatesModel.create({
+      longitude,
+      latitude,
+      created_at:dateStamp,
+      updated_at:dateStamp
+    })
+    
+    if(this.isInlocation(latitude, longitude, objLatLog)){
+
+      let obj={
+        job_id,
+        guard_id,
+        coordinates_id:createdC.id,
+        status:true,
+        created_at:dateStamp,
+        updated_at:dateStamp
+      }
+
+      await this.SecurityCheckLogModel.create(obj)
+
+
+    }
+    else{
+      let obj={
+        job_id,
+        guard_id,
+        coordinates_id:createdC.id,
+        status:false,
+        created_at:dateStamp,
+        updated_at:dateStamp
+      }
+      await this.SecurityCheckLogModel.create(obj)
+
+
+      throw new LocationError( "You are not in location" );
+    }
+    
+  }
+
   
   async checkPositionQRcode(obj) {
     var { 
@@ -2806,13 +2935,17 @@ async getOneShedulePerGuard(obj) {
           )
 
         }else{
-
+          await this.AgendasModel.destroy(
+            {
+              where: 
+              {id:agenda_id}
+                
+            }
+          )
         }
-
-
       }
       else{
-        throw new SecurityCodeVerificationError("no schedule task found")
+        throw new SecurityCodeVerificationError("No Instruction or Task was found")
       }
 
     
@@ -3347,7 +3480,7 @@ async getOneShedulePerGuard(obj) {
         { where: {id:foundItemFacLo.coordinates_id } })
 
 
-        let my_time_zone=foundItemFac.time_zone||"Africa/Lagos"||"America/Tijuana"
+        let my_time_zone=foundItemFac.time_zone
         let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
 
@@ -3426,9 +3559,7 @@ async getOneShedulePerGuard(obj) {
                                 updated_at:dateStamp
                               }
               
-                              this.JobLogsModel.create(obj).then((myRes)=>{
-                                console.log(myRes)
-                              })
+                              this.JobLogsModel.create(obj)
                             }
                             else{
                               throw new LocationError("you are late cant check in");
@@ -3720,7 +3851,7 @@ async getOneShedulePerGuard(obj) {
 
 */
   isInlocation(latitude,longitude,objLatLog){
-
+    
     function getDistanceBetween(lat1, long1, lat2, long2) {
       var R = 6371; // Radius of the earth in km
       var dLat = deg2rad(lat2-lat1); // deg2rad below
@@ -3737,6 +3868,13 @@ async getOneShedulePerGuard(obj) {
 
 
     //console.log(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude))
+
+    console.log("kkkkkkkkkkkkkkkkkkkkk")
+
+    console.log(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude))
+    console.log(objLatLog.radius)
+
+    console.log("kkkkkkkkkkkkkkkkkkkkk")
 
     if(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude)>objLatLog.radius){
       return false
@@ -4267,11 +4405,6 @@ for(let i=0;i<combinedArray.length ;i++){
         ]}
     }
   )
-
-
-  /**{
-      where:{ job_status:'ACTIVE'}
-    } */
 
 
     if(foundJ.length!=0){
