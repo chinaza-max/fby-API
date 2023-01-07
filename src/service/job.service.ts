@@ -2118,10 +2118,8 @@ async getOneShedulePerGuard(obj) {
   async getSecurityCodePerJob(obj) {
     var { job_id,
     }
-  
     =  await jobUtil.verifygetGetSecurityCodePerJob.validateAsync(obj);
       
-    
     let foundJC=await  this.JobSecurityModel.findAll({
       where:{
         job_id
@@ -2133,32 +2131,56 @@ async getOneShedulePerGuard(obj) {
       ],
       group: ['job_id','security_code']
     })
+
+    console.log(foundJC)
+
     let detail=[]
-    for(let i=0; i<foundJC.length;i++){
 
-      let foundA=await  this.AgendasModel.findOne({
-        where:{
-          id:foundJC[i].agenda_id
+    if(foundJC.length!=0){
+
+      for(let i=0; i<foundJC.length;i++){
+        let foundA=await  this.AgendasModel.findOne({
+          where:{
+            id:foundJC[i].agenda_id
+          }
+        })
+
+        let foundJSC=await  this.JobSecurityModel.findAll({
+          where:{
+            security_code:foundJC[i].security_code
+          }
+        })
+
+        let guard_image=[]
+        for(let k=0; k<foundJSC.length;k++){
+
+          let foundU=await  this.UserModel.findOne({
+            where:{
+              id:foundJSC[k].guard_id
+            }
+          })
+          guard_image.push(foundU.image)
         }
-      })
-     
-
-      let obj={
-        job_id:foundJC[i].job_id,
-        security_code:foundJC[i].security_code,
-        agenda_id:foundJC[i].agenda_id,
-        operation_date: await this.getDateAndTime(foundA.operation_date)
-      }
-
-      detail.push(obj)
-      console.log(i==foundJC.length-1)
-
-
-     if(i==foundJC.length-1){
-
-        return detail 
+       
+        let obj={
+          job_id:foundJC[i].job_id,
+          security_code:foundJC[i].security_code,
+          agenda_id:foundJC[i].agenda_id,
+          image:guard_image,
+          message:foundA.description,
+          operation_date: await this.getDateAndTime(foundA.operation_date)
+        }
+  
+        detail.push(obj)
+       if(i==foundJC.length-1){
+          return detail 
+        }
       }
     }
+    else{
+      return detail
+    }
+
 
   }
 
@@ -3963,6 +3985,7 @@ async getOneShedulePerGuard(obj) {
       obj["first_name"]=foundU.first_name,
       obj["last_name"]=foundU.last_name
       obj["phone_number"]=foundU.phone_number
+      obj["image"]=foundU.image
 
     }
     else{
@@ -3986,12 +4009,8 @@ async getOneShedulePerGuard(obj) {
         where: {id:val[i]}
       })
 
-  console.log(foundU)
   if(foundU){
-    if(foundU){
-      
-    }
-
+    
     const  foundJL =await  this.JobLogsModel.findAll({
       where: {[Op.and]: 
         [{check_in_status:true},
@@ -4001,12 +4020,8 @@ async getOneShedulePerGuard(obj) {
         ]}
       })
 
-
-     console.log(foundJL)
       let hours_worked=0
-
       if(foundJL.length==0){
-
 
         let foundJR=await this.JobReportsModel.findAll({
           where:{[Op.and]: 
@@ -4026,7 +4041,6 @@ async getOneShedulePerGuard(obj) {
           hours_worked,
           guard_id:foundU.id,
           no_of_report:foundJR.length
-
 
         }
         guard_detail.push(guard)
@@ -4062,11 +4076,7 @@ async getOneShedulePerGuard(obj) {
     }
 
   }
-  else{
-    
-  }
 
-  
 
   if(i==val.length-1){
 

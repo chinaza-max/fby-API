@@ -681,9 +681,6 @@ export default class JobController {
     try {
       const data = req.body;
 
-      //REMOVE THIS AFTER TEST
-      req.user = req.body.guard_id;
-
       const obj = await jobService.getSecurityCodePerJob(data);
 
       return res.status(200).json({
@@ -710,9 +707,9 @@ export default class JobController {
       const obj = await jobService.getGuardPerJob(data);
       
       return res.status(200).json({
-        status: 200,
-        data: obj,
-      });
+        status:200,
+        data: obj
+      })
       
     } catch (error) {
       next(error);
