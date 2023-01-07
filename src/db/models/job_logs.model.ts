@@ -70,6 +70,7 @@ export function init(connection: Sequelize) {
       schedule_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
+        defaultValue:0,
       },
       coordinates_id: {
         type: DataTypes.NUMBER,

@@ -60,8 +60,6 @@ class JobRoutes extends JobController {
     //THIS IS FOR ALL GUARD
     this.router.get("/getAllGuard", this.getAllGuard);
     this.router.get("/getAllSite", this.getAllSite);
-
-
     this.router.get("/getDashBoardInfo", this.getDashBoardInfo);
     this.router.get("/getDashBoardInfoGuard", this.getDashBoardInfoGuard);
 
@@ -74,17 +72,9 @@ class JobRoutes extends JobController {
     this.router.post("/check_task_guard", this.checkTaskGuard);
     this.router.post("/deleteAgenda", this.deleteAgenda);
 
-
     //check if the person placing the printed QR CODE is with in  location 
     this.router.post("/check_position_qr_code", this.checkPositionQRcode);
     this.router.post("/perform_security_check", this.performSecurityCheck);
-
-
-
-
-
-
-
 
    // this.router.get("/myJobsAdminDetail", this.getMyJobsAdminDetail);
     this.router.post("/", this.createJob);

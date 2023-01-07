@@ -609,16 +609,8 @@ export default class JobController {
     try {
       const data = req.body;
 
-      
-
-      //REMOVE THIS AFTER TEST
-      req.user = req.body.guard_id;
-
       const obj = await jobService.getOneAgendaPerGuard(data);
 
-
-      console.log(obj)
-      
       return res.status(200).json({
         status: 200,
         data: obj,
@@ -694,9 +686,6 @@ export default class JobController {
 
       const obj = await jobService.getSecurityCodePerJob(data);
 
-
-      console.log(obj)
-      
       return res.status(200).json({
         status: 200,
         data: obj,
@@ -719,9 +708,6 @@ export default class JobController {
       req.user = req.body.guard_id;
 
       const obj = await jobService.getGuardPerJob(data);
-
-
-      console.log(obj)
       
       return res.status(200).json({
         status: 200,
@@ -956,7 +942,7 @@ export default class JobController {
 
       let data2={
         ...data,
-        created_by_id:req.user.id,
+        created_by_id:1,
         longitude:req["objLatLon"][1],
         latitude:req["objLatLon"][0],
 
