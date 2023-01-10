@@ -528,11 +528,7 @@ export default class JobController {
     try {
       const data = req.body;
 
-      const obj = await jobService.generalshiftStarted(data);
-
-
-      console.log(obj)
-      
+      const obj = await jobService.generalshiftStarted(data);     
       return res.status(200).json({
         status: 200,
         data: obj,
@@ -634,9 +630,6 @@ export default class JobController {
 
       const obj = await jobService.getOneShedulePerGuard(data);
 
-
-      console.log(obj)
-      
       return res.status(200).json({
         status: 200,
         data: obj,
@@ -815,14 +808,10 @@ export default class JobController {
     try {
       const data = req.body;
 
-      //REMOVE THIS AFTER TEST
-      req.user = req.body.guard_id;
+      
 
       const obj = await jobService.checkInCheckOutAdmin(data);
 
-
-      console.log(obj)
-      
       return res.status(200).json({
         status: 200,
         message: `Check ${data.check_in ? 'in' : 'out'} successful`,
@@ -935,16 +924,14 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const data = req.body;
 
+      const data =JSON.parse(req.body.shedule_agenda)
       let data2={
-        ...data,
-        created_by_id:1,
-        longitude:req["objLatLon"][1],
-        latitude:req["objLatLon"][0],
-
+        shedule_agenda:data,
+        created_by_id:req.user.id,
+        my_time_zone:req["user_time_zone"]
       }
-
+    
       const obj = await jobService.sheduleAgenda(data2);
 
       return res.status(200).json({
@@ -962,9 +949,7 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try {
-     //\ 
-
-
+    
       const data =JSON.parse(req.body.date_time_staff_shedule)
     
       const data2 ={

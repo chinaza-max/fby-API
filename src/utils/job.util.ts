@@ -201,8 +201,7 @@ class JobUtil {
   });
 
   public verifySheduleAgenda = Joi.object().keys({
-      latitude: Joi.number().required(),
-      longitude: Joi.number().required(),
+      my_time_zone: Joi.string().required(),
       created_by_id: Joi.number().required(),
       shedule_agenda: Joi.array().min(1).required().items({
       guard_id: Joi.number().required(),

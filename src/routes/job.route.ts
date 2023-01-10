@@ -38,7 +38,6 @@ class JobRoutes extends JobController {
     this.router.get("/allJobs/generalshift", this.getGeneralShift);
     this.router.get("/allJobs/generalshiftStarted", this.generalshiftStarted);
 
-
     //SUBMIT REPORT FROM GUARD
     this.router.put("/submitReportAttachment",uploadHandler.uploads.single("file"), this.submitReportAndAttachment);
     
@@ -75,7 +74,7 @@ class JobRoutes extends JobController {
     //check if the person placing the printed QR CODE is with in  location 
     this.router.post("/check_position_qr_code", this.checkPositionQRcode);
     this.router.post("/perform_security_check", this.performSecurityCheck);
-
+    
    // this.router.get("/myJobsAdminDetail", this.getMyJobsAdminDetail);
     this.router.post("/", this.createJob);
   }

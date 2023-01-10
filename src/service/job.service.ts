@@ -538,29 +538,11 @@ async getJobsForStaff(req: any): Promise<any[]> {
     }
 
 
-
-
-
-
-
-   
-
   } catch (error) {
     console.log(error);
     return null;
   }
 }
-
-
-
-
-
-
-
-
-
-
-  
   async getAllJobsAdmin(data: any): Promise<any[]> {
 
      console.log(data.query)
@@ -671,13 +653,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
       } = await jobUtil.verifyDeleteJob.validateAsync(data);
 
 
-      console.log("lllllllllllllllllllllllllllllllllllllllllll")
-
-      console.log(job_id)
-
-      console.log("lllllllllllllllllllllllllllllllllllllllllll")
-
-
       this.JobModel.destroy({
         where: {
             id: job_id
@@ -706,16 +681,14 @@ async getJobsForStaff(req: any): Promise<any[]> {
   
   async sheduleAgenda(data: any): Promise<any> {
     try {
+
       let {
         shedule_agenda,
-        latitude,
         created_by_id,
-        longitude
+        my_time_zone
       } = await jobUtil.verifySheduleAgenda.validateAsync(data);
 
       shedule_agenda=await this.addCreatorsId(shedule_agenda,created_by_id)
-
-      let my_time_zone= await this.getTimeZone(latitude ,longitude)
       let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
       let isAgendaOk=await this.checkifAgendaDateIsInScheduleDate(shedule_agenda)
 
@@ -732,17 +705,14 @@ async getJobsForStaff(req: any): Promise<any[]> {
       //CHECK FOR DUBPLICATE
       let cleanShedule=[]
         if(myShedule.length!=0){
-          
           for(let i=0;  i<shedule_agenda.length; i++){
             let obj=shedule_agenda[i]
             for(let j=0;  j<myShedule.length; j++){
               let obj2=myShedule[j]
     
-              // console.log("start check")
               let newDate= moment( new Date(obj.operation_date));
               let dateNowFormatted1 = newDate.format('YYYY-MM-DD hh:mm:ss a');
 
-              // console.log(dateNowFormatted1)
               let oldDate= moment( new Date(obj2.operation_date));
               let dateNowFormatted2 = oldDate.format('YYYY-MM-DD hh:mm:ss a');
         
@@ -789,38 +759,27 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
             for(let k=0;k<createdA.length;k++){
               let security_code=(""+createdA[k].operation_date).replace(/\s+/g, '')
-
-                
-                let myObj={
-                  agenda_id:createdA[k].id,
-                  guard_id:createdA[k].guard_id,
-                  job_id:createdA[k].job_id,
-                  security_code,
-                  created_at:dateStamp,
-                  updated_at:dateStamp
-                }
-
-                await this.JobSecurityModel.create(myObj)
-              
-          
+              let myObj={
+                agenda_id:createdA[k].id,
+                guard_id:createdA[k].guard_id,
+                job_id:createdA[k].job_id,
+                security_code,
+                created_at:dateStamp,
+                updated_at:dateStamp
+              }
+              await this.JobSecurityModel.create(myObj) 
             }
           }
 
         }
-
-    
     }
     else{
-
-     // return isAgendaOk
       throw(isAgendaOk)
     }
-    
-      
     } catch (error) {
 
+      //throw new SystemError(error.toString());
       throw new AgendaSheduleError(JSON.stringify(error));
-
     }
   }
 
@@ -845,10 +804,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
             {id:shedule_id}
           ]}
       })
-      console.log(schedule)
-   
-       
-      
+
     } catch (error) {
       console.log(error);
       throw new SystemError(error.toString());
@@ -857,7 +813,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
 
   async sheduleDate(data: any): Promise<any> {
-    try {
+    
       let {
         date_time_staff_shedule ,
         my_time_zone,
@@ -888,8 +844,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
             for(let j=0;  j<myShedule.length; j++){
               let obj2=myShedule[j]
 
-            //  console.log(moment(new Date(obj.check_in_date)).format('YYYY-MM-DD hh:mm:ss a'))
-
               let newDate= moment(new Date(obj.check_in_date));
               let newDate2= moment(new Date(obj.check_out_date));
               let dateNowFormatted1 = newDate.format('YYYY-MM-DD');
@@ -897,8 +851,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
               let myNewDateIn=new Date( moment(new Date(obj.check_in_date)).format('YYYY-MM-DD hh:mm:ss a'));
               let myNewDateOut= moment(new Date(obj.check_out_date));
-             // let myNewDateFormatted1 = newDate.format('YYYY-MM-DD hh:mm:ss a');
-              //let myNewDateOutFormatted1 = newDate2.format('YYYY-MM-DD hh:mm:ss a')
 
               let oldDate= moment( new Date(obj2.check_in_date));
               let oldDate2= moment( new Date(obj2.check_out_date));
@@ -907,7 +859,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
             
 
               //THIS CODE PREVENT DATE ENTANGLE MENT   ONE DATE FALLING INSIDE ANOTHE DATE
-              console.log(myNewDateIn)
+            
               const foundItemS =await   this.ScheduleModel.findOne(
                 {
                   where: {[Op.and]: 
@@ -978,10 +930,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
      }
  
      
-    } catch (error) {
-      console.log(error);
-      throw new SystemError(error.toString());
-    }
+
   }
 
 
@@ -1066,10 +1015,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
         {
         where: {[Op.and]: [{ guard_id }, {job_id}]}
         })
-
-
-
-        console.log(relatedAssignment)
 
         if (relatedAssignment == null)
           throw new NotFoundError(
@@ -1652,7 +1597,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
               let obj={}
 
-
               const foundJ = await this.JobModel.findOne({
              where:{[Op.and]: 
                   [{id:foundS[i].job_id},
@@ -1660,17 +1604,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
                   ]}   
               }); 
 
-              /* const foundJ = await this.JobModel.findOne({
-              where: { id:foundS[i].job_id} });*/
-
-              console.log("breaking breakingbreaking breaking breaking breaking breaking ")
-              
-              try {
-                console.log(foundJ.time_zone)
-                foundJ.time_zone
-              } catch (e) {
-                console.log(e)
-              }
 
               let dateAndTime=await this.getDateAndTimeForStamp(foundJ.time_zone)
 
@@ -1938,9 +1871,11 @@ async getOneAgendaPerGuard(obj) {
       const foundI = await this.AgendasModel.findAll({
         where: {[Op.and]: [{agenda_type:"INSTRUCTION"},
         {guard_id},
-        {job_id}]}
+        {job_id}]},
+        order: [
+          ['operation_date', 'ASC']]
       })
-  
+
     let Instruction=[]
     if(foundI.length!=0){
       for(let k=0; k<foundI.length;k++){
@@ -1972,7 +1907,9 @@ async getOneAgendaPerGuard(obj) {
     const foundT = await this.AgendasModel.findAll({
       where: {[Op.and]: [{agenda_type:"TASK"},
       {guard_id},
-      {job_id}]}
+      {job_id}]},
+      order: [
+        ['operation_date', 'ASC']]
     })
   
     let Task=[]
@@ -2047,7 +1984,9 @@ async getOneShedulePerGuard(obj) {
           hours:(await this.calculateHoursSetToWork(foundS[i].check_out_date,foundS[i].check_in_date)).toFixed(2),
           shedule_id:foundS[i].id,
           guard_id:foundS[i].guard_id,
+          schedule_id:foundS[i].id,
           job_id:foundS[i].job_id
+
 
 
         }
@@ -2502,101 +2441,8 @@ async getOneShedulePerGuard(obj) {
   
   async getGuard(obj) {
 
-
-/*
-    let foundS= await  this.ScheduleModel.findAll({
-      where:{
-        job_id:obj.job_id
-      }
-    })
-*/
     let arrayId=[]
     let detail=[]
-
-
-/*
-    if(foundS.length!=0){
-      for(let i=0;i<foundS.length;i++){
-
-        if(arrayId.includes(foundS[i].guard_id)){
-
-        }
-        else{
-          arrayId.push(foundS[i].guard_id)
-        }
-        if(i==foundS.length-1){
-            //console.log(arrayId)
-            let foundG=await  this.UserModel.findAll({
-              where:
-              {[Op.and]: 
-                [
-                  {availability:true},
-                  {suspended:false},
-                {role:'GUARD'}
-                ]}
-            })
-
-
-            if(foundG.length!=0){
-
-              for(let j=0;j<foundG.length;j++){
-                            
-                  if(arrayId.includes(foundG[j].id)){
-
-                  }
-                  else{
-                    arrayId.push(foundG[j].id)
-                  }
-                
-                if(j==foundG.length-1){
-                  if(arrayId.length!=0){
-                    for(let i=0;i<arrayId.length;i++){
-                      let obj={}
-                    
-                      let name =await this.getSingleGuardDetail(arrayId[i])
-            
-                      obj["guard_id"]=arrayId[i]
-                      obj["full_name"]=name["first_name"]+" "+name["last_name"]
-                      detail.push(obj)
-            
-                      if(i==arrayId.length-1){
-                          return detail
-                      }
-                    }
-                   }
-                   else{
-                    return detail
-                  }
-                }
-              }
-            }
-            else{
-              if(arrayId.length!=0){
-                for(let i=0;i<arrayId.length;i++){
-                  let obj={}
-                
-                  let name =await this.getSingleGuardDetail(arrayId[i])
-        
-                  obj["guard_id"]=arrayId[i]
-                  obj["full_name"]=name["first_name"]+" "+name["last_name"]
-                  detail.push(obj)
-        
-                  if(i==arrayId.length-1){
-                      return detail
-                  }
-                }
-               }
-               else{
-                return detail
-              }
-            }
-        }
-      }
-    }
-
-    else{
-*/
-
       let foundG=await  this.UserModel.findAll({
         where:
         {[Op.and]:    
@@ -2606,7 +2452,6 @@ async getOneShedulePerGuard(obj) {
           {role:'GUARD'}
           ]}
       })
-
 
       if(foundG.length!=0){
 
@@ -2913,13 +2758,9 @@ async getOneShedulePerGuard(obj) {
       radius:foundItemFacLo.operations_area_constraint
     }
     
-    if(this.isInlocation(latitude, longitude, objLatLog)){
-
-    }
+    if(this.isInlocation(latitude, longitude, objLatLog)){}
     else{
-
       throw new LocationError( "You are not in location" );
-
     }
     
   }
@@ -3309,10 +3150,8 @@ async getOneShedulePerGuard(obj) {
       }
   
     =  await jobUtil.verifyCheckInCheckOutAdmin.validateAsync(obj);
-     // console.log(latitude, longitude )
       let time = moment(date).format('hh:mm:ss a')
-    
-        
+  
      const foundItemS =await  this.ScheduleModel.findOne(
                   { where: {id:shedule_id } })
 
@@ -3328,8 +3167,6 @@ async getOneShedulePerGuard(obj) {
           }
         )
         if(foundItemJL){
-
-
 
           if(check_in){
                         
@@ -4258,8 +4095,6 @@ async combineUnsettleShift(val){
   }
 
 async checkifAgendaDateIsInScheduleDate(agendaSchedule){
-
-
   for(let i=0; i<agendaSchedule.length;i++){
 
     //THIS ONE IS USE BY INSTRUCTION TO MATCH DATE PROPERLY FOR SEARCH
@@ -4292,7 +4127,7 @@ async checkifAgendaDateIsInScheduleDate(agendaSchedule){
         info:{
           fullName:guardDetail["first_name"]+" "+guardDetail["last_name"],
           operation_date:   agendaSchedule[i].agenda_type=="INSTRUCTION" ?await this.getDateAndTime(operation_date):await this.getDateOnly(operation_date),
-          issues: agendaSchedule[i].agenda_type=="INSTRUCTION" ? "instruction date not found in guard shift":"task date not found in guard shift"
+          issues: agendaSchedule[i].agenda_type=="INSTRUCTION" ? "Instruction date not found in guard shift":"Task date not found in guard shift"
         }
       }
 
@@ -4332,7 +4167,7 @@ async checkifAgendaDateIsInScheduleDate(agendaSchedule){
                   info:{
                     fullName:guardDetail["first_name"]+" "+guardDetail["last_name"],
                     operation_date:   agendaSchedule[i].agenda_type=="INSTRUCTION" ?await this.getDateAndTime(operation_date):await this.getDateOnly(operation_date),
-                    issues: agendaSchedule[i].agenda_type=="INSTRUCTION" ? "instruction date not found in guard shift":"task date not found in guard shift"
+                    issues: agendaSchedule[i].agenda_type=="INSTRUCTION" ? "Instruction date not found in guard shift":"Task date not found in guard shift"
                   }
                 }
 
@@ -4366,7 +4201,6 @@ async checkIfDateAreApart(postedDate){
       })
 
 let combinedArray=[...postedDate,...myShedule]
-      console.log(combinedArray)
 
 for(let i=0;i<combinedArray.length ;i++){
 
@@ -4380,18 +4214,16 @@ for(let i=0;i<combinedArray.length ;i++){
     if(moment(combinedArray[i].check_in_date).isBefore(combinedArray[j].check_out_date)){
         if(moment(combinedArray[i].check_out_date).add(60, 'minutes').isBefore(combinedArray[j].check_in_date)){
 
-          
         }
         else{
               let name= await this.getSingleGuardDetail(combinedArray[i].guard_id)
-
 
               let data={
                 message:`This schedule (start date:${moment(combinedArray[i].check_in_date).format("YYYY-MM-DD  hh:mm:ss a")},end date:${moment(combinedArray[i].check_out_date).format("YYYY-MM-DD  hh:mm:ss a")  } )  is clashing with (start date:${moment(combinedArray[j].check_in_date).format("YYYY-MM-DD  hh:mm:ss a")    },end date:${moment(combinedArray[j].check_out_date).format("YYYY-MM-DD  hh:mm:ss a") } ) or they are not far apart `,
                 solution:`SOLUTION :remove this guard (${name["first_name"]} ${name["last_name"] }) from the schedule or adjust the date`
               }
       
-                throw new TimeError(JSON.stringify(data));
+              throw new TimeError(JSON.stringify(data));
         }
     }
     else if(moment(combinedArray[i].check_in_date).subtract(60, 'minutes').isAfter(combinedArray[j].check_out_date)){
@@ -4440,8 +4272,6 @@ for(let i=0;i<combinedArray.length ;i++){
           {guard_id}]}
         })
 
-
-
         if(foundS.length!=0){
           return true
         }
@@ -4463,9 +4293,6 @@ for(let i=0;i<combinedArray.length ;i++){
 
     let init2 = moment(from).format('YYYY-MM-DD hh:mm:ss a');
     let now2 = moment(to).format('YYYY-MM-DD hh:mm:ss a')
-  
-    console.log(init2)
-    console.log(now2)
 
     let init = moment(from, 'YYYY-MM-DD hh:mm:ss a');
     let now = moment(to, 'YYYY-MM-DD hh:mm:ss a');
@@ -4501,7 +4328,6 @@ for(let i=0;i<combinedArray.length ;i++){
 
   async addTimeStampToArr(schedule,dateAndTime) {
     
-
     let obj={}
     obj["created_at"]=dateAndTime
     obj["updated_at"]=dateAndTime
@@ -4518,8 +4344,6 @@ for(let i=0;i<combinedArray.length ;i++){
 
   async addCreatorsId(schedule,created_by_id) {
     
-
-  
     for(let i=0;i<schedule.length;i++){
     
       schedule[i]={...schedule[i],created_by_id}
