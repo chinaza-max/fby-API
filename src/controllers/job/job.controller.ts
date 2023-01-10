@@ -808,13 +808,18 @@ export default class JobController {
     try {
       const data = req.body;
 
-      
+      const data2 ={
+        ...data,
+        my_time_zone:req["user_time_zone"],
+        longitude:req["objLatLon"][1],
+        latitude:req["objLatLon"][0],
+      }
 
-      const obj = await jobService.checkInCheckOutAdmin(data);
+      const obj = await jobService.checkInCheckOutAdmin(data2);
 
       return res.status(200).json({
         status: 200,
-        message: `Check ${data.check_in ? 'in' : 'out'} successful`,
+        message: `Check ${data.check_in=="true" ? 'in' : 'out'} successful`,
       });
       
     } catch (error) {

@@ -1958,7 +1958,6 @@ async getOneShedulePerGuard(obj) {
 
   =  await jobUtil.verifyGetOneShedulePerGuard.validateAsync(obj);
     
-  
   const  foundS =await  this.ScheduleModel.findAll({
     where: {[Op.and]: 
       [{job_id},
@@ -3140,20 +3139,22 @@ async getOneShedulePerGuard(obj) {
   
   async checkInCheckOutAdmin(obj) {
     var { 
-      shedule_id,
+       schedule_id,
        check_in, 
        latitude, 
        longitude,
        job_id,
        date,
+       my_time_zone,
        guard_id
       }
   
     =  await jobUtil.verifyCheckInCheckOutAdmin.validateAsync(obj);
       let time = moment(date).format('hh:mm:ss a')
-  
+      let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
+
      const foundItemS =await  this.ScheduleModel.findOne(
-                  { where: {id:shedule_id } })
+                  { where: {id:schedule_id } })
 
       if(foundItemS){
         const foundItemJL =await   this.JobLogsModel.findOne(
@@ -3175,36 +3176,33 @@ async getOneShedulePerGuard(obj) {
                 where: {[Op.and]: 
                   [{check_in_date: {[Op.lte]: date} },
                   {check_out_date: {[Op.gt]: date} },
-                  {job_id},
-                  {guard_id }
+                  {id:schedule_id}
                   ]}
               }
             )
 
               if(foundItemS2){
 
-                  if(await this.isBefore(date ,foundItemJL.check_out_date)){
+                  if(await this.isBefore(date,foundItemJL.check_out_date)){
                               
                     let obj={
                       check_in_time:time,
                       check_in_date:date,
-                      check_in_status:true
+                      check_in_status:true,
+                      updated_at:dateStamp,
+                      schedule_id
                     }
                               
-                  
-
                     this.JobLogsModel.update(obj,{
                     where:{id:foundItemJL.id}})
-  
-
                 }
                 else{
-                  throw new ConflictError("cant use date ")
+                  throw new ConflictError("Cant use date.  Check in date must come before check out date ")
                 }
 
               }
               else{
-                  throw new ConflictError("cant use date ")
+                  throw new ConflictError("Cant use date. Not in with in guard shift")
               }
           }
           else{
@@ -3214,8 +3212,7 @@ async getOneShedulePerGuard(obj) {
                 where: {[Op.and]: 
                   [{check_in_date: {[Op.lte]: date} },
                   {check_out_date: {[Op.gte]: date} },
-                  {job_id},
-                  {guard_id }
+                  {id:schedule_id }
                   ]}
               }
             )
@@ -3224,11 +3221,12 @@ async getOneShedulePerGuard(obj) {
 
                 if(await this.isAfter(date ,foundItemJL.check_in_date)){
                               
-              
                     let obj={
                       check_out_time:time,
                       check_out_date:date,
-                      check_out_status:true
+                      check_out_status:true,
+                      updated_at:dateStamp,
+                      schedule_id
                     }
                               
                     this.JobLogsModel.update(obj,{
@@ -3236,25 +3234,17 @@ async getOneShedulePerGuard(obj) {
 
                 }
                 else{
-                  throw new ConflictError("cant use date ")
+                  throw new ConflictError("Cant use date.  Check out date must come after check in date")
                 }
             }
             else{
-              throw new ConflictError("cant use date ")
+              throw new ConflictError("Cant use date. Not in with in guard shift")
 
             }
-
-
-
-
-
-
           }
      
         }
         else{
-
-          
           if(check_in){
                         
             const foundItemS2 =await   this.ScheduleModel.findOne(
@@ -3262,8 +3252,7 @@ async getOneShedulePerGuard(obj) {
                 where: {[Op.and]: 
                   [{check_in_date: {[Op.lte]: date} },
                   {check_out_date: {[Op.gt]: date} },
-                  {job_id},
-                  {guard_id }
+                  {id:schedule_id}
                   ]}
               }
             )
@@ -3273,7 +3262,9 @@ async getOneShedulePerGuard(obj) {
 
                 let coordinates_res=await this.CoordinatesModel.create({
                   longitude,
-                  latitude
+                  latitude,
+                  created_at:dateStamp,
+                  updated_at:dateStamp
                 })
       
       
@@ -3285,17 +3276,17 @@ async getOneShedulePerGuard(obj) {
                   guard_id,
                   coordinates_id:coordinates_res.id,
                   check_in_date:date,
-                  project_check_in_date:foundItemS.check_in_date
+                  project_check_in_date:foundItemS2.check_in_date,
+                  created_at:dateStamp,
+                  updated_at:dateStamp,
+                  schedule_id
                 }
       
-                this.JobLogsModel.create(obj).then((myRes)=>{
-                  console.log(myRes)
-                })
-
+                await this.JobLogsModel.create(obj)
 
               }
               else{
-                  throw new ConflictError("cant use date ")
+                  throw new ConflictError("Cant use date.  Check in date must come before check out date ")
               }
           }
           else{
@@ -3637,31 +3628,19 @@ async getOneShedulePerGuard(obj) {
 
         }
 
- 
-
-
       
   }
 
  
  checkIfGuardIsLate(val1,val2,added_time){
 
-    console.log(added_time)
     let stored_time = moment(new Date(val1) ,'YYYY-MM-DD hh:mm:ss a')
     let my_check_in_time = moment(new Date(val2)  ,'YYYY-MM-DD hh:mm:ss a').subtract(added_time, 'minutes');
     
-
-    console.log("============here her here here =========")
-
-
     let stored_time2 = moment(new Date(val1) ).format('YYYY-MM-DD hh:mm:ss a')
     let my_check_in_time2 = moment(new Date(val2)).subtract(added_time, 'minutes').format('YYYY-MM-DD hh:mm:ss a')
     
-    console.log(stored_time2)
-    console.log(my_check_in_time2)
-
-    
-    
+ 
     return my_check_in_time.isSameOrBefore(stored_time)
   
 }
@@ -3670,7 +3649,6 @@ async getOneShedulePerGuard(obj) {
     
       let startTime1 =moment(new Date(val1)  ,'YYYY-MM-DD HH:mm:ss a');
       let startTime2 = moment(new Date(val2)  ,'YYYY-MM-DD HH:mm:ss a');
-
       return startTime1.isSameOrBefore(startTime2)
 
   }
@@ -3681,35 +3659,18 @@ async getOneShedulePerGuard(obj) {
 
     let startTime1 =moment(new Date(val1)  ,'YYYY-MM-DD HH:mm:ss a');
     let startTime2 = moment(new Date(val2)  ,'YYYY-MM-DD HH:mm:ss a');
-
     return startTime1.isAfter(startTime2)
 
-  
   }
 
   async isBefore(val1 ,val2){
 
     let startTime1 =moment(new Date(val1)  ,'YYYY-MM-DD HH:mm:ss a');
     let startTime2 = moment(new Date(val2)  ,'YYYY-MM-DD HH:mm:ss a');
-
     return startTime1.isBefore(startTime2)
 
-  
   }
 
-  
-
-/*
-  timePositionForCheckIn(val ,val2){
-    
-    let startTime1 = moment(val, 'HH:mm:ss a');
-    let startTime2 = moment(val2, 'HH:mm:ss a');
-
-    return startTime1.isSameOrBefore(startTime2)
-
-}
-
-*/
   isInlocation(latitude,longitude,objLatLog){
     
     function getDistanceBetween(lat1, long1, lat2, long2) {
@@ -3726,85 +3687,12 @@ async getOneShedulePerGuard(obj) {
       return deg * (Math.PI/180)
     }
 
-
-    //console.log(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude))
-
-    console.log("kkkkkkkkkkkkkkkkkkkkk")
-
-    console.log(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude))
-    console.log(objLatLog.radius)
-
-    console.log("kkkkkkkkkkkkkkkkkkkkk")
-
     if(getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude)>objLatLog.radius){
       return false
     }
     else{
       return true
     }
-
-
-        /*
-    if (fence.inside(lat, lon)) {
-      // do some logic
-      console.log("i am in location")
-      return true
-    }
-    else{
-      console.log("am out of location")
-      return true
-    }
-*/
-
-    /*
-    class CircularGeofenceRegion {
-      
-      latitude:number;
-      longitude:number;
-      radius:number;
-
-      constructor(opts) {
-        Object.assign(this, opts)
-        
-      }
-    
-      inside(lat2, lon2) {
-        const lat1 = this.latitude
-        const lon1 = this.longitude
-            const R = 63710; // Earth's radius in m
-    
-        return Math.acos(Math.sin(lat1)*Math.sin(lat2) + 
-                         Math.cos(lat1)*Math.cos(lat2) *
-                         Math.cos(lon2-lon1)) * R < this.radius;
-      }
-    }
-
-    const fenceA = new CircularGeofenceRegion(objLatLog);
-    const fenceB = new CircularGeofenceRegion(objLatLog);
-
-    const fences = [fenceA, fenceB]
-    const options = {}
-
-    
-    for (const fence of fences) {
-      const lat = latitude
-      const lon =longitude
-      console.log(lat)
-      console.log(lon)
-  
-  
-      if (fence.inside(lat, lon)) {
-        // do some logic
-        console.log("i am in location")
-        return true
-      }
-      else{
-        console.log("am out of location")
-        return true
-      }
-    }
-*/
-
 
   }
 
@@ -3915,11 +3803,11 @@ async getOneShedulePerGuard(obj) {
   }
 
 
-  if(i==val.length-1){
+    if(i==val.length-1){
 
       return guard_detail
 
-  }
+    }
 }
 
 

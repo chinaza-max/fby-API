@@ -245,7 +245,8 @@ class JobUtil {
 
 
   public verifyCheckInCheckOutAdmin = Joi.object().keys({
-    shedule_id: Joi.number().min(1).required(),
+    my_time_zone: Joi.string().required(),
+    schedule_id: Joi.number().min(1).required(),
     guard_id: Joi.number().min(1).required(),
     job_id: Joi.number().min(1).required(),
     check_in: Joi.boolean().required(),
