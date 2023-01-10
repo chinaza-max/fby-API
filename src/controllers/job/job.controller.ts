@@ -555,9 +555,6 @@ export default class JobController {
 
       const obj = await jobService.getGeneralShift(data);
 
-
-      console.log(obj)
-      
       return res.status(200).json({
         status: 200,
         data: obj,
@@ -812,7 +809,7 @@ export default class JobController {
         ...data,
         my_time_zone:req["user_time_zone"],
         longitude:req["objLatLon"][1],
-        latitude:req["objLatLon"][0],
+        latitude:req["objLatLon"][0]
       }
 
       const obj = await jobService.checkInCheckOutAdmin(data2);
@@ -948,6 +945,36 @@ export default class JobController {
     }
   }
 
+
+
+  protected async scheduleDateJob(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+    
+      const data =JSON.parse(req.body.date_time_staff_shedule)
+    
+      const data2 ={
+        date_time_staff_shedule:data,
+        created_by_id:req.user.id,
+        my_time_zone:req["user_time_zone"]
+      }
+
+      const obj = await jobService.scheduleDateJob(data2);
+
+      return res.status(200).json({
+        status: 200,
+        message: "Schedule created successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+
   protected async sheduleDate(
     req: Request,
     res: Response,
@@ -1010,9 +1037,6 @@ export default class JobController {
         my_time_zone:req["user_time_zone"]
       }
 
-      console.log(my_bj)
-      console.log("''''''''''''''''''''''''''''jjjjjjjjjjjj''''''''''''''''''''''''''''")
-
       const obj = await jobService.createJob(my_bj);
 
       return res.status(200).json({
@@ -1040,7 +1064,7 @@ export default class JobController {
       const data = req.body;
 
       const obj = await jobService.getAllJobsAdmin(req);
-      console.log(obj?.length);
+   
       if(obj?.length != 0 && obj?.length == null){
         return res.status(400).json({
           status: 400,

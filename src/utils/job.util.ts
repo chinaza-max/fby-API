@@ -200,6 +200,22 @@ class JobUtil {
     })
   });
 
+  public verifyScheduleDateJob = Joi.object().keys({
+    description: Joi.string().trim().min(1),
+    customer_id: Joi.number().required(),
+    site_id: Joi.number().required(),
+    created_by_id:Joi.number().required(),
+    my_time_zone: Joi.string().required(),
+    job_status: Joi.string()
+      .valid("ACTIVE", "PENDING", "COMPLETED"),
+    staff_charge: Joi.number().required(),
+    client_charge: Joi.number().required(),
+    job_type: Joi.string().required()
+      .valid("INSTANT", "ONGOING", "TEMPORAL", "PERMANENT"),
+      payment_status: Joi.string().required()
+  });
+  
+
   public verifySheduleAgenda = Joi.object().keys({
       my_time_zone: Joi.string().required(),
       created_by_id: Joi.number().required(),

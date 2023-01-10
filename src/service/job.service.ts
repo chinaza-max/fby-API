@@ -545,17 +545,13 @@ async getJobsForStaff(req: any): Promise<any[]> {
 }
   async getAllJobsAdmin(data: any): Promise<any[]> {
 
-     console.log(data.query)
     let mytype=data.query.type
-
-   
-
     try {
       const jobs = [];
       let availableJobs;
 
-      console.log(data.query.limit)
       if(mytype=='ACTIVE'){
+
          availableJobs = await this.JobModel.findAll({
           limit: parseInt(data.query.limit),
           offset: parseInt(data.query.offset),
@@ -567,6 +563,10 @@ async getJobsForStaff(req: any): Promise<any[]> {
             ['created_at', 'DESC'],
         ],
         });
+
+        setTimeout(() => {
+          this.shiftJobToCompleted()
+        },1000 * 60 * 60);
       }
       else if(mytype=='PENDING'){
          availableJobs = await this.JobModel.findAll({
@@ -617,11 +617,11 @@ async getJobsForStaff(req: any): Promise<any[]> {
             id:availableJob.facility_id
           }
         })
-
-
+        let job_progress=await this.returnJobPercentage(availableJob.id)
 
         const jobRes = {
           id: availableJob.id,
+          job_progress:job_progress,
           description: availableJob.description,
           client_charge: availableJob.client_charge,
           staff_payment: availableJob.staff_charge,
@@ -629,8 +629,8 @@ async getJobsForStaff(req: any): Promise<any[]> {
           customer: foundC.first_name,
           site: foundF.name,
           create:availableJob.created_at
-        };
-  
+        }
+
         jobs.push(jobRes);
       }
       
@@ -810,6 +810,45 @@ async getJobsForStaff(req: any): Promise<any[]> {
       throw new SystemError(error.toString());
     }
   }
+
+
+  
+
+  async scheduleDateJob(data: any): Promise<any> {
+    
+    let {
+      description,
+      customer_id,
+      site_id,
+      client_charge,
+      staff_charge,
+      payment_status,
+      job_status,
+      job_type,
+      my_time_zone,
+      created_by_id,
+      date
+    } = await jobUtil.verifyScheduleDateJob.validateAsync(data);
+
+    let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
+
+    await this.JobModel.create({
+      description,
+      customer_id,
+      facility_id: site_id,
+      client_charge,
+      staff_charge,
+      payment_status,
+      job_status,
+      job_type,
+      created_by_id,
+      time_zone:my_time_zone,
+      created_at:dateStamp, 
+      updated_at:dateStamp
+    })
+
+
+}
 
 
   async sheduleDate(data: any): Promise<any> {
@@ -1222,7 +1261,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
               let foundJL=    await this.JobLogsModel.findOne({
                 where: {[Op.and]: 
                   [{check_in_status:true},
-                    {project_check_in_date:foundS[i].check_in_date},
+                    {schedule_id:foundS[i].id},
                   {check_out_status:true }
                   ]}
               })
@@ -1259,11 +1298,8 @@ async getJobsForStaff(req: any): Promise<any[]> {
                 obj["shedule_id"]=foundS[i].id
                 obj["site_name"]=foundF.name
   
-  
                 unSettledSucessfullShift.push(obj)
              
-
-  
               }
             
   
@@ -1295,7 +1331,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
               let foundJL=    await this.JobLogsModel.findOne({
                 where: {[Op.and]: 
                   [{check_in_status:true},
-                    {project_check_in_date:foundS[i].check_in_date},
+                    {schedule_id:foundS[i].id},
                   {check_out_status:true }
                   ]}
               })
@@ -1314,7 +1350,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
                   }
                 })   
   
-  
                 obj["hours_worked"]=foundJL.hours_worked
                 obj["amount"]=foundJL.hours_worked*foundJ.staff_charge
                 obj["charge"]=foundJ.staff_charge
@@ -1331,7 +1366,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
                 obj["check_out_time"]=foundJL.check_out_time
                 obj["shedule_id"]=foundS[i].id
                 obj["site_name"]=foundF.name
-  
   
                 unSettledSucessfullShift.push(obj)
   
@@ -1617,7 +1651,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
       
                   const  foundJL=await  this.JobLogsModel.findOne({
                                 where: {[Op.and]: 
-                                    [{project_check_in_date:foundS[i].check_in_date},
+                                    [{schedule_id:foundS[i].id},
                                       {job_id:foundS[i].job_id},
                                       {job_id:foundS[i].job_id},
                                     {check_in_status:true}
@@ -1697,14 +1731,12 @@ async getJobsForStaff(req: any): Promise<any[]> {
         ['created_at', 'DESC']]
       })
     
-
+    
     let all_shift=[]     
    if(foundS.length!=0){
         for(let i=0;i<foundS.length;i++ ){
 
           let obj={}
-
-
           const foundJ = await this.JobModel.findOne({
              where: { id:foundS[i].job_id} });
 
@@ -1717,18 +1749,15 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
           const  foundJL=await  this.JobLogsModel.findOne({
              where: {[Op.and]: 
-                [{project_check_in_date:foundS[i].check_in_date},
+                [{schedule_id:foundS[i].id},
                   {job_id:foundS[i].job_id},
                   {job_id:foundS[i].job_id},
                 {check_in_status:true}
                 ]}
           })
-
-          //obj["first_name"]= await this.getDateOnly(foundS[i].check_in_date) 
-          //obj["last_name"]=await this.getDateOnly(foundS[i].check_out_date) 
+ 
 
           let name=await this.getSingleGuardDetail(foundS[i].guard_id)
-          let hours=await this.calculateHoursSetToWork(foundS[i].check_in_date ,foundS[i].check_out_date)
           let guard_charge=Number(foundJ.staff_charge).toFixed(2)
           let client_charge=Number(foundJ.client_charge).toFixed(2)
 
@@ -1759,18 +1788,20 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
               obj["check_in"]=await this.getDateAndTime(foundJL.check_in_date) 
               obj["check_out"]="None" 
-              obj["hours_worked"]=0
+              obj["hours_worked"]=0.00
               obj["earned"]="$0.00"
             }
           }
           else{
             obj["check_in"]="None"
             obj["check_out"]="None"
-            obj["hours_worked"]=0
+            obj["hours_worked"]=0.00
             obj["earned"]="$0.00"
           }
                 
           all_shift.push(obj)
+
+
         if(i==foundS.length-1){
           return all_shift
         }
@@ -2138,32 +2169,21 @@ async getOneShedulePerGuard(obj) {
         let obj={}
 
         for(let i=0;i<foundS.length;i++ ){
-
           if(all_guard_id.includes(foundS[i].guard_id)){
             //continue
           }
           else{
-
-            console.log(foundS[i].guard_id)
             all_guard_id.push(foundS[i].guard_id)
-
           }
         if(i==foundS.length-1){
-
-
-          let foundG=  await this.getMultipleGuardDetail(all_guard_id,job_id)
-          let job=    await this.getJobDetail(job_id)
-          let site=    await this.getSiteDetail(job.facility_id)
-
-
+          let foundG=await this.getMultipleGuardDetail(all_guard_id,job_id)
+          let job=await this.getJobDetail(job_id)
+          let site=await this.getSiteDetail(job.facility_id)
           let detail={
               guard:foundG,
               job,
               site
           }
-
-      
-
           return detail
         }
       }
@@ -2581,13 +2601,11 @@ async getOneShedulePerGuard(obj) {
   
   async getGeneralUnsettleShift(obj) {
 
-
     let foundS=await  this.ScheduleModel.findAll({
       limit: obj.limit,
       offset: obj.offset,
       where: {settlement_status:obj.settlement}
     })
-
 
     let unSettledSucessfullShift=[]
     if(foundS.length!=0){
@@ -2598,21 +2616,18 @@ async getOneShedulePerGuard(obj) {
               //JUST FOR GETTING THE CHARGE PER JOB
             let foundJ= await this.JobModel.findOne({where:{id: foundS[i].job_id}})
               
-            let foundJL=    await this.JobLogsModel.findOne({
+            let foundJL= await this.JobLogsModel.findOne({
               where: {[Op.and]: 
                 [{check_in_status:true},
-                  {project_check_in_date:foundS[i].check_in_date},
+                  {schedule_id:foundS[i].id},
                 {check_out_status:true }
                 ]}
             })
-          
-
 
             if(foundJL){
               let my_guard_info=  await this.getSingleGuardDetail(foundS[i].guard_id)
               let myAmount=foundJL.hours_worked*foundJ.staff_charge
           
-
               obj["hours_worked"]=foundJL.hours_worked
               obj["amount"]=myAmount
               obj["first_name"]=my_guard_info["first_name"]
@@ -3150,6 +3165,9 @@ async getOneShedulePerGuard(obj) {
       }
   
     =  await jobUtil.verifyCheckInCheckOutAdmin.validateAsync(obj);
+
+      latitude=latitude.toFixed(5)
+      longitude=longitude.toFixed(5)
       let time = moment(date).format('hh:mm:ss a')
       let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
@@ -3202,7 +3220,7 @@ async getOneShedulePerGuard(obj) {
 
               }
               else{
-                  throw new ConflictError("Cant use date. Not in with in guard shift")
+                  throw new ConflictError("Cant use date. Not in within guard shift")
               }
           }
           else{
@@ -3220,13 +3238,19 @@ async getOneShedulePerGuard(obj) {
             if(foundItemS2){
 
                 if(await this.isAfter(date ,foundItemJL.check_in_date)){
-                              
+
+
+                    let my_log_date_check_in=foundItemJL.check_in_date
+                    let my_date_now_check_out=date
+
+                    let my_job_H_worked=await this.calculateHoursSetToWork(my_date_now_check_out,my_log_date_check_in )
+
                     let obj={
                       check_out_time:time,
                       check_out_date:date,
+                      hours_worked:my_job_H_worked,
                       check_out_status:true,
                       updated_at:dateStamp,
-                      schedule_id
                     }
                               
                     this.JobLogsModel.update(obj,{
@@ -3238,7 +3262,7 @@ async getOneShedulePerGuard(obj) {
                 }
             }
             else{
-              throw new ConflictError("Cant use date. Not in with in guard shift")
+              throw new ConflictError("Cant use date. Not in within guard shift")
 
             }
           }
@@ -3286,12 +3310,12 @@ async getOneShedulePerGuard(obj) {
 
               }
               else{
-                  throw new ConflictError("Cant use date.  Check in date must come before check out date ")
+                  throw new ConflictError("Cant use date. Not in within guard shift")
               }
           }
           else{
                        
-            throw new ConflictError("you have not check in ")
+            throw new ConflictError("You have not check in ")
 
           }
 
@@ -3303,6 +3327,9 @@ async getOneShedulePerGuard(obj) {
       }
     
   }
+
+
+
 
   async checkIn(obj) {
     var { job_id,
@@ -3323,7 +3350,6 @@ async getOneShedulePerGuard(obj) {
       const foundItemFac =await  this.FacilityModel.findOne(
         { where: {id:foundItemJob.facility_id } })
 
-      
       const foundItemFacLo =await  this.FacilityLocationModel.findOne(
         { where: {id:foundItemFac.facility_location_id } })
         
@@ -3373,11 +3399,8 @@ async getOneShedulePerGuard(obj) {
           
                 if(moment(new Date(retrivedate),'YYYY-MM-DD  hh:mm:ss a').isSameOrAfter(new Date(storedDate)) ){
                 
-            
-
-
+          
                   if(this.isInlocation(latitude, longitude, objLatLog)){
-
 
                           let foundItemJL =await this.JobLogsModel.findOne(
                             {
@@ -3466,7 +3489,6 @@ async getOneShedulePerGuard(obj) {
                    
                   }
 
-
                 }
                 else{
                   throw new LocationError("not yet time to check");
@@ -3519,14 +3541,7 @@ async getOneShedulePerGuard(obj) {
                       let my_date_now_check_out=full_date
                       let my_shedule_date_check_in=foundItemS.check_in_date
                       let my_shedule_date_check_out=foundItemS.check_out_date
-
-
-                      console.log(full_date)
-                              /*           
-                      retrivedate='2022-01-07 08:00:00 am'    
-                        storedDate='2022-01-10 11:40:00 pm'*/
-
-                                    
+                              
                       let my_job_H_worked=await this.calculateHoursSetToWork(my_date_now_check_out,my_log_date_check_in )
 
                       
@@ -3545,8 +3560,7 @@ async getOneShedulePerGuard(obj) {
                         
                           this.JobLogsModel.update(obj,{
                           where:whereOptions})
-    
-                          
+            
                         }
                         else{    
     
@@ -3576,9 +3590,6 @@ async getOneShedulePerGuard(obj) {
             else{
               throw new LocationError("cant check out no shift available");
             }
-
-      
-
           }
 
           else{
@@ -3625,10 +3636,7 @@ async getOneShedulePerGuard(obj) {
            
           }
 
-
         }
-
-      
   }
 
  
@@ -3844,14 +3852,11 @@ async getTimeOnly(val){
   return moment(val).format('hh:mm:ss a')
 }
 
-
-
-  async getJobDetail(val){
+async getJobDetail(val){
 
     const  foundj =await  this.JobModel.findOne({
       where: {id:val}
     })
-
 
     let foundJC=await  this.JobSecurityModel.findAll({
       where:{
@@ -3942,12 +3947,10 @@ async combineUnsettleShift(val){
 
                 if(val[i].id==val[j].id){
 
-                    amount+=val[j].amount
-                    hours+=val[j].hours_worked
-
-                    id2.push(val[j].foundJL_id)
-                    id3.push(val[j].shedule_id)
-
+                  amount+=val[j].amount
+                  hours+=val[j].hours_worked
+                  id2.push(val[j].foundJL_id)
+                  id3.push(val[j].shedule_id)
 
                 }
                
@@ -3955,10 +3958,9 @@ async combineUnsettleShift(val){
 
             if(j==val.length-1){
 
-                console.log(amount)
                 obj["id"]=val[i].id
-                obj["amount"]=amount
-                obj["hours_worked"]=hours
+                obj["amount"]=amount.toFixed(2)
+                obj["hours_worked"]=hours.toFixed(2)
                 obj["first_name"]=val[i].first_name
                 obj["last_name"]=val[i].last_name
                 obj["foundJL_id"]=id2
@@ -3968,15 +3970,10 @@ async combineUnsettleShift(val){
                 sum_of_guard_shift.push(obj)
                 hash[val[i].id]=true
             }
-
-
-
         }
 
         if(i==val.length-1){
-
-            return sum_of_guard_shift
-
+          return sum_of_guard_shift
         }
     }      
       
@@ -4242,7 +4239,95 @@ for(let i=0;i<combinedArray.length ;i++){
       }
     }
   }
+
+  async shiftJobToCompleted() {
+
+      const foundJ =await   this.JobModel.findAll(
+        {
+          where: {[Op.and]:[ 
+            {[Op.or]: [{ job_type: 'INSTANT' },
+                      { job_type: 'TEMPORAL' }]},
+            {job_status:"ACTIVE" }
+            ]}
+        })
+
+
+      for(let i=0;i <foundJ.length;i++){
+
+        const dateStamp=await this.getDateAndTimeForStamp(foundJ[i].time_zone)
+
+        const foundS = await this.ScheduleModel.findAll({
+          where: {job_id:foundJ[i].id}
+        })
+
+        for(let k=0;k <foundS.length;k++){
+          
+            let endDateSchedule=foundS[k].check_out_date
+    
+          if(moment(endDateSchedule).isAfter(dateStamp)){
+            break
+          }
+
+          if(k==foundS.length-1){
+
+            this.JobModel.update({job_status:'COMPLETED'},{
+              where: {id:foundJ[i].id}
+            })
+
+          }
+        }
+
+
+        if(i==foundJ.length-1){
+
+        }
+      }
+    
   
+    
+  }
+
+
+  async returnJobPercentage(job_id){
+    let total=0
+    let completed=0
+
+    const foundJ =await this.JobModel.findOne(
+      {
+        where: {id:job_id}
+      })
+
+      const dateStamp=await this.getDateAndTimeForStamp(foundJ.time_zone)
+
+      const foundS = await this.ScheduleModel.findAll({
+        where: {job_id}
+      })
+
+
+    if(foundS.length!=0){      
+      for(let k=0;k <foundS.length;k++){
+          let endDateSchedule=foundS[k].check_out_date
+        if(moment(endDateSchedule).isAfter(dateStamp)){}
+        else{
+          completed++
+        }
+        total=foundS.length
+
+        if(k==foundS.length-1){
+
+         return (completed/total)*100
+
+        }
+      }
+    }
+    else{
+      return 0
+    }
+
+    
+}
+  
+
 
   isSameDay(date1, date2) {
     if (
