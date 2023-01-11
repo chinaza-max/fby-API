@@ -15,4 +15,5 @@ export default interface ISchedule {
     created_at?: Date;
     updated_at?: Date;
     is_archived?: boolean;
+    schedule_accepted_by_admin: boolean;
 }

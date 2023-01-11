@@ -206,13 +206,14 @@ class JobUtil {
     site_id: Joi.number().required(),
     created_by_id:Joi.number().required(),
     my_time_zone: Joi.string().required(),
-    job_status: Joi.string()
-      .valid("ACTIVE", "PENDING", "COMPLETED"),
     staff_charge: Joi.number().required(),
     client_charge: Joi.number().required(),
-    job_type: Joi.string().required()
-      .valid("INSTANT", "ONGOING", "TEMPORAL", "PERMANENT"),
-      payment_status: Joi.string().required()
+    check_in_date:Joi.date()
+      .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
+      .required(),
+    check_out_date:Joi.date()
+      .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
+      .required(),
   });
   
 

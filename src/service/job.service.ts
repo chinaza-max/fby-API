@@ -822,31 +822,44 @@ async getJobsForStaff(req: any): Promise<any[]> {
       site_id,
       client_charge,
       staff_charge,
-      payment_status,
-      job_status,
-      job_type,
       my_time_zone,
       created_by_id,
-      date
+      check_in_date,
+      check_out_date,
     } = await jobUtil.verifyScheduleDateJob.validateAsync(data);
 
     let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
-    await this.JobModel.create({
-      description,
-      customer_id,
-      facility_id: site_id,
-      client_charge,
-      staff_charge,
-      payment_status,
-      job_status,
-      job_type,
+    let createdJ=await this.JobModel.create({
+        description,
+        customer_id,
+        facility_id: site_id,
+        client_charge,
+        staff_charge,
+        payment_status:"Awaiting Payment",
+        job_status:'ACTIVE',
+        job_type:'INSTANT',
+        created_by_id,
+        time_zone:my_time_zone,
+        created_at:dateStamp, 
+        updated_at:dateStamp
+      })
+
+    let obj={
+      start_time:moment(check_in_date).format('hh:mm:ss a'),
+      end_time:moment(check_out_date).format('hh:mm:ss a'),
+      status_per_staff:'ACTIVE',
+      check_in_date:check_in_date,
+      check_out_date:check_out_date,
+      job_id:createdJ.id,
       created_by_id,
-      time_zone:my_time_zone,
+      guard_id:created_by_id,
+      schedule_accepted_by_admin:false,
       created_at:dateStamp, 
       updated_at:dateStamp
-    })
+    }
 
+    await this.ScheduleModel.create(obj);
 
 }
 

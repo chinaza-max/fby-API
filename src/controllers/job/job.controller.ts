@@ -954,13 +954,20 @@ export default class JobController {
   ): Promise<Response> {
     try {
     
-      const data =JSON.parse(req.body.date_time_staff_shedule)
+      const data =req.body
     
+
+
       const data2 ={
-        date_time_staff_shedule:data,
-        created_by_id:req.user.id,
+        ...data,
+        created_by_id:28,
         my_time_zone:req["user_time_zone"]
       }
+     /* const data2 ={
+        ...data,
+        created_by_id:req.user.id,
+        my_time_zone:req["user_time_zone"]
+      }*/
 
       const obj = await jobService.scheduleDateJob(data2);
 

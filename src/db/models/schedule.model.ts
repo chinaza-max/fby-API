@@ -23,6 +23,7 @@ class Schedule
   declare guard_id: number;
   declare max_check_in_time:number;
   declare settlement_status:boolean;
+  declare schedule_accepted_by_admin:boolean;
   declare schedule_length: ScheduleLengthTypes;
   declare created_at: Date;
   declare updated_at: Date;
@@ -82,6 +83,10 @@ export function init(connection: Sequelize) {
       guard_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
+      },
+      schedule_accepted_by_admin: {
+        type: DataTypes.BOOLEAN,
+        defaultValue:true,
       },
       schedule_length: {
         type: DataTypes.ENUM("LIMITED", "CONTINUOUS"),
