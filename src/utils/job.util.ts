@@ -168,6 +168,12 @@ class JobUtil {
       job_id: Joi.number().required(),
   });
 
+  
+  public verifyUpdateScheduleAcceptStatus = Joi.object().keys({
+    my_time_zone: Joi.string().required(),
+    status: Joi.boolean().required(),
+    schedule_id:Joi.number()
+  });
 
   public verifyUpdateMaxCheckInTime = Joi.object().keys({
     guard_id: Joi.number(),

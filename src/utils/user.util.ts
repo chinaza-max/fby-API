@@ -4,6 +4,7 @@ class UserUtil {
   public verifyUserUpdateData = Joi.object().keys({
     first_name: Joi.string().required(),
     last_name: Joi.string().required(),
+    id: Joi.number().required(),
     address: Joi.string().required(),
     email: Joi.string().required(),
     phone_number:Joi.number().required(),

@@ -206,6 +206,34 @@ export default class AuthenticationController {
     }
   }
 
+
+  protected async profile_info(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const { id } = req.body;
+
+      const user = await authService.getCurrentUser(id);
+      var LocationModel = Location;
+      var relatedLocation = await LocationModel.findByPk(user.location_id);
+      var { transfromedUser } = await authService.transformUserForResponse(
+        user,
+        relatedLocation
+      );
+      return res.status(200).json({
+        status: 200,
+        data: {
+          user: transfromedUser,
+          token: req.headers.authorization.split(" ")[1],
+        },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   protected async resetPasswordEmail(
     req: Request,
     res: Response,

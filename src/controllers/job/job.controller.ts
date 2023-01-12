@@ -528,7 +528,14 @@ export default class JobController {
     try {
       const data = req.body;
 
-      const obj = await jobService.generalshiftStarted(data);     
+      const obj = await jobService.generalshiftStarted(data);    
+      
+      
+      console.log("pppppppppppppppppppppppppppppppppppppppppppppp")
+      console.log(obj)
+      console.log("pppppppppppppppppppppppppppppppppppppppppppppp")
+
+
       return res.status(200).json({
         status: 200,
         data: obj,
@@ -1007,6 +1014,34 @@ export default class JobController {
       next(error);
     }
   }
+
+  
+
+  protected async updateScheduleAcceptStatus(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const data2 ={
+        ...data,
+        my_time_zone:req["user_time_zone"],
+      }
+
+      const obj = await jobService.updateScheduleAcceptStatus(data2);
+
+      return res.status(200).json({
+        status: 200,
+        message: "updated successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
 
 
   protected async updateMaxCheckInTime(

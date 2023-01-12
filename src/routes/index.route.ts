@@ -45,12 +45,14 @@ class Routes {
             if (ip.substr(0, 7) == "::ffff:") {
               ip = ip.substr(7)
               var geo = geoip.lookup(ip);
-              console.log(geo)
+              //console.log(geo)
               req["user_time_zone"]=geo.timezone    
               req["objLatLon"]=geo.ll
             }
-
+/*
             console.log(req["objLatLon"])
+
+            
             if(req.path=="/api/v1/job/getAllUnsettleShiftOneGuard"){
               console.log(`------------------BEGIN REQUEST FROM ALL ROUTE CURRENT PATH ${req.path}-------------------------`)
               console.log(req)
@@ -58,6 +60,7 @@ class Routes {
 
               console.log(`------------------ENDS REQUEST FROM ALL ROUTE  CURRENT PATH ${req.path}-------------------------`)
             }
+            */
 
       next()
     });
@@ -68,8 +71,7 @@ class Routes {
 
     this.router.use(`${rootAPI}/util`, utilRoute);
 
-  
-    //this.router.use(authMiddleware.validateUserToken);
+    this.router.use(authMiddleware.validateUserToken);
 
     this.router.use(`${rootAPI}/customer`, customerRoute);
 

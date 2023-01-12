@@ -29,6 +29,8 @@ class AuthRoutes extends AuthController {
       this.resetPassword
     );
 
+    
+    this.router.post("/profile_info",this.profile_info);
     this.router.get("/", authMiddleware.validateUserToken, this.whoAmI);
     this.router.post("/register",authMiddleware.validateUserToken,  this.signupGuard);
     this.router.post("/registerBulk", this.signupGuardBulk);

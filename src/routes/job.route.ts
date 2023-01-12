@@ -23,6 +23,7 @@ class JobRoutes extends JobController {
     this.router.post("/add_shedule_date_staff", this.sheduleDate);
     this.router.post("/add_job_schedule_date_staff", this.scheduleDateJob);
     this.router.post("/update_Max_Check_InTime", this.updateMaxCheckInTime);
+    this.router.post("/update_schedule_accept_status", this.updateScheduleAcceptStatus);
     this.router.post("/add_agenda", this.sheduleAgenda);
     this.router.post("/delete_job", this.deleteJob);
     this.router.get("/allJobs", this.getAllJobs);
