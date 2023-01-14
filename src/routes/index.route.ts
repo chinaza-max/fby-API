@@ -40,7 +40,6 @@ class Routes {
       ip="::ffff:190.2.138.12"
   
       console.log("::ffff:"+ip.substr(0, 7))
-      console.log("always always always always always always")
 
             if (ip.substr(0, 7) == "::ffff:") {
               ip = ip.substr(7)

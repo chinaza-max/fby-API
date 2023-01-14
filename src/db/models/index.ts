@@ -41,6 +41,10 @@ import SecurityCheckLog, {
   init as initSecurityCheckLog,
 } from "./security_check_log.model";
 
+import License, {
+  init as initLicense,
+} from "./license.model";
+
 
 function associate() {
   // User Favorite Relationships
@@ -275,7 +279,8 @@ export {
   Agendas,
   JobReports,
   JobSecurityCode,
-  SecurityCheckLog
+  SecurityCheckLog,
+  License
 }
 
 export function init(connection: Sequelize) {
@@ -300,5 +305,7 @@ export function init(connection: Sequelize) {
   initJobReports(connection);
   initJobSecurityCode(connection);
   initSecurityCheckLog(connection);
+  initLicense(connection);
+
   associate();
 }

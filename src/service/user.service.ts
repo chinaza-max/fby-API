@@ -1,6 +1,8 @@
-import { Admin, Location, PasswordReset } from "../db/models";
-import { NotFoundError } from "../errors";
+import { Admin, Location, PasswordReset, License } from "../db/models";
+import { NotFoundError,SystemError } from "../errors";
 import { fn, col, Op } from "sequelize";
+import momentTimeZone from "moment-timezone";
+import moment from "moment";
 import  fs from 'fs';
 import userUtil from "../utils/user.util";
 import serverConfig from "../config/server.config";
@@ -10,7 +12,174 @@ class UserService {
   private UserModel = Admin;
   private LocationModel = Location;
   private PasswordResetModel =PasswordReset
+  private LicenseModel =License
 
+
+
+
+  async uploadLicense(
+    id: number,
+    data: any,
+    file?: Express.Multer.File
+  ){
+    const userUpdateData = await userUtil.verifyUploadLicense.validateAsync(
+      data
+    );
+
+    let dateStamp=await this.getDateAndTimeForStamp(data.my_time_zone)
+
+    //'/home/fbyteamschedule/public_html/fby-security-api/public/images/avatars/image-1672174934995-161164152-glacier24.jpg',
+    let accessPath=serverConfig.DOMAIN +file.path.replace("public", "")
+
+    const foundL=await this.LicenseModel.findOne({
+      where:{
+        staff_id:id
+      }
+    })
+
+    if(foundL){
+
+      const filePath=global.__basedir+"\\"+"public"+foundL.license.replace(serverConfig.DOMAIN, "")
+
+      try {
+        fs.unlinkSync(filePath)
+
+      } catch (error) {
+          console.log(error)
+      }
+
+      const obj={
+        ...data,
+        time_zone:data.my_time_zone,
+        license:accessPath,
+        updated_at:dateStamp
+      }
+  
+      try {
+        await this.LicenseModel.update(obj,{
+          where:{
+            staff_id:id
+          }
+        })
+  
+      } catch (error) {
+  
+        throw new SystemError(error.toString());
+  
+      }
+    }
+    else{
+
+      const obj={
+        ...data,
+        staff_id:id,
+        time_zone:data.my_time_zone,
+        license:accessPath,
+        created_at:dateStamp,
+        updated_at:dateStamp
+      }
+  
+      try {
+        await this.LicenseModel.create(obj)
+  
+      } catch (error) {
+  
+        throw new SystemError(error.toString());
+  
+      }
+    }
+
+  
+
+  }
+
+
+  async LicenseRUD(data: any) {
+
+    const {
+      id,
+      my_time_zone,
+      type
+    } = await userUtil.verifyLicenseRUD.validateAsync(data);    
+    
+    if(type=='approved'){
+
+    }
+    else if(type=='delete'){
+
+    }
+    else if(type=='read'){
+
+      const foundL= await this.LicenseModel.findOne({
+        where:{[Op.and]: 
+          [
+            {staff_id:id},
+            {approved:true}
+          ]}
+      })
+
+      if(foundL){
+        let dateStamp=await this.getDateAndTimeForStamp(data.my_time_zone)
+        if(moment(foundL.expires_in).isAfter(dateStamp)){
+          const obj={
+            expiry_date:await this.getDateOnly( foundL.expires_in),
+            license_id:foundL.id,
+            url:foundL.license,
+            status:"Expired",
+            Posted:await this.getDateAndTime(foundL.updated_at)
+          }
+          return obj
+        }else{
+          const obj={
+            expiry_date:await this.getDateOnly( foundL.expires_in),
+            license_id:foundL.id,
+            url:foundL.license,
+            status:"Approved",
+            Posted:await this.getDateAndTime(foundL.updated_at)
+          }
+          return obj
+        }      
+      }
+      else{
+        const foundL2= await this.LicenseModel.findOne({
+          where:{[Op.and]: 
+            [
+              {staff_id:id},
+              {approved:false}
+            ]}
+        })
+
+        if(foundL2){
+          const obj={
+            expiry_date:await this.getDateOnly( foundL2.expires_in),
+            license_id:foundL2.id,
+            url:foundL2.license,
+            status:"Pending",
+            Posted:await this.getDateAndTime(foundL2.updated_at)
+          }
+
+          return obj
+        }
+        else{
+          const obj={
+            expiry_date:''
+          }
+          return obj
+        }
+
+
+
+      }
+
+
+
+     
+      
+
+    }
+
+
+}
 
   async updateUser(
     id: number,
@@ -120,7 +289,6 @@ async toggleVisibilty(data: any) {
 
   async getAllStaff(data: any) {
 
-      console.log(data.role)
 
     if(data.role=="ADMIN"){
       var staffs = await this.UserModel.findAll({
@@ -202,6 +370,31 @@ async toggleVisibilty(data: any) {
       return staffRes;
     }
 
+  }
+
+
+  async getDateAndTimeForStamp(my_time_zone){
+
+    let con_fig_time_zone = momentTimeZone.tz(my_time_zone)
+    let date =new Date(con_fig_time_zone.format('YYYY-MM-DD hh:mm:ss a'))
+      
+     return date
+  }
+
+  async getDateAndTime(val){
+
+    return moment(val).format('YYYY-MM-DD hh:mm:ss a')
+  }
+  
+  
+  async getDateOnly(val){
+
+    return moment(val).format('YYYY-MM-DD')
+ }
+  
+  async getTimeOnly(val){
+  
+    return moment(val).format('hh:mm:ss a')
   }
 }
 

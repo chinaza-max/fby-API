@@ -28,6 +28,55 @@ export default class UserController {
   }
 
 
+  
+  protected async LicenseRUD(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+      const data2={
+          id:data.id,
+          type:req.query.type,
+          my_time_zone:req["user_time_zone"]
+      }
+      const user = await userService.LicenseRUD(data2);
+
+      return res.status(200).json({
+        status: 200,
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  protected async uploadLicense(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const { id } = req.user;
+      const data = req.body;
+      const data2={
+        ...data,
+        my_time_zone:req["user_time_zone"]
+      }
+
+      const { file } = req;
+      const user = await userService.uploadLicense(id, data2, file);
+
+      return res.status(200).json({
+        status: 200,
+        message: "upload successful.",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   protected async updateGuard(
     req: Request,
     res: Response,

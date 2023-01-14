@@ -38,7 +38,7 @@ class JobRoutes extends JobController {
     this.router.get("/allJobs/generalshiftStarted", this.generalshiftStarted);
 
     //SUBMIT REPORT FROM GUARD
-    this.router.put("/submitReportAttachment",uploadHandler.uploads.single("file"), this.submitReportAndAttachment);
+    this.router.post("/submitReportAttachment",uploadHandler.uploads.single("file"), this.submitReportAndAttachment);
     
     //THIS GET SHIFT PER GUARD PER JOB
     this.router.post("/allJobs/shiftPerGuard", this.getShiftPerGuard);

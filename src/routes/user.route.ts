@@ -17,6 +17,8 @@ class UserRoutes extends UserController {
   private routes(): void {
     this.router.post("/updateProfile" ,uploadHandler.avatars.single("image"), this.update);
     this.router.post("/updateProfileGuard" ,uploadHandler.avatars.single("image"), this.updateGuard);
+    this.router.post("/uploadLicense", uploadHandler.uploads.single("file"), this.uploadLicense);
+    this.router.post("/LicenseRUD", this.LicenseRUD);
     this.router.get("/getAllStaff", this.getAllStaff);
     this.router.post("/deleteStaff", this.deleteStaff);
     this.router.post("/toggleVisibilty", this.toggleVisibilty);

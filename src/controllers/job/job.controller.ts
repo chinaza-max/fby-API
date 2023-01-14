@@ -1145,15 +1145,9 @@ export default class JobController {
       }
 
 
-      console.log(myObj)
-
       const obj = await jobService.getSinglejob(myObj);
 
-      console.log("llllllllllllllllllllllllllllllllllllllllllllllll");
 
-      console.log(obj);
-
-      console.log(obj?.length);
       if(obj?.length != 0 && obj?.length == null){
         return res.status(400).json({
           status: 400,
