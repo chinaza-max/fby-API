@@ -45,6 +45,7 @@ export default class UserController {
 
       return res.status(200).json({
         status: 200,
+        message: req.query.type=="delete"?"delete successful":"update successful",
         data: user,
       });
     } catch (error) {

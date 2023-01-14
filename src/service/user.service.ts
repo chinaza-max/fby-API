@@ -102,11 +102,26 @@ class UserService {
       type
     } = await userUtil.verifyLicenseRUD.validateAsync(data);    
     
+    let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
+
     if(type=='approved'){
 
+      const obj={
+        approved:true,
+        updated_at:dateStamp
+      }
+      await this.LicenseModel.update(obj,{
+        where:{
+          id:id
+        }
+      })
     }
     else if(type=='delete'){
-
+      await this.LicenseModel.destroy({
+        where:{
+          id:id
+        }
+      })
     }
     else if(type=='read'){
 
@@ -120,22 +135,25 @@ class UserService {
 
       if(foundL){
         let dateStamp=await this.getDateAndTimeForStamp(data.my_time_zone)
-        if(moment(foundL.expires_in).isAfter(dateStamp)){
+
+        if(moment(dateStamp).isAfter(foundL.expires_in)){
+
           const obj={
             expiry_date:await this.getDateOnly( foundL.expires_in),
             license_id:foundL.id,
             url:foundL.license,
             status:"Expired",
-            Posted:await this.getDateAndTime(foundL.updated_at)
+            Posted:await this.getDateOnly(foundL.updated_at)
           }
           return obj
+
         }else{
           const obj={
             expiry_date:await this.getDateOnly( foundL.expires_in),
             license_id:foundL.id,
             url:foundL.license,
             status:"Approved",
-            Posted:await this.getDateAndTime(foundL.updated_at)
+            Posted:await this.getDateOnly(foundL.updated_at)
           }
           return obj
         }      
@@ -155,7 +173,7 @@ class UserService {
             license_id:foundL2.id,
             url:foundL2.license,
             status:"Pending",
-            Posted:await this.getDateAndTime(foundL2.updated_at)
+            Posted:await this.getDateOnly(foundL2.updated_at)
           }
 
           return obj
