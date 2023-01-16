@@ -12,7 +12,9 @@ import {
   JobSecurityCode,
   JobLogs,
   JobReports,
-  SecurityCheckLog
+  SecurityCheckLog,
+  Memo,
+  MemoReceiver
   
 } from "../db/models";
 import {
@@ -54,6 +56,9 @@ class UserService {
   private JobReportsModel = JobReports;
   private JobSecurityModel = JobSecurityCode;
   private SecurityCheckLogModel = SecurityCheckLog;
+  private MemoModel = Memo;
+  private MemoReceiverModel = MemoReceiver;
+  
 
 
 
@@ -678,6 +683,52 @@ async getJobsForStaff(req: any): Promise<any[]> {
     }
   }
 
+  
+
+  async createMemo(data: any): Promise<any> {
+
+    try {
+
+      let {
+        guards_details,
+        message,
+        send_date,
+        created_by_id,
+        my_time_zone
+      } = await jobUtil.verifyCreateMemo.validateAsync(data);
+
+      let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
+
+      let obj={
+        memo_message:message,
+        created_by_id,
+        time_zone:my_time_zone,
+        send_date:send_date==""?dateStamp:send_date,
+        created_at:dateStamp,
+        updated_at:dateStamp
+      }
+
+      let createdM=await this.MemoModel.create(obj)
+
+      for (let i = 0; i < guards_details.length; i++) {
+          
+        let obj2={
+          staff_id:guards_details[i],
+          memo_id:createdM.id,
+          created_at:dateStamp,
+          updated_at:dateStamp
+        }
+
+        await this.MemoReceiverModel.create(obj2)
+
+      }
+
+    } catch (error) {
+
+      throw new SystemError(error.toString());
+      //throw new AgendaSheduleError(JSON.stringify(error));
+    }
+  }
   
   async sheduleAgenda(data: any): Promise<any> {
     try {
@@ -2197,11 +2248,36 @@ async getOneShedulePerGuard(obj) {
 
   }
 
-  async getGuardPerJob(obj) {
+
+
+  
+  async getGuardIdFromJob(obj) {
+    var { jobs_id,
+    }
+  
+    =  await jobUtil.verifyGetGuardIdFromJob.validateAsync(obj);
+
+
+    let guards_id=[]
+
+    for (let i = 0; i < jobs_id.length; i++) {
+
+      guards_id=[...guards_id ,...await this.getGuardIdArray(jobs_id[i])]
+
+      if(i==jobs_id.length-1){
+          return await this.removeDuplicateID(guards_id)
+      }
+
+    }
+
+
+}
+
+  async getGuardPerJob(data) {
     var { job_id,
     }
   
-    =  await jobUtil.verifygetGuardPerJob.validateAsync(obj);
+    =  await jobUtil.verifygetGuardPerJob.validateAsync(data);
       
     const  foundS =await  this.ScheduleModel.findAll({
     where: {job_id}
@@ -3692,11 +3768,7 @@ async getOneShedulePerGuard(obj) {
 
     let stored_time = moment(new Date(val1) ,'YYYY-MM-DD hh:mm:ss a')
     let my_check_in_time = moment(new Date(val2)  ,'YYYY-MM-DD hh:mm:ss a').subtract(added_time, 'minutes');
-    
-    let stored_time2 = moment(new Date(val1) ).format('YYYY-MM-DD hh:mm:ss a')
-    let my_check_in_time2 = moment(new Date(val2)).subtract(added_time, 'minutes').format('YYYY-MM-DD hh:mm:ss a')
-    
- 
+     
     return my_check_in_time.isSameOrBefore(stored_time)
   
 }
@@ -4278,12 +4350,19 @@ for(let i=0;i<combinedArray.length ;i++){
   async addCreatorsId(schedule,created_by_id) {
     
     for(let i=0;i<schedule.length;i++){
-    
       schedule[i]={...schedule[i],created_by_id}
-
       if(i==schedule.length-1){
-
           return schedule
+      }
+    }
+  }
+
+  async addMemoId(guards_details,memo_id) {
+    
+    for(let i=0;i<guards_details.length;i++){
+      guards_details[i]={...guards_details[i],memo_id}
+      if(i==guards_details.length-1){
+          return guards_details
       }
     }
   }
@@ -4373,6 +4452,55 @@ for(let i=0;i<combinedArray.length ;i++){
     }
 
     
+  }
+
+
+
+  
+  async getGuardIdArray(job_id){
+  
+    const  foundS =await  this.ScheduleModel.findAll({
+      where: {job_id}
+      })
+     
+      let all_guard_id=[]
+
+      if(foundS.length!=0){
+        if(foundS.length!=0){
+        
+          for(let i=0;i<foundS.length;i++ ){
+            if(all_guard_id.includes(foundS[i].guard_id)){}
+            else{
+              all_guard_id.push(foundS[i].guard_id)
+            }
+          if(i==foundS.length-1){
+            
+            return all_guard_id
+          }
+        }
+      }    
+      }
+      else{
+        return all_guard_id
+      }
+  
+   
+  }
+
+
+  async removeDuplicateID(array){
+  
+      var uniqueArray = [];
+      
+      for(let i=0; i < array.length; i++){
+          if(uniqueArray.indexOf(array[i]) === -1) {
+              uniqueArray.push(array[i]);
+          }
+      }
+      return uniqueArray;
+    
+  
+   
   }
   
 

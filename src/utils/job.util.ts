@@ -139,10 +139,12 @@ class JobUtil {
 
 });
 
+  public verifyGetGuardIdFromJob = Joi.object().keys({
+    jobs_id: Joi.array().required(),
+});
 
   public verifySettleShift = Joi.object().keys({
     schedule_id: Joi.array().required(),
-
 });
   
   public verifyUpdateJobStatus = Joi.object().keys({
@@ -222,6 +224,21 @@ class JobUtil {
       .required(),
   });
   
+
+
+
+  
+
+
+  public verifyCreateMemo = Joi.object().keys({
+    my_time_zone: Joi.string().required(),
+    message: Joi.string().required(),
+    send_date:Joi.date()
+    .min(new Date("1900-01-01").toLocaleDateString("af-AZ")).allow("").allow(null),
+    created_by_id: Joi.number().required(),
+    guards_details: Joi.array().required()
+  })
+
 
   public verifySheduleAgenda = Joi.object().keys({
       my_time_zone: Joi.string().required(),

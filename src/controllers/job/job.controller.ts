@@ -362,8 +362,6 @@ export default class JobController {
         schedule_id:data
       }
 
-      console.log(data2)
-
       const obj = await jobService.settleShift(data2);
       
       return res.status(200).json({
@@ -530,11 +528,6 @@ export default class JobController {
 
       const obj = await jobService.generalshiftStarted(data);    
       
-      
-      console.log("pppppppppppppppppppppppppppppppppppppppppppppp")
-      console.log(obj)
-      console.log("pppppppppppppppppppppppppppppppppppppppppppppp")
-
 
       return res.status(200).json({
         status: 200,
@@ -689,6 +682,40 @@ export default class JobController {
       next(error);
     }
   }
+
+
+
+
+  
+  protected async getGuardIdFromJob(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+     
+      const data =JSON.parse(req.body.jobs_id)
+      //const data =req.body.jobs_id
+
+      const data2 ={
+        jobs_id:data
+      }
+
+      const obj = await jobService.getGuardIdFromJob(data2);
+      
+      return res.status(200).json({
+        status:200,
+        data: obj
+      })
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+
+
 
   protected async getGuardPerJob(
     req: Request,
@@ -921,6 +948,40 @@ export default class JobController {
       return res.status(200).json({
         status: 200,
         message: "Job deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+
+
+  protected async createMemo(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+
+
+      const data =JSON.parse(req.body.guards_details)
+
+      //const data =req.body.guards_details
+      let data2={
+        guards_details:data,
+        message:req.body.message,
+        send_date:req.body.send_date,
+        created_by_id:req.user.id,
+        my_time_zone:req["user_time_zone"]
+      }
+    
+      console.log(data2)
+      const obj = await jobService.createMemo(data2);
+
+      return res.status(200).json({
+        status: 200,
+        message: "uploaded successfully",
       });
     } catch (error) {
       next(error);

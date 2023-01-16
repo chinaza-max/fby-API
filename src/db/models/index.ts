@@ -45,6 +45,15 @@ import License, {
   init as initLicense,
 } from "./license.model";
 
+import Memo, {
+  init as initMemo,
+} from "./memo.model";
+
+import MemoReceiver, {
+  init as initMemoReceiver,
+} from "./memo_receiver.model";
+import Connection from "mysql2/typings/mysql/lib/Connection";
+
 
 function associate() {
   // User Favorite Relationships
@@ -280,7 +289,9 @@ export {
   JobReports,
   JobSecurityCode,
   SecurityCheckLog,
-  License
+  License,
+  Memo,
+  MemoReceiver
 }
 
 export function init(connection: Sequelize) {
@@ -306,6 +317,8 @@ export function init(connection: Sequelize) {
   initJobSecurityCode(connection);
   initSecurityCheckLog(connection);
   initLicense(connection);
+  initMemo(connection);
+  initMemoReceiver(connection)
 
   associate();
 }

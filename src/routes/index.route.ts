@@ -85,8 +85,7 @@ class Routes {
       // })
 
 
-
-      throw new NotFoundError(JSON.stringify(req));
+      throw new NotFoundError("Resource not found.");
     });
   }
 }

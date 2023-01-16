@@ -25,10 +25,14 @@ class JobRoutes extends JobController {
     this.router.post("/update_Max_Check_InTime", this.updateMaxCheckInTime);
     this.router.post("/update_schedule_accept_status", this.updateScheduleAcceptStatus);
     this.router.post("/add_agenda", this.sheduleAgenda);
+    this.router.post("/create_memo", this.createMemo);
+
     this.router.post("/delete_job", this.deleteJob);
     this.router.get("/allJobs", this.getAllJobs);
     this.router.post("/allJobs/guard", this.getGuardPerJob);
     this.router.post("/allJobs/security_code", this.getSecurityCodePerJob);
+    this.router.post("/get_guard_id_from_job", this.getGuardIdFromJob);
+
 
     //GET ALL REPORT FOR A SINGLE GUARD ON A PARTICULAR JOB
     this.router.post("/getSingleReportGuard", this.getSingleReportGuard);
