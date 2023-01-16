@@ -148,9 +148,7 @@ export default class UserController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      console.log(req.query)
-      const data = req.body;
-
+    
       const myData={
         limit:Number(req.query.limit),
         offset:Number(req.query.offset),

@@ -628,7 +628,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
           status: availableJob.job_status,
           customer: foundC.first_name,
           site: foundF.name,
-          create:availableJob.created_at
+          create: await this.getDateAndTime(availableJob.created_at)
         }
 
         jobs.push(jobRes);

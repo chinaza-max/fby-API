@@ -387,6 +387,44 @@ async toggleVisibilty(data: any) {
       }
       return staffRes;
     }
+    else if(data.role=="ALL_GUARD"){
+      var staffs = await this.UserModel.findAll({
+     
+        where: {
+          role: {
+            [Op.eq]: "GUARD",
+          },
+        },
+        include: {
+          model: Location,
+          as: "location",
+        },
+        order: [
+          ['created_at', 'DESC'],
+      ]
+      });
+      if (staffs == null) return [];
+      var staffRes = [];
+      for (let index = 0; index < staffs.length; index++) {
+        const staff = staffs[index];
+        const staffData = {
+          id: staff.id,
+          image: staff.image,
+          full_name: `${staff.first_name} ${staff.last_name}`,
+          first_name: staff.first_name,
+          last_name: staff.last_name,
+          email: staff.email,
+          date_of_birth: staff.date_of_birth,
+          gender: staff.gender,
+          phone_number: staff.phone_number,
+          address: (staff.location as any)?.address,
+          address_id: (staff.location as any)?.id,
+
+        };
+        staffRes.push(staffData);
+      }
+      return staffRes;
+    }
 
   }
 
