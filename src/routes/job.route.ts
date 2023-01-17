@@ -28,6 +28,12 @@ class JobRoutes extends JobController {
     this.router.post("/create_memo", this.createMemo);
 
     this.router.post("/delete_job", this.deleteJob);
+    this.router.post("/delete_memo", this.deleteMemo);
+    this.router.post("/reply_memo", this.replyMemo);
+    this.router.get("/allMemoDetail", this.allMemoDetail);
+    this.router.get("/allMemoDetailGuard", this.allMemoDetailGuard);
+
+
     this.router.get("/allJobs", this.getAllJobs);
     this.router.post("/allJobs/guard", this.getGuardPerJob);
     this.router.post("/allJobs/security_code", this.getSecurityCodePerJob);

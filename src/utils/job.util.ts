@@ -183,6 +183,21 @@ class JobUtil {
     max_check_in_time:Joi.number(),
   });
 
+  
+
+  public verifyReplyMemo = Joi.object().keys({
+    memo_receiver_id:Joi.number().required(),
+    my_time_zone: Joi.string().required(),
+    message:Joi.string().required()
+    
+  });
+
+
+
+  public verifyDeleteMemo = Joi.object().keys({
+    memo_id:Joi.number().required()
+  });
+
 
   public verifyDeleteJob = Joi.object().keys({
     job_id:Joi.number().required()

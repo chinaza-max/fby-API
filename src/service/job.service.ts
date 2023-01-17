@@ -548,108 +548,387 @@ async getJobsForStaff(req: any): Promise<any[]> {
     return null;
   }
 }
-  async getAllJobsAdmin(data: any): Promise<any[]> {
 
-    let mytype=data.query.type
-    try {
-      const jobs = [];
-      let availableJobs;
 
-      if(mytype=='ACTIVE'){
 
-         availableJobs = await this.JobModel.findAll({
-          limit: parseInt(data.query.limit),
-          offset: parseInt(data.query.offset),
-          where: {
-            is_deleted: false,
-            job_status:'ACTIVE',
-          } as any,
-          order: [
-            ['created_at', 'DESC'],
-        ],
-        });
 
-        setTimeout(() => {
-          this.shiftJobToCompleted()
-        },1000 * 60 * 60);
-      }
-      else if(mytype=='PENDING'){
-         availableJobs = await this.JobModel.findAll({
-          limit: parseInt(data.query.limit),
-          offset: parseInt(data.query.offset),
-          where: {
-            is_deleted: false,
-            job_status:'PENDING',
-          } as any,
-          order: [
-            ['created_at', 'DESC'],
-        ],
-        });
-      }
-      else if(mytype=='COMPLETED'){
-         availableJobs = await this.JobModel.findAll({
-          limit: parseInt(data.query.limit),
-          offset: parseInt(data.query.offset),
-          where: {
-            is_deleted: false,
-            job_status:'COMPLETED',
-          } as any,
-          order: [
-            ['created_at', 'DESC'],
-        ],
-        });
+async allMemoDetailGuard(data: any){
+
+  let myType=data.query.type
+  
+  try {
+
+    if(myType=="unAnsweredMemo"){
+
+      let foundMR=await this.MemoReceiverModel.findOne({
+        where:{[Op.and]: 
+          [{reply_message: {[Op.eq]:''} },
+          {staff_id:data.user.id}
+          ]}
+      })
+
+      if(foundMR){
+        let foundM=await this.MemoModel.findOne({
+          where:{
+            id:foundMR.memo_id
+          }
+        })
+
+          let obj={}
+
+              obj['message']=foundM.memo_message
+              obj['send_date']= await this.getDateAndTime(foundM.send_date) 
+              obj['memo_id']=foundM.id
+              obj['memo_receiver_id']=foundMR.id
+
+              const dateStamp=await this.getDateAndTimeForStamp(foundM.time_zone)
+              if(moment(foundM.send_date).isAfter(dateStamp)){
+                return []
+              }
+              else{
+                  return  obj
+            }
       }
       else{
-        availableJobs = await this.JobModel.findAll({
-          where: {
-            is_deleted: false,
-          } as any,
-          order: [
-            ['created_at', 'DESC'],
-        ],
-        });
+        return []
       }
+    }
+    else if(myType=="allMemo"){
 
-      for (const availableJob of availableJobs) {
+      let detail=[]
+
+      let foundMR=await this.MemoReceiverModel.findAll({
+        where:{[Op.and]: 
+          [{reply_message: {[Op.ne]:''} },
+          {staff_id:data.user.id}
+          ]}
+      })
+
+      if(foundMR.length!=0){
+        for (let i = 0; i < foundMR.length; i++) {
+        
+          let foundM=await this.MemoModel.findOne({
+              where:{
+                id:foundMR[i].memo_id
+              }
+            })
     
-        let foundC=await this.CustomerModel.findOne({
-          where:{
-            id:availableJob.customer_id
+            let obj={}
+    
+            obj['message']=foundM.memo_message
+            obj['send_date']= await this.getDateAndTime(foundM.send_date) 
+            obj['memo_id']=foundM.id
+            obj['memo_receiver_id']=foundMR[i].id
+            obj['Created']= await this.getDateAndTime(foundM.created_at)   
+            detail.push(obj)
+            if(i==foundMR.length-1){
+                return detail
+            }
           }
-        })
-        let foundF=await this.FacilityModel.findOne({
-          where:{
-            id:availableJob.facility_id
-          }
-        })
-        let job_progress=await this.returnJobPercentage(availableJob.id)
-
-        const jobRes = {
-          id: availableJob.id,
-          job_progress:job_progress,
-          description: availableJob.description,
-          client_charge: availableJob.client_charge,
-          staff_payment: availableJob.staff_charge,
-          status: availableJob.job_status,
-          customer: foundC.first_name,
-          site: foundF.name,
-          create: await this.getDateAndTime(availableJob.created_at)
-        }
-
-        jobs.push(jobRes);
+      }
+      else{
+        return []
       }
       
-      return jobs;
-    } catch (error) {
-      console.log(error);
-      return null;
     }
+    else if(myType=="repliedMessage"){
 
+      let foundMR=await this.MemoReceiverModel.findOne({
+        where:{
+          id:data.query.id
+        }
+      })
+      let obj={}
+      obj['message']=foundMR.reply_message
+      obj['date']= await this.getDateAndTime(foundMR.updated_at) 
 
+      return obj
+    }
+   
+  } catch (error) {
 
+    throw new SystemError(error.toString());
   }
 
+}
+
+async allMemoDetail(data: any): Promise<any[]> {
+
+  let myType=data.query.type
   
+  try {
+
+    if(myType=="allMemo"){
+
+      let foundM=await this.MemoModel.findAll({
+        order: [["created_at", "DESC"]],
+      })
+
+      let detail=[]
+      if(foundM.length!=0){
+        for (let i = 0; i < foundM.length; i++) {
+
+          let adminDetails=await this.getSingleGuardDetail(foundM[i].created_by_id)
+          let obj={}
+
+              obj['message']=foundM[i].memo_message
+              obj['message_length']=foundM[i].memo_message.length
+              obj['send_date']= await this.getDateAndTime(foundM[i].send_date) 
+              obj['id']=foundM[i].id
+              obj['Created']= await this.getDateAndTime(foundM[i].created_at)   
+              obj['CreatedBy']=adminDetails["first_name"]+" "+adminDetails["last_name"]
+
+
+              const dateStamp=await this.getDateAndTimeForStamp(foundM[i].time_zone)
+              if(moment(foundM[i].send_date).isAfter(dateStamp)){
+                obj['send_status']= "Pending"
+              }
+              else{
+                obj['send_status']= "Sent"
+              }
+
+              detail.push(obj)
+          
+          if(i==foundM.length-1){
+              return detail
+          }
+        }
+      }
+      else{
+        return detail
+      }
+
+      
+
+    }
+    else if(myType=="memoMessageOnly"){
+      let foundM=await this.MemoModel.findOne({
+          where:{
+            id:data.query.id
+          }
+      })
+
+      return [foundM.memo_message]
+    }
+    else if(myType=="guardDetails"){
+      let foundM=await this.MemoModel.findOne({
+        where:{
+          id:data.query.id
+        }
+      })
+
+      let foundMR=await this.MemoReceiverModel.findAll({
+       where:{
+        memo_id:foundM.id
+       }
+      })
+
+        let guards=[]
+      for (let i = 0; i < foundMR.length; i++) {
+          let obj={}
+          let guardFullDetail=await this.getSingleGuardDetail(foundMR[i].staff_id)
+
+          obj["full_name"]=guardFullDetail["first_name"]+" "+guardFullDetail["last_name"]
+          obj["id"]=foundMR[i].id
+          obj["is_message"]=foundMR[i].reply_message==""?false:true
+          obj["number_of_guard"]=foundMR.length
+          obj["guard_id"]=foundMR[i].staff_id
+
+          guards.push(obj)
+
+        if(i==foundMR.length-1){
+            return guards
+        }
+      }
+
+    }
+    else if(myType=="guardMessageOnly"){
+     
+
+      let foundMR=await this.MemoReceiverModel.findOne({
+       where:{
+        id:data.query.id
+       }
+      })
+      let guardFullDetail=await this.getSingleGuardDetail(data.query.guard_id)
+
+
+      let obj={}
+      obj["read_date"]=await this.getDateAndTime(foundMR.created_at)
+      obj["message"]=foundMR.reply_message
+      obj["full_name"]=guardFullDetail["first_name"]+" "+guardFullDetail["last_name"]
+
+
+      return [obj]
+
+    }
+
+  } catch (error) {
+
+    throw new SystemError(error.toString());
+  }
+
+}
+
+
+
+async getAllJobsAdmin(data: any): Promise<any[]> {
+
+  let mytype=data.query.type
+  try {
+    const jobs = [];
+    let availableJobs;
+
+    if(mytype=='ACTIVE'){
+
+        availableJobs = await this.JobModel.findAll({
+        limit: parseInt(data.query.limit),
+        offset: parseInt(data.query.offset),
+        where: {
+          is_deleted: false,
+          job_status:'ACTIVE',
+        } as any,
+        order: [
+          ['created_at', 'DESC'],
+      ],
+      });
+
+      setTimeout(() => {
+        this.shiftJobToCompleted()
+      },1000 * 60 * 60);
+    }
+    else if(mytype=='PENDING'){
+        availableJobs = await this.JobModel.findAll({
+        limit: parseInt(data.query.limit),
+        offset: parseInt(data.query.offset),
+        where: {
+          is_deleted: false,
+          job_status:'PENDING',
+        } as any,
+        order: [
+          ['created_at', 'DESC'],
+      ],
+      });
+    }
+    else if(mytype=='COMPLETED'){
+        availableJobs = await this.JobModel.findAll({
+        limit: parseInt(data.query.limit),
+        offset: parseInt(data.query.offset),
+        where: {
+          is_deleted: false,
+          job_status:'COMPLETED',
+        } as any,
+        order: [
+          ['created_at', 'DESC'],
+      ],
+      });
+    }
+    else{
+      availableJobs = await this.JobModel.findAll({
+        where: {
+          is_deleted: false,
+        } as any,
+        order: [
+          ['created_at', 'DESC'],
+      ],
+      });
+    }
+
+    for (const availableJob of availableJobs) {
+  
+      let foundC=await this.CustomerModel.findOne({
+        where:{
+          id:availableJob.customer_id
+        }
+      })
+      let foundF=await this.FacilityModel.findOne({
+        where:{
+          id:availableJob.facility_id
+        }
+      })
+      let job_progress=await this.returnJobPercentage(availableJob.id)
+
+      const jobRes = {
+        id: availableJob.id,
+        job_progress:job_progress,
+        description: availableJob.description,
+        client_charge: availableJob.client_charge,
+        staff_payment: availableJob.staff_charge,
+        status: availableJob.job_status,
+        customer: foundC.first_name,
+        site: foundF.name,
+        create: await this.getDateAndTime(availableJob.created_at)
+      }
+
+      jobs.push(jobRes);
+    }
+    
+    return jobs;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+
+
+
+}
+
+  
+
+
+async replyMemo(data: any): Promise<any> {
+  try {
+    const {
+      message,
+      memo_receiver_id,
+      my_time_zone
+    } = await jobUtil.verifyReplyMemo.validateAsync(data);
+
+    let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
+
+
+    let obj={
+      reply_message:message,
+      updated_at:dateStamp
+    }
+
+    await this.MemoReceiverModel.update(obj,{
+        where: {
+          id:memo_receiver_id
+      }
+    })
+
+    
+  } catch (error) {
+    throw new SystemError(error.toString());
+  }
+}
+  
+
+  async deleteMemo(data: any): Promise<any> {
+    try {
+      const {
+        memo_id
+      } = await jobUtil.verifyDeleteMemo.validateAsync(data);
+
+
+      await this.MemoReceiverModel.destroy({
+          where: {
+            memo_id
+        }
+      })
+
+      await this.MemoModel.destroy({
+            where: {
+              id:memo_id
+          }
+      })
+
+      
+    } catch (error) {
+      throw new SystemError(error.toString());
+    }
+  }
   
   async deleteJob(data: any): Promise<any> {
     try {
@@ -1912,7 +2191,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
 
 
-
   async submitReportAndAttachment(
     id: number,
     data: any,
@@ -1980,10 +2258,6 @@ async getJobsForStaff(req: any): Promise<any[]> {
   
 }
     
-
-
-
-
 
 
 async getOneAgendaPerGuard(obj) {
@@ -2129,8 +2403,6 @@ async getOneShedulePerGuard(obj) {
 }
     
 
-  
-
   async getSingleReportGuard(obj) {
     var { job_id,
       guard_id
@@ -2176,8 +2448,6 @@ async getOneShedulePerGuard(obj) {
         }      
   }
 
-
-  
 
   async getSecurityCodePerJob(obj) {
     var { job_id,
@@ -2248,9 +2518,6 @@ async getOneShedulePerGuard(obj) {
 
   }
 
-
-
-  
   async getGuardIdFromJob(obj) {
     var { jobs_id,
     }
@@ -2330,10 +2597,6 @@ async getOneShedulePerGuard(obj) {
   
   async getDeclinedJob() {
 
-
-   
-
-
     let foundS=await  this.ScheduleModel.findAll({
       where:{
         status_per_staff:'DECLINE'
@@ -2390,16 +2653,9 @@ async getOneShedulePerGuard(obj) {
 
 
 
-  
-
   async getDashBoardInfoGuard(req) {
 
 
-
-    console.log("lllllllllllllllllllllllll")
-    console.log(req.user.id)
-
-    //ret
     let foundS=await  this.ScheduleModel.findAll({
         where:{guard_id:req.user.id},
         attributes: [
@@ -2475,9 +2731,6 @@ async getOneShedulePerGuard(obj) {
   
 
   }
-
-
-
 
 
   async getDashBoardInfo(obj) {
@@ -3936,7 +4189,7 @@ async getOneShedulePerGuard(obj) {
       return guard_detail
 
     }
-}
+  }
 
 
  }
@@ -3963,7 +4216,6 @@ async getDateAndTime(val){
 
   return moment(val).format('YYYY-MM-DD hh:mm:ss a')
 }
-
 
 
 
@@ -4498,9 +4750,6 @@ for(let i=0;i<combinedArray.length ;i++){
           }
       }
       return uniqueArray;
-    
-  
-   
   }
   
 

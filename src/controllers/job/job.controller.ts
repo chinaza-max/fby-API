@@ -934,7 +934,52 @@ export default class JobController {
   }
   
   
+
   
+  protected async replyMemo(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      let data2={
+          ...data,
+          my_time_zone:req["user_time_zone"]
+      }
+
+      const obj = await jobService.replyMemo(data2);
+
+      return res.status(200).json({
+        status: 200,
+        message: "message sent successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  
+  protected async deleteMemo(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await jobService.deleteMemo(data);
+
+      return res.status(200).json({
+        status: 200,
+        message: "deleted successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
   protected async deleteJob(
     req: Request,
     res: Response,
@@ -976,7 +1021,7 @@ export default class JobController {
         my_time_zone:req["user_time_zone"]
       }
     
-      console.log(data2)
+
       const obj = await jobService.createMemo(data2);
 
       return res.status(200).json({
@@ -1154,9 +1199,56 @@ export default class JobController {
 
 
 
+  
+  protected async allMemoDetailGuard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+  
 
+      const obj = await jobService.allMemoDetailGuard(req);
+   
 
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 
+  
+
+  protected async allMemoDetail(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+  
+
+      const obj = await jobService.allMemoDetail(req);
+   
+      if(obj?.length != 0 && obj?.length == null){
+        return res.status(400).json({
+          status: 400,
+          data: obj ?? "Failed to process request",
+        });
+      }
+
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 
   protected async getAllJobs(
     req: Request,
