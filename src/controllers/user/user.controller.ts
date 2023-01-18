@@ -28,7 +28,6 @@ export default class UserController {
   }
 
 
-  
   protected async LicenseRUD(
     req: Request,
     res: Response,
@@ -36,11 +35,13 @@ export default class UserController {
   ): Promise<Response> {
     try {
       const data = req.body;
+         
       const data2={
           id:data.id,
           type:req.query.type,
           my_time_zone:req["user_time_zone"]
       }
+
       const user = await userService.LicenseRUD(data2);
 
       return res.status(200).json({

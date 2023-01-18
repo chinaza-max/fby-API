@@ -67,7 +67,7 @@ import IMemo from "../../interfaces/memo.interface";
         },
       },
       {
-        tableName: "Memo",
+        tableName: "memo",
         timestamps: false,
         sequelize: connection,
         underscored: true,

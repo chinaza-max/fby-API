@@ -30,6 +30,8 @@ class UserService {
 
     //'/home/fbyteamschedule/public_html/fby-security-api/public/images/avatars/image-1672174934995-161164152-glacier24.jpg',
     let accessPath=serverConfig.DOMAIN +file.path.replace("public", "")
+    //let accessPath=serverConfig.DOMAIN +file.path.replace("/home/fbyteamschedule/public_html", "")
+
 
     const foundL=await this.LicenseModel.findOne({
       where:{
@@ -40,13 +42,13 @@ class UserService {
     if(foundL){
 
       const filePath=global.__basedir+"\\"+"public"+foundL.license.replace(serverConfig.DOMAIN, "")
-
+/*
       try {
         fs.unlinkSync(filePath)
 
       } catch (error) {
           console.log(error)
-      }
+      }*/
 
       const obj={
         ...data,
@@ -214,7 +216,7 @@ class UserService {
     if (!user) throw new NotFoundError("User not found.");
 
     try{
-        
+        /*
         var filePath =global.__basedir+"\\"+"public"+user.image.slice(serverConfig.DOMAIN.length, user.image.length); 
     
         if(filePath.includes("fbyDefaultIMG.png")){
@@ -222,11 +224,17 @@ class UserService {
         else{
         fs.unlinkSync(filePath);
         }
+
+        */
     }
     finally {
     
     if (file){
-      await user.update({ image:serverConfig.DOMAIN+file.path.slice(6, file.path.length) });
+
+
+      let accessPath=serverConfig.DOMAIN +file.path.replace("/home/fbyteamschedule/public_html", "")
+
+      await user.update({ image:accessPath});
     }
     
     var relatedLocation = await this.LocationModel.findOrCreate({

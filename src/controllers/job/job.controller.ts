@@ -294,7 +294,13 @@ export default class JobController {
   ): Promise<Response> {
     try {
       const data =req.body
-      
+
+
+      console.log("ssssssssssssssssssssssssssssssssssssssssssss")
+
+      console.log(data)
+      console.log("oooooooooooooooooooooooooooo")
+
       const data2 ={
         ...data,
         my_time_zone:req["user_time_zone"],
@@ -1073,7 +1079,7 @@ export default class JobController {
 
       const data2 ={
         ...data,
-        created_by_id:28,
+        created_by_id:req.user.id,
         my_time_zone:req["user_time_zone"]
       }
      /* const data2 ={

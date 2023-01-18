@@ -21,6 +21,7 @@ class MailService {
   })
 
   async sendMail(options: MailOptionsI) {
+    //const filePath = `/home/fbyteamschedule/public_html/fby-security-api/src/resources/mailTemplates/${options.templateName}.html`;
 
     const filePath = `./src/resources/mailTemplates/${options.templateName}.html`;
     const source = fs.readFileSync(filePath, "utf-8").toString();

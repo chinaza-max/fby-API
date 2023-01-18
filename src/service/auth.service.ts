@@ -245,8 +245,7 @@ class AuthenticationService {
       subject: "Reset Password",
       templateName: "reset_password",
       variables: {
-        resetLink: `http://127.0.0.1:5502/dist/PasswordReset.html?key=${generatedKey}_${keyExpirationMillisecondsFromEpoch}`
-
+        resetLink: `https://fbyteamschedule.com/adminpanel/PasswordReset.html?key=${generatedKey}_${keyExpirationMillisecondsFromEpoch}`
       },
     });
   }

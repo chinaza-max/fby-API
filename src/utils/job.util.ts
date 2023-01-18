@@ -126,7 +126,6 @@ class JobUtil {
     latitude: Joi.number().required(),
     longitude: Joi.number().required(),
     agenda_id: Joi.number().required()
-
 });
 
   public verifyVerifySecurityCode = Joi.object().keys({

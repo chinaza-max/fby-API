@@ -73,9 +73,10 @@ async getSinglejob(myObj: any): Promise<any[]> {
                 where: {[Op.and]: 
                   [{check_in_status:true},
                     {guard_id:myObj.guard_id},
+                    {job_id:myObj.job_id},
                   {check_out_status:true }
                   ]}
-              })
+                })
 
               if(foundJL.length!=0){
                   for(let l=0;l<foundJL.length;l++){
@@ -87,7 +88,6 @@ async getSinglejob(myObj: any): Promise<any[]> {
                 where: {[Op.and]: [{job_id:myObj.job_id },
                 {guard_id:myObj.guard_id },
                 {status_per_staff:'ACTIVE'}]},
-
                 order: [
                   ["check_in_date", "ASC"],
             
@@ -100,8 +100,6 @@ async getSinglejob(myObj: any): Promise<any[]> {
                 for(let j=0;j<foundS.length;j++){
                   let obj={}
                   let sheduleObj=foundS[j]
-
-                  
 
                   obj["check_in_date"]= await this.getDateOnly(sheduleObj.check_in_date)
                   obj["check_out_date"]= await this.getDateOnly(sheduleObj.check_out_date)
@@ -130,7 +128,7 @@ async getSinglejob(myObj: any): Promise<any[]> {
                           time_zone:foundF.time_zone,
                           facility_name:foundF.name,
                           address:foundFL.address,
-                          job_status:foundFL.address,
+                          job_status:foundJ2.job_status,
                           hours_worked:myHours_worked,
                           earn:"$"+ (myHours_worked*foundJ2.staff_charge).toFixed(2) ,   
                           guard_id:myObj.guard_id
@@ -171,10 +169,7 @@ async getJobsForStaff(req: any): Promise<any[]> {
 
 
 
-  //const id = req.user.id;
   const id = req.user.id;
-
-  console.log(req.query.jobType)
 
   let myObj={
     id,
@@ -555,10 +550,19 @@ async getJobsForStaff(req: any): Promise<any[]> {
 async allMemoDetailGuard(data: any){
 
   let myType=data.query.type
-  
+
+
+
+
+
   try {
 
     if(myType=="unAnsweredMemo"){
+
+
+      console.log("ooooooooooooooooooooooooooooooooooooooooooooooo")
+      console.log(data.user.id)
+      console.log("ooooooooooooooooooooooooooooooooooooooooooooooo")
 
       let foundMR=await this.MemoReceiverModel.findOne({
         where:{[Op.and]: 
@@ -566,6 +570,13 @@ async allMemoDetailGuard(data: any){
           {staff_id:data.user.id}
           ]}
       })
+
+
+
+      console.log("pppppppppppppppppppppppppppppppppppppppppppp")
+
+      console.log(foundMR)
+      console.log("pppppppppppppppppppppppppppppppppppppppppppp")
 
       if(foundMR){
         let foundM=await this.MemoModel.findOne({
@@ -576,6 +587,9 @@ async allMemoDetailGuard(data: any){
 
           let obj={}
 
+        
+
+          return 
               obj['message']=foundM.memo_message
               obj['send_date']= await this.getDateAndTime(foundM.send_date) 
               obj['memo_id']=foundM.id
@@ -2230,11 +2244,16 @@ async replyMemo(data: any): Promise<any> {
         }
         else{
 
+
+
+          //let accessPath=serverConfig.DOMAIN +file.path.replace("public", "")
+          let accessPath=serverConfig.DOMAIN +file.path.replace("/home/fbyteamschedule/public_html", "")
+
           let createdRes=  await this.JobReportsModel.create({
               job_id:data2.job_id,
               guard_id :data2.guard_id,
               report_type:data2.report_type,
-              file_url : serverConfig.DOMAIN+file.path.slice(6, file.path.length),
+              file_url :accessPath,
               is_emergency :data2.is_emergency,
               is_read:data2.is_read,
               message :data2.message,
@@ -2327,7 +2346,7 @@ async getOneAgendaPerGuard(obj) {
         obj["description"]=foundT[l].description
         obj["operation_date"]=moment(foundT[l].operation_date).format('YYYY-MM-DD')
         obj["agenda_done"]= foundT[l].agenda_done
-        obj["scanned_at"]=  foundT[l].agenda_done?moment(foundT[l].updated_at).format('YYYY-MM-DD hh:mm:ss a'):"None"
+        obj["done_at"]=  foundT[l].agenda_done?moment(foundT[l].updated_at).format('YYYY-MM-DD hh:mm:ss a'):"None"
   
         Task.push(obj)
         if(l==foundT.length-1){
@@ -3879,6 +3898,7 @@ async getOneShedulePerGuard(obj) {
         }
         else{
 
+
           if(this.isInlocation(latitude, longitude, objLatLog)){
 
             //FOR ALLOWING LATE CHECK OUT 30
@@ -3968,7 +3988,6 @@ async getOneShedulePerGuard(obj) {
               throw new LocationError("cant check out no shift available");
             }
           }
-
           else{
 
             let coordinates_res=await this.CoordinatesModel.create({
@@ -3995,10 +4014,14 @@ async getOneShedulePerGuard(obj) {
               throw new LocationError( "You are not in location" );
             }
             else{
+
               let obj={
                 message:"not in location",
                 check_out_time:time,
+                check_in_time:time,
                 check_out_status:false,
+                check_in_status:false,
+                check_in_date:date,
                 job_id,
                 guard_id,
                 coordinates_id:coordinates_res.id,
@@ -4007,7 +4030,7 @@ async getOneShedulePerGuard(obj) {
                 created_at:dateStamp,
                 updated_at:dateStamp
               }
-              await this.JobLogsModel.create(obj)
+              this.JobLogsModel.create(obj)
               throw new LocationError( "You are not in location" );
             }
            

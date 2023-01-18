@@ -57,7 +57,7 @@ import IMemoReceiver from "../../interfaces/memo_receiver.interface";
         },
       },
       {
-        tableName: "Memo_receivers",
+        tableName: "memo_receivers",
         timestamps: false,
         sequelize: connection,
         underscored: true,
