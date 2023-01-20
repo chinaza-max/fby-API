@@ -302,9 +302,6 @@ async toggleVisibilty(data: any) {
 
     const user = await this.UserModel.findByPk(id);
 
-
-    console.log(user.availability)
-
     await this.UserModel.update({ availability:!user.availability},{
       where:{
         id

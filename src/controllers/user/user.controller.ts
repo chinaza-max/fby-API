@@ -126,7 +126,7 @@ export default class UserController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const { id } = req.user;
+      const { id } = req.user;  
 
       const users = await userService.toggleVisibilty(id);
 

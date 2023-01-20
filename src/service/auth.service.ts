@@ -314,6 +314,7 @@ class AuthenticationService {
         created_at,
         updated_at,
         is_archived,
+        availability
       } = data;
 
       var transfromedUser = {
@@ -324,6 +325,7 @@ class AuthenticationService {
         email,
         phone_number,
         // Added Location
+        availability,
         address: locationObj.address,
         date_of_birth,
         gender,

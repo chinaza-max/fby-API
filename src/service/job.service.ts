@@ -559,11 +559,6 @@ async allMemoDetailGuard(data: any){
 
     if(myType=="unAnsweredMemo"){
 
-
-      console.log("ooooooooooooooooooooooooooooooooooooooooooooooo")
-      console.log(data.user.id)
-      console.log("ooooooooooooooooooooooooooooooooooooooooooooooo")
-
       let foundMR=await this.MemoReceiverModel.findOne({
         where:{[Op.and]: 
           [{reply_message: {[Op.eq]:''} },
@@ -571,12 +566,6 @@ async allMemoDetailGuard(data: any){
           ]}
       })
 
-
-
-      console.log("pppppppppppppppppppppppppppppppppppppppppppp")
-
-      console.log(foundMR)
-      console.log("pppppppppppppppppppppppppppppppppppppppppppp")
 
       if(foundMR){
         let foundM=await this.MemoModel.findOne({
@@ -586,10 +575,7 @@ async allMemoDetailGuard(data: any){
         })
 
           let obj={}
-
-        
-
-          return 
+ 
               obj['message']=foundM.memo_message
               obj['send_date']= await this.getDateAndTime(foundM.send_date) 
               obj['memo_id']=foundM.id
@@ -768,7 +754,7 @@ async allMemoDetail(data: any): Promise<any[]> {
 
 
       let obj={}
-      obj["read_date"]=await this.getDateAndTime(foundMR.created_at)
+      obj["read_date"]=await this.getDateAndTime(foundMR.updated_at)
       obj["message"]=foundMR.reply_message
       obj["full_name"]=guardFullDetail["first_name"]+" "+guardFullDetail["last_name"]
 
@@ -900,6 +886,14 @@ async replyMemo(data: any): Promise<any> {
 
     let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
+
+
+    console.log("kkkkkkkkkkkkkiiiiiiiiiiiikkkkkkkkkkkkkkkk")
+
+console.log(dateStamp)
+
+
+console.log("kkkkkkkkkkkkkkiiiiiiiiiiiiikkkkkkkkkkkkkkk")
 
     let obj={
       reply_message:message,
@@ -2480,21 +2474,26 @@ async getOneShedulePerGuard(obj) {
       attributes: [
         "job_id",
         "security_code",
-        "agenda_id"
       ],
-      group: ['job_id','security_code']
+      group: ['job_id','security_code' ]
     })
-
-    console.log(foundJC)
 
     let detail=[]
 
     if(foundJC.length!=0){
 
       for(let i=0; i<foundJC.length;i++){
+
+        let foundJC2=await  this.JobSecurityModel.findOne({
+          where:{
+            security_code:foundJC[i].security_code
+          },
+        })
+        
+
         let foundA=await  this.AgendasModel.findOne({
           where:{
-            id:foundJC[i].agenda_id
+            id:foundJC2.agenda_id
           }
         })
 
@@ -2566,8 +2565,11 @@ async getOneShedulePerGuard(obj) {
     =  await jobUtil.verifygetGuardPerJob.validateAsync(data);
       
     const  foundS =await  this.ScheduleModel.findAll({
-    where: {job_id}
+       where: {job_id}
     })
+
+
+
    
     let all_guard_id=[]
 
@@ -2596,6 +2598,7 @@ async getOneShedulePerGuard(obj) {
       }
    }
    else{
+
 
     let job= await this.getJobDetail(job_id)
     let site= await this.getSiteDetail(job.facility_id)
@@ -4259,8 +4262,7 @@ async getJobDetail(val){
       },
       attributes: [
         "job_id",
-        "security_code",
-        "agenda_id"
+        "security_code"
       ],
       group: ['job_id','security_code']
     })
