@@ -1,4 +1,6 @@
 import { Admin, Location, PasswordReset, License } from "../db/models";
+import { Admin as AdminDeleted, Location as LocationDeleted,
+   PasswordReset as PasswordResetDeleted } from "../db/modelsDeleted";
 import { NotFoundError,SystemError } from "../errors";
 import { fn, col, Op } from "sequelize";
 import momentTimeZone from "moment-timezone";
@@ -11,9 +13,12 @@ import serverConfig from "../config/server.config";
 class UserService {
   private UserModel = Admin;
   private LocationModel = Location;
-  private PasswordResetModel =PasswordReset
-  private LicenseModel =License
+  private PasswordResetModel =PasswordReset;
+  private LicenseModel =License;
 
+  private UserDeletedModel = AdminDeleted;
+  private LocationDeletedModel = LocationDeleted;
+  private PasswordResetDeletedModel = PasswordResetDeleted;
 
 
 
@@ -266,32 +271,47 @@ class UserService {
   }
   
   async deleteStaff(address_id: any) {
+    try {
+      let foundU = await this.UserModel.findOne({
+        where: {
+          location_id: address_id
+        }
+      });
 
-    let foundU=await this.UserModel.findOne({
-                where:{
-                  location_id:address_id
-                }
-              });
 
-    
-    let foundP=  await this.PasswordResetModel.findOne({
-          where:{
-            user_id:foundU.id }
-        });  
+      let foundP = await this.PasswordResetModel.findOne({
+        where: {
+          user_id: foundU.id
+        }
+      });
 
-    if(foundP){
-      await this.PasswordResetModel.destroy({
-        where:{user_id:foundU.id}
-      });  
-    }   
-      
-
-    await this.LocationModel.destroy({
-      where:{
-        id:address_id
+      if (foundP) {
+        await this.PasswordResetDeletedModel.create(foundP.dataValues)
+        await this.PasswordResetModel.destroy({
+          where: { user_id: foundU.id }
+        });
       }
-    });
 
+      const record = await this.LocationModel.findOne({
+        where: {
+          id: address_id
+        }
+      });
+      if (record) {
+        await this.LocationDeletedModel.create(record.dataValues)
+      }
+
+      await this.LocationModel.destroy({
+        where: {
+          id: address_id
+        }
+      });
+
+    }
+    catch (error) {
+      throw new SystemError(error.toString());
+    }
+    
 }
 
 

@@ -6,6 +6,7 @@ import path from 'path';
 import morgan from "morgan";
 import debug from "debug";
 import DB from "./src/db";
+import DB_DELETED from "./src/db/indexDeleted"
 import serverConfig from "./src/config/server.config";
 import routes from "./src/routes/index.route";
 import systemMiddleware from "./src/middlewares/system.middleware";
@@ -40,7 +41,9 @@ class Server {
   private async initializeDbAndFirebase(): Promise<void> {
     await DB.connectDB();
     await DB.connectFirebase();
+    await DB_DELETED.connectDB();
   }
+  
 
   // Class methods to build middleware and routes
   private initializeMiddlewaresAndRoutes(): void {
