@@ -54,7 +54,7 @@ export function init(connection: Sequelize) {
       },
       message: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: false,
       },
       is_emergency: {
         type: DataTypes.BOOLEAN,
@@ -64,6 +64,7 @@ export function init(connection: Sequelize) {
       file_url: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue: "no file",
       },
       is_read: {
         type: DataTypes.BOOLEAN,
@@ -79,6 +80,7 @@ export function init(connection: Sequelize) {
       mime_type: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue: "no file"
       },
       created_at: {
         type: DataTypes.DATE,

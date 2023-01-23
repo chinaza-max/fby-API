@@ -986,6 +986,32 @@ export default class JobController {
   }
 
 
+  protected async rescheduleAndRemoveGuard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = JSON.parse(req.body.array_guard_id) ;
+
+      let data2={
+        array_guard_id:data,
+        job_id:req.body.job_id,
+        old_guard_id:req.body.old_guard_id,
+        my_time_zone:req["user_time_zone"]
+      }
+
+      const obj = await jobService.rescheduleAndRemoveGuard(data2);
+
+      return res.status(200).json({
+        status: 200,
+        message: "Re-schedule successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   protected async deleteJob(
     req: Request,
     res: Response,

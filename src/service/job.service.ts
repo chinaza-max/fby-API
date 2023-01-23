@@ -886,15 +886,6 @@ async replyMemo(data: any): Promise<any> {
 
     let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
 
-
-
-    console.log("kkkkkkkkkkkkkiiiiiiiiiiiikkkkkkkkkkkkkkkk")
-
-console.log(dateStamp)
-
-
-console.log("kkkkkkkkkkkkkkiiiiiiiiiiiiikkkkkkkkkkkkkkk")
-
     let obj={
       reply_message:message,
       updated_at:dateStamp
@@ -938,6 +929,97 @@ console.log("kkkkkkkkkkkkkkiiiiiiiiiiiiikkkkkkkkkkkkkkk")
     }
   }
   
+
+  async  rescheduleAndRemoveGuard(data: any): Promise<any> {
+    try {
+      const {
+        job_id,
+        my_time_zone,
+        array_guard_id,
+        old_guard_id
+      } = await jobUtil.verifyRescheduleAndRemoveGuard.validateAsync(data);
+
+
+      let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
+
+      for (let i = 0; i < array_guard_id.length; i++) {
+
+              await  this.ScheduleModel.findAll({
+                  where: {[Op.and]:[ 
+                    { job_id},
+                    {guard_id:old_guard_id}
+                    ]}
+              }).then(existingRecord => {
+                if(existingRecord.length!==0){
+                  const newRecord = { ...existingRecord, created_at:dateStamp,
+                    updated_at:dateStamp,guard_id:array_guard_id[i] };
+                  this.ScheduleModel.create(newRecord);
+                }
+              })
+
+
+              await  this.AgendasModel.findAll({
+                where: {[Op.and]:[ 
+                  { job_id},
+                  {guard_id:old_guard_id}
+                  ]}
+              }).then(existingRecord => {
+              if(existingRecord.length!==0){
+                const newRecord = { ...existingRecord, created_at:dateStamp,
+                  updated_at:dateStamp,guard_id:array_guard_id[i] };
+                this.AgendasModel.create(newRecord);
+              }
+            })
+
+            await  this.JobSecurityModel.findAll({
+              where: {[Op.and]:[ 
+                { job_id},
+                {guard_id:old_guard_id}
+                ]}
+            }).then(existingRecord => {
+            if(existingRecord.length!==0){
+              const newRecord = { ...existingRecord, created_at:dateStamp,
+                updated_at:dateStamp,guard_id:array_guard_id[i] };
+              this.AgendasModel.create(newRecord);
+            }
+            })
+            if(i==array_guard_id.length-1){
+
+              await  this.ScheduleModel.destroy({
+                where: {[Op.and]:[ 
+                  { job_id},
+                  {guard_id:old_guard_id}
+                  ]}
+            })
+
+
+            await  this.AgendasModel.destroy({
+              where: {[Op.and]:[ 
+                { job_id},
+                {guard_id:old_guard_id}
+                ]}
+            })
+
+          await  this.JobSecurityModel.destroy({
+            where: {[Op.and]:[ 
+              { job_id},
+              {guard_id:old_guard_id}
+              ]}
+          })
+
+
+          }
+      }
+
+      
+    } catch (error) {
+      console.log(error);
+      throw new SystemError(error.toString());
+    }
+  }
+
+
+
   async deleteJob(data: any): Promise<any> {
     try {
       const {
@@ -1231,7 +1313,7 @@ console.log("kkkkkkkkkkkkkkiiiiiiiiiiiiikkkkkkkkkkkkkkk")
   async sheduleDate(data: any): Promise<any> {
     
       let {
-        date_time_staff_shedule ,
+        date_time_staff_shedule,
         my_time_zone,
         created_by_id
       } = await jobUtil.verifysheduleDateCreation.validateAsync(data);
@@ -2380,8 +2462,8 @@ async getOneShedulePerGuard(obj) {
       ]}
       , 
       order: [
-          ['check_in_date', 'ASC'],
-          ['check_out_date', 'ASC'],
+          ['check_in_date', 'DESC'],
+          ['check_out_date', 'DESC'],
       ],
     })
 
@@ -2399,13 +2481,21 @@ async getOneShedulePerGuard(obj) {
           guard_id:foundS[i].guard_id,
           schedule_id:foundS[i].id,
           schedule_accepted_by_admin:foundS[i].schedule_accepted_by_admin,
-          job_id:foundS[i].job_id
+          job_id:foundS[i].job_id,
+          is_started:await this.checkIfShiftHasStarted(foundS[i].job_id,foundS[i].check_in_date)
 
         }
         all_shedule.push(obj)
         
       if(i==foundS.length-1){
-        return all_shedule
+
+        let allScheduleStarted=await this.checkIfAllShiftHasStarted(all_shedule)
+
+        all_shedule.forEach(function(obj){
+                obj.is_started_all=allScheduleStarted
+              });
+
+        return  all_shedule      
       }
     }
   }
@@ -4729,6 +4819,30 @@ for(let i=0;i<combinedArray.length ;i++){
     }
 
     
+  }
+
+
+  async checkIfShiftHasStarted(job_id,startDate){
+   
+    const foundJ =await this.JobModel.findOne(
+      {
+        where: {id:job_id}
+      })
+
+      const dateStamp=await this.getDateAndTimeForStamp(foundJ.time_zone)
+        if(moment(startDate).isAfter(dateStamp)){
+            return false
+        }
+        else{
+            return true
+        }
+  }
+
+  async checkIfAllShiftHasStarted(obj){
+   
+    const checkKeyValue = obj.every(object => object["is_started"] === true);
+
+    return checkKeyValue
   }
 
 
