@@ -836,6 +836,64 @@ export default class JobController {
     }
   }
 
+  protected async getAllJobsdoneByGaurd(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+      const obj = await jobService.getAllJobsdoneByGaurd(data);
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+        message: `done`,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async getAllSiteWorkByGaurdForCompany(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await jobService.getAllSiteWorkByGaurdForCompany(data);
+    
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+        message: `done`,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+  protected async getJobDetails(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await jobService.getJobDetails(data);
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+        message: `done`,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
   
   protected async checkInCheckOutAdmin(
     req: Request,

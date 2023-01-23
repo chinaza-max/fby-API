@@ -45,7 +45,7 @@ import {
   SecurityCodeVerificationError,
   AgendaSheduleError,
 } from "../errors";
-import { fn, col, Op, QueryError, where, FLOAT } from "sequelize";
+import { fn, col, Op, QueryError, where, FLOAT }  from "sequelize";
 import moment from "moment";
 import axios from "axios";
 import momentTimeZone from "moment-timezone";
@@ -855,7 +855,7 @@ class UserService {
           client_charge: availableJob.client_charge,
           staff_payment: availableJob.staff_charge,
           status: availableJob.job_status,
-          customer: foundC.first_name,
+          customer: foundC.company_name,
           site: foundF.name,
           create: await this.getDateAndTime(availableJob.created_at),
         };
@@ -1749,7 +1749,7 @@ class UserService {
         );
         obj["first_name"] = name["first_name"];
         obj["last_name"] = name["last_name"];
-        obj["customer"] = foundC.first_name + " " + foundC.last_name;
+        obj["customer"] = foundC.company_name;
         obj["site"] = foundF.name;
 
         obj["guard_charge"] = "$" + foundJ.staff_charge;
@@ -1845,7 +1845,7 @@ class UserService {
         );
         obj["First_name"] = name["first_name"];
         obj["last_name"] = name["last_name"];
-        obj["customer"] = foundC.first_name;
+        obj["customer"] = foundC.company_name;
         obj["site"] = foundF.name;
         obj["guard_charge"] = foundF.guard_charge;
         obj["guard_id"] = foundS[i].guard_id;
@@ -1946,7 +1946,7 @@ class UserService {
               foundS[i].check_in_date
             );
             obj["name"] = name["first_name"] + " " + name["last_name"];
-            obj["customer"] = foundC.first_name + " " + foundC.last_name;
+            obj["customer"] = foundC.company_name;
             obj["site"] = foundF.name;
             obj["guard_charge"] = "$" + guard_charge;
             obj["guard_id"] = foundS[i].guard_id;
@@ -2040,7 +2040,7 @@ class UserService {
           foundS[i].check_in_date
         );
         obj["name"] = name["first_name"] + " " + name["last_name"];
-        obj["customer"] = foundC.first_name + " " + foundC.last_name;
+        obj["customer"] = foundC.company_name;
         obj["site"] = foundF.name;
         obj["guard_charge"] = "$" + guard_charge;
         obj["guard_id"] = foundS[i].guard_id;
@@ -2983,6 +2983,44 @@ class UserService {
     }
   }
 
+  async  getAllJobsdoneByGaurd(data:any) {
+    try {
+      var {guard_id} = await jobUtil.verifyAllJobsdoneByGaurd.validateAsync(data);
+      const returned_data = await this.ScheduleModel.sequelize.query(`SELECT DISTINCT customers.company_name, guard_id, job_id,
+       customers.id as customer_id  FROM schedule INNER JOIN jobs
+      ON schedule.job_id = jobs.id INNER JOIN customers ON jobs.customer_id = customers.id
+      WHERE schedule.guard_id = ${guard_id}
+      `)
+      return returned_data[0]
+    } catch (error) {
+      throw new SystemError(error)
+    }
+  }
+
+  async  getAllSiteWorkByGaurdForCompany(data:any) {
+    try {
+      var {job_id} = await jobUtil.getAllSiteWorkByGaurdForCompany.validateAsync(data);
+      
+      const returned_data = await this.ScheduleModel.sequelize.query(`SELECT facility.name, jobs.id as job_id FROM jobs INNER JOIN facility
+      ON jobs.facility_id = facility.id
+      WHERE jobs.id = ${job_id}
+      `)
+      return returned_data[0]
+    } catch (error) {
+      throw new SystemError(error)
+    }
+  }
+
+  async  getJobDetails(data:any) {
+    try {
+      var {job_id} = await jobUtil.getJobDetails.validateAsync(data);
+      
+      const returned_data = await (await this.JobModel.findOne({where:{id:job_id}})).dataValues
+      return returned_data
+    } catch (error) {
+      throw new SystemError(error)
+    }
+  }
   async verifySecurityCode(obj) {
     var { job_id, guard_id, security_code, longitude, latitude, my_time_zone } =
       await jobUtil.verifyVerifySecurityCode.validateAsync(obj);
@@ -3153,7 +3191,6 @@ class UserService {
       }
     }
   }
-
   async RemoveGuardShedule(obj) {
     try {
       var { job_id, guard_id } =
@@ -3877,8 +3914,7 @@ class UserService {
     });
 
     let Customer = {
-      first_name: foundC.first_name,
-      last_name: foundC.last_name,
+      company_name: foundC.company_name
     };
 
     return Customer;

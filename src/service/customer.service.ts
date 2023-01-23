@@ -240,8 +240,7 @@ class CustomerService {
 
   async handleCustomerCreation(data: object): Promise<any> {
     const {
-      first_name,
-      last_name,
+      company_name,
       email,
       image,
       date_of_birth,
@@ -278,8 +277,7 @@ class CustomerService {
     console.log(createdLocation.id);
 
     const user = await this.UserModel.create({
-      first_name,
-      last_name,
+      company_name,
       email,
       image,
       date_of_birth,
@@ -581,8 +579,7 @@ class CustomerService {
       var {
         id,
         image,
-        first_name,
-        last_name,
+        company_name,
         email,
         date_of_birth,
         gender,
@@ -594,8 +591,7 @@ class CustomerService {
       var transfromedUser = {
         id,
         image,
-        first_name,
-        last_name,
+        company_name,
         email,
         // Added Location
         address,
@@ -688,8 +684,7 @@ class CustomerService {
         users.push({
           id: user.id,
           image: user.image,
-          first_name: user.first_name,
-          last_name: user.last_name,
+          company_name: user.company_name,
           address: userAddress.address,
           email: user.email,
           gender: user.gender,

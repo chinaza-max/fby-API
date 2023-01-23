@@ -3,8 +3,7 @@ import { GenderTypes } from "./types.interface";
 export default interface ICustomer {
     id: number;
     image?: string;
-    first_name: string;
-    last_name: string;
+    company_name: string;
     email: string;
     password: string;
     date_of_birth: Date;

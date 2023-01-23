@@ -27,6 +27,10 @@ class JobRoutes extends JobController {
     this.router.post("/add_agenda", this.sheduleAgenda);
     this.router.post("/create_memo", this.createMemo);
 
+    this.router.get("/all_jobs_done_by_gaurd", this.getAllJobsdoneByGaurd);
+    this.router.get("/get_site_from_job", this.getAllSiteWorkByGaurdForCompany);
+    this.router.get("/get_job_details", this.getJobDetails);
+
     this.router.post("/delete_job", this.deleteJob);
     this.router.post("/delete_memo", this.deleteMemo);
     this.router.post("/reply_memo", this.replyMemo);

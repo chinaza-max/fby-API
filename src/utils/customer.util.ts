@@ -45,8 +45,7 @@ class CustomerUtil {
   });
 
   public verifyUserCreationData = Joi.object().keys({
-    first_name: Joi.string().required(),
-    last_name: Joi.string().required(),
+    company_name: Joi.string().required(),
     address: Joi.string().required(),
     email: Joi.string().trim().required(),
     phone_number:Joi.number().required(),

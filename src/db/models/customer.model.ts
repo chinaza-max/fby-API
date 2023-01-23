@@ -17,8 +17,7 @@ import ICustomer from "../../interfaces/customer.interface";
   {
     declare id: CreationOptional<number>;
     declare image?: CreationOptional<string>;
-    declare first_name: string;
-    declare last_name: string;
+    declare company_name: string;
     declare email: string;
     declare password: CreationOptional<string>;
     declare date_of_birth: Date;
@@ -46,11 +45,7 @@ import ICustomer from "../../interfaces/customer.interface";
           defaultValue:
           `${serverConfig.DOMAIN}/images/avatars/fbyDefaultIMG.png`,
         },
-        first_name: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-        last_name: {
+        company_name: {
           type: DataTypes.STRING,
           allowNull: false,
         },
