@@ -52,6 +52,14 @@ import Memo, {
 import MemoReceiver, {
   init as initMemoReceiver,
 } from "./memo_receiver.model";
+
+import Suspension_comments, {
+  init as initSuspension_comments
+} from "./suspension_comments.model"
+
+import Customer_suspension_comments, { init as initCustomer_suspension_comments}
+from "./customer_suspension_comments.model "
+
 import Connection from "mysql2/typings/mysql/lib/Connection";
 
 
@@ -265,6 +273,23 @@ function associate() {
     as: "agenda",
   });
 
+  Suspension_comments.belongsTo(Admin, {
+    foreignKey: {
+      allowNull: false,
+      name: "user_id",
+      field: "user_id",
+    },
+    as: "suspension_comments",
+  });
+
+  Customer_suspension_comments.belongsTo(Customer, {
+    foreignKey: {
+      allowNull: false,
+      name: "customer_id",
+      field: "customer_id",
+    },
+    as: "suspension_comments",
+  });
 }
 
 export {
@@ -291,7 +316,9 @@ export {
   SecurityCheckLog,
   License,
   Memo,
-  MemoReceiver
+  MemoReceiver,
+  Suspension_comments,
+  Customer_suspension_comments
 }
 
 export function init(connection: Sequelize) {
@@ -318,7 +345,8 @@ export function init(connection: Sequelize) {
   initSecurityCheckLog(connection);
   initLicense(connection);
   initMemo(connection);
-  initMemoReceiver(connection)
-
+  initMemoReceiver(connection);
+  initSuspension_comments(connection)
+  initCustomer_suspension_comments(connection)
   associate();
 }

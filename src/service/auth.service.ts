@@ -38,6 +38,8 @@ class AuthenticationService {
       },
     });
    
+    if(user.suspended == true) return "Account has been suspended"
+
     if (!(await bcrypt.compare(password, user.password))) return null;
 
     var relatedLocation = await this.LocationModel.findByPk(user.location_id);
@@ -54,7 +56,9 @@ class AuthenticationService {
   async handleAdminAuthentication(data): Promise<any> {
     const { email, password } = data;
     const user = await Admin.findOne({ where: { email: email } });
-    
+
+    if(user.suspended == true) return "Account has been suspended"
+
     console.log(bcrypt.compare(password, user.password));
 
     if (!(await bcrypt.compare(password, user.password))) return null;

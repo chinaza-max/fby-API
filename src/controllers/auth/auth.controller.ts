@@ -27,7 +27,13 @@ export default class AuthenticationController {
           status: 400,
           message: "Invalid login credentials",
         });
-
+      
+      if (obj == "Account has been suspended")
+        return res.status(401).json({
+          status: 401,
+          message: "Account has been suspended"
+        })
+        
       const token = await authService.generateToken(obj.data);
       console.log(token);
 
@@ -67,6 +73,12 @@ export default class AuthenticationController {
           status: 400,
           message: "Invalid login credentials",
         });
+
+      if (obj == "Account has been suspended")
+        return res.status(401).json({
+          status: 401,
+          message: "Account has been suspended"
+        })
 
       const token = await authService.generateToken(obj.data);
       console.log(token);

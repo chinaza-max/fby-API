@@ -25,6 +25,7 @@ import ICustomer from "../../interfaces/customer.interface";
     declare phone_number:number;
     declare created_by_id:number;
     declare location_id?: CreationOptional<number>;
+    declare suspended:boolean;
     declare created_at: Date;
     declare updated_at: Date;
     declare is_archived: CreationOptional<boolean>;
@@ -61,6 +62,11 @@ import ICustomer from "../../interfaces/customer.interface";
         phone_number: {
           type: DataTypes.NUMBER,
           allowNull: true,
+        },
+        suspended: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false
         },
         created_by_id: {
           type: DataTypes.NUMBER,

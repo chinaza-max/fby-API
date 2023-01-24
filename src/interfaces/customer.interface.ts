@@ -9,6 +9,7 @@ export default interface ICustomer {
     date_of_birth: Date;
     gender: GenderTypes;
     location_id?: number;
+    suspended: boolean;
     created_by_id:number;
     created_at?: Date;
     updated_at?: Date;
