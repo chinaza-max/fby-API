@@ -994,7 +994,7 @@ export default class JobController {
     try {
       const data = JSON.parse(req.body.array_guard_id) ;
 
-      let data2={
+      let data2={ 
         array_guard_id:data,
         job_id:req.body.job_id,
         old_guard_id:req.body.old_guard_id,
