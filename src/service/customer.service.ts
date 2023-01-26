@@ -493,6 +493,7 @@ class CustomerService {
     if (data == "all") {
       try {
         var allCustomers = await Customer.findAll({
+          where: {suspended: false},
           include: [
             {
               model: Location,
@@ -555,6 +556,7 @@ class CustomerService {
     } else {
       try {
         var allCustomers = await Customer.findAll({
+          where: {suspended: false},
           limit: data.limit,
           offset: data.offset,
           include: [

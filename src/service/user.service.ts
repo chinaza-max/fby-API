@@ -512,7 +512,7 @@ class UserService {
   }
 
   async handleSuspensionOfCustomer(data: any) {
-    try {
+    // try {
       const { admin_id, body } = data;
 
       const { customer_id, comment } =
@@ -542,9 +542,10 @@ class UserService {
       } else {
         throw new UnAuthorizedError("you are not unauthorized");
       }
-    } catch (error) {
-      throw new SystemError(error.toString());
-    }
+    // } catch (error) {
+    //   console.log(error.message)
+    //   //throw new SystemError(error.toString());
+    // }
   }
 
   async handleUnSuspensionOfCustomer(data: any) {
