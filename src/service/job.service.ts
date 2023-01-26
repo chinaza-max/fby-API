@@ -45,7 +45,7 @@ import {
   SecurityCodeVerificationError,
   AgendaSheduleError,
 } from "../errors";
-import { fn, col, Op, QueryError, where, FLOAT }  from "sequelize";
+import { fn, col, Op, QueryError, where, FLOAT } from "sequelize";
 import moment from "moment";
 import axios from "axios";
 import momentTimeZone from "moment-timezone";
@@ -2983,9 +2983,9 @@ class UserService {
     }
   }
 
-  async  getAllJobsdoneByGaurd(data:any) {
+  async getAllJobsdoneByGaurd(data: any) {
     try {
-      var {guard_id} = await jobUtil.verifyAllJobsdoneByGaurd.validateAsync(data);
+      var { guard_id } = await jobUtil.verifyAllJobsdoneByGaurd.validateAsync(data);
       const returned_data = await this.ScheduleModel.sequelize.query(`SELECT DISTINCT customers.company_name, guard_id, job_id,
        customers.id as customer_id  FROM schedule INNER JOIN jobs
       ON schedule.job_id = jobs.id INNER JOIN customers ON jobs.customer_id = customers.id
@@ -2997,10 +2997,10 @@ class UserService {
     }
   }
 
-  async  getAllSiteWorkByGaurdForCompany(data:any) {
+  async getAllSiteWorkByGaurdForCompany(data: any) {
     try {
-      var {job_id} = await jobUtil.getAllSiteWorkByGaurdForCompany.validateAsync(data);
-      
+      var { job_id } = await jobUtil.getAllSiteWorkByGaurdForCompany.validateAsync(data);
+
       const returned_data = await this.ScheduleModel.sequelize.query(`SELECT facility.name, jobs.id as job_id FROM jobs INNER JOIN facility
       ON jobs.facility_id = facility.id
       WHERE jobs.id = ${job_id}
@@ -3011,11 +3011,11 @@ class UserService {
     }
   }
 
-  async  getJobDetails(data:any) {
+  async getJobDetails(data: any) {
     try {
-      var {job_id} = await jobUtil.getJobDetails.validateAsync(data);
-      
-      const returned_data = await (await this.JobModel.findOne({where:{id:job_id}})).dataValues
+      var { job_id } = await jobUtil.getJobDetails.validateAsync(data);
+
+      const returned_data = await (await this.JobModel.findOne({ where: { id: job_id } })).dataValues
       return returned_data
     } catch (error) {
       throw new SystemError(error)
@@ -3736,9 +3736,9 @@ class UserService {
       var a =
         Math.sin(dLat / 2) * Math.sin(dLat / 2) +
         Math.cos(deg2rad(lat1)) *
-          Math.cos(deg2rad(lat2)) *
-          Math.sin(dLon / 2) *
-          Math.sin(dLon / 2);
+        Math.cos(deg2rad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
       var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
       var d = R * c; // Distance in km
       d = d * 1000; //Distance in meters
@@ -3967,6 +3967,55 @@ class UserService {
       if (i == val.length - 1) {
         return sum_of_guard_shift;
       }
+    }
+  }
+
+
+  async calender(customer_id, guard_id, site_id) {
+    try {
+      const all = [];
+
+      var data = await this.ScheduleModel.findAll(
+        {
+          include: {
+            model: this.JobModel,
+            as: "job",
+            where: {
+              [Op.and]: [
+                { "customer_id": {[Op.like]:customer_id ? customer_id : "%" }},
+                { "facility_id":{[Op.like]: site_id ? site_id : "%" }}
+              ],
+              // attributes:['customer_id']
+            }
+          },
+          where: { guard_id: {[Op.like]:guard_id ? guard_id : "%" }}
+        });
+
+      const users = await this.UserModel.findAll({ where: { role: "GUARD" } })
+      for (let i = 0; i < users.length; i++) {
+        let a = {
+          user_id: users[i]?.id,
+          name: users[i]?.first_name + " " + users[i]?.last_name,
+          hours_worked: 0,
+          data: []
+        }
+        for (let j = 0; j < data.length; j++) {
+          if (data[j]?.guard_id == users[i].id) {
+            var check_in_date: any = new Date(data[j].check_in_date);
+            var check_out_date: any = new Date(data[j].check_out_date)
+            a.hours_worked = (check_out_date - check_in_date) / 3600000 + a.hours_worked
+            a.data.push(data[j])
+          }
+
+        }
+        all.push(a)
+      }
+      // return data
+      return all
+    }
+    catch (error) {
+      console.log(error)
+      throw new SystemError(error)
     }
   }
 
@@ -4387,7 +4436,7 @@ class UserService {
     // if(difference == 20){}
   }
 
-  async updateJob(data: any): Promise<any> {}
+  async updateJob(data: any): Promise<any> { }
 }
 
 export default new UserService();
