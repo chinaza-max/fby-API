@@ -62,6 +62,20 @@ class CustomerRoutes extends CustomerController {
       authMiddleware.validateUserToken,
       this.testEmail
     );
+    this.router.post(
+      "/suspend_customer_account", 
+      authMiddleware.validateUserToken,
+      this.suspendCustomerAccount
+    );
+    this.router.post(
+      "/unsuspend_customer_account",
+      authMiddleware.validateUserToken,
+      this.UnsuspendCustomerAccount
+    );
+    this.router.get(
+      "/suspended_customers", 
+      authMiddleware.validateUserToken,
+      this.getSuspendedCustomers);
 
 
     

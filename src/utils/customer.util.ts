@@ -77,6 +77,13 @@ class CustomerUtil {
         operations_area_constraint: Joi.number().required(),
     }),
   });
+  public verifyCustomerSuspension = Joi.object().keys({
+    customer_id : Joi.number().required(),
+    comment: Joi.string().required()
+  });
+  public verifyCustomerUnSuspension = Joi.object().keys({
+    customer_id : Joi.number().required(),
+  })
 }
 
 export default new CustomerUtil();

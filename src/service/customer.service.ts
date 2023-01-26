@@ -5,6 +5,7 @@ import {
   Facility,
   FacilityLocation,
   Location,
+  Customer_suspension_comments,
 } from "../db/models";
 import {
   Facility as FacilityDeleted,
@@ -15,7 +16,7 @@ import serverConfig from "../config/server.config";
 import customerUtil from "../utils/customer.util";
 import IAdmin from "../interfaces/admin.interface";
 import bcrypt from "bcrypt";
-import { ConflictError, SystemError, NotFoundError } from "../errors";
+import { ConflictError, SystemError, NotFoundError, UnAuthorizedError } from "../errors";
 import authService from "./auth.service";
 import ICustomer from "../interfaces/customer.interface";
 import utilService from "./util.service";
@@ -35,6 +36,8 @@ class CustomerService {
   private CoordinatesModel = Coordinates;
   private FacilityModel = Facility;
   private FacilityLocationModel = FacilityLocation;
+  private Customer_suspension_commentsModel = Customer_suspension_comments;
+  private AdminModel = Admin
 
   private LocationDeletedModel = LocationDeleted;
   private FacilityDeletedModel = FacilityDeleted;
@@ -749,6 +752,152 @@ class CustomerService {
     } catch (error) {
       console.log(error);
       return [];
+    }
+  }
+
+  async handleSuspensionOfCustomer(data: any) {
+    // try {
+      const { admin_id, body } = data;
+
+      const { customer_id, comment } =
+        await customerUtil.verifyCustomerSuspension.validateAsync(body);
+
+      const { role, can_suspend } = (
+        await this.AdminModel.findOne({ where: { id: admin_id } })
+      ).dataValues;
+
+      if (
+        role === "SUPER_ADMIN" ||
+        (role === "ADMIN" && can_suspend === true)
+      ) {
+        const user = await this.UserModel.findOne({
+          where: { id: customer_id },
+        });
+        if (user) {
+          user.update({ suspended: true });
+          await this.Customer_suspension_commentsModel.create({
+            comment,
+            customer_id,
+            admin_id,
+          });
+        } else {
+          throw new NotFoundError("user not found");
+        }
+      } else {
+        throw new UnAuthorizedError("you are not unauthorized");
+      }
+    // } catch (error) {
+    //   console.log(error.message)
+    //   //throw new SystemError(error.toString());
+    // }
+  }
+
+  async handleUnSuspensionOfCustomer(data: any) {
+    try {
+      const { admin_id, body } = data;
+
+      const { customer_id } =
+        await customerUtil.verifyCustomerUnSuspension.validateAsync(body);
+      const comment = "user has been unsuspened";
+      const { role, can_suspend } = (
+        await this.AdminModel.findOne({ where: { id: admin_id } })
+      ).dataValues;
+
+      if (
+        role === "SUPER_ADMIN" ||
+        (role === "ADMIN" && can_suspend === true)
+      ) {
+        const user = await this.UserModel.findOne({
+          where: { id: customer_id },
+        });
+        if (user) {
+          user.update({ suspended: false });
+        } else {
+          throw new NotFoundError("user not found");
+        }
+
+        await this.Customer_suspension_commentsModel.create({
+          comment,
+          customer_id,
+          admin_id,
+        });
+      } else {
+        throw new UnAuthorizedError("you are not unauthorized");
+      }
+    } catch (error) {
+      throw new SystemError(error.toString());
+    }
+  }
+
+  async handleGetSuspendedCustomers(data) {
+    try {
+      var allCustomers = await Customer.findAll({
+        where: {suspended: true},
+        limit: data.limit,
+        offset: data.offset,
+        include: [
+          {
+            model: Location,
+            as: "location",
+          },
+          {
+            model: Facility,
+            as: "facilities",
+            include: [
+              {
+                model: FacilityLocation,
+                as: "facility_location",
+                include: [
+                  {
+                    model: Coordinates,
+                    as: "coordinates",
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            model: this.Customer_suspension_commentsModel,          
+          }
+        ],
+        order: [["created_at", "DESC"]],
+      });
+      let tempCustomers = [];
+      allCustomers?.forEach((customer: any) => {
+        let tempCustomer = {
+          id: customer.id,
+          image: customer.image,
+          company_name: customer.company_name,
+          address: customer.location.address,
+          address_id: customer.location.id,
+          email: customer.email,
+          gender: customer.gender,
+          date_of_birth: customer.date_of_birth,
+          phone_number: customer.phone_number,
+          comment: customer.Customer_suspension_comments[customer.Customer_suspension_comments.length -1]
+        };
+        let sites = [];
+        customer.facilities?.forEach((facility) => {
+          sites.push({
+            id: facility.id,
+            site_name: facility.name,
+            amount: facility.client_charge,
+            address: facility.facility_location.address,
+            latitude: facility.facility_location.coordinates.latitude,
+            longitude: facility.facility_location.coordinates.longitude,
+            operations_area_constraint:
+              facility.facility_location.operations_area_constraint,
+            operations_area_constraint_active:
+              facility.facility_location.operations_area_constraint_active,
+          });
+        });
+        tempCustomer["sites"] = sites;
+        tempCustomers.push(tempCustomer);
+      });
+      return tempCustomers;
+    } catch (error) {
+      console.log(error);
+      return error;
     }
   }
 

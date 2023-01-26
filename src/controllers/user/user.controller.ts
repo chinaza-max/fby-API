@@ -207,45 +207,6 @@ export default class UserController {
     }
   }
 
-  protected async suspendCustomerAccount(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response> {
-    try {
-      const data = {
-        body: req.body,
-        admin_id: req?.user?.id,
-      };
-      const obj = await userService.handleSuspensionOfCustomer(data);
-      return res.status(200).json({
-        status: 200,
-        message: "Account has been suspended",
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  protected async UnsuspendCustomerAccount(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response> {
-    try {
-      const data = {
-        body: req.body,
-        admin_id: req?.user?.id,
-      };
-      const obj = await userService.handleUnSuspensionOfCustomer(data);
-      return res.status(200).json({
-        status: 200,
-        message: "Account has been unsuspended",
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
 
   protected async suspendAccountAuthorization(
     req: Request,
@@ -293,11 +254,18 @@ export default class UserController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const data = {
-        body: req.body,
-        admin_id: req?.user?.id,
-      };
-      const obj = await userService.handleGetSuspendedStaffs();
+      let myData;
+
+      if(Object.keys(req.query).length === 0){
+        myData="all" 
+      }else{
+        myData={
+          limit:Number(req.query.limit),
+          offset:Number(req.query.offset),
+          role: req.query.role 
+        }
+      }
+      const obj = await userService.handleGetSuspendedStaffs(myData);
       return res.status(200).json({
         status: 200,
         data: obj,
@@ -307,24 +275,5 @@ export default class UserController {
     }
   }
 
-  protected async getSuspendedCustomers(
-    req: Request,
-    res: Response,
-    next: NextFunction
-  ): Promise<Response> {
-    try {
-      const data = {
-        body: req.body,
-        admin_id: req?.user?.id,
-      };
-      const obj = await userService.handleGetSuspendedCustomers();
-      return res.status(200).json({
-        status: 200,
-        data: obj,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
 
 }
