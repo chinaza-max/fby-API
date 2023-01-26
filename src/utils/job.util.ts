@@ -210,8 +210,6 @@ class JobUtil {
     array_guard_id: Joi.array().required()
   });
 
-
-  
   public verifysheduleDateCreation = Joi.object().keys({
     my_time_zone: Joi.string().required(),
     created_by_id: Joi.number().required(),

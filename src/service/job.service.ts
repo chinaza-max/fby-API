@@ -54,7 +54,7 @@ class UserService {
   private FacilityLocationModel = FacilityLocation;
   private AgendasModel = Agendas;
   private JobReportsModel = JobReports;
-  private JobSecurityModel = JobSecurityCode;
+  private JobSecurityCodeModel = JobSecurityCode;
   private SecurityCheckLogModel = SecurityCheckLog;
   private MemoModel = Memo;
   private MemoReceiverModel = MemoReceiver;
@@ -949,11 +949,30 @@ async replyMemo(data: any): Promise<any> {
                     { job_id},
                     {guard_id:old_guard_id}
                     ]}
+
               }).then(existingRecord => {
                 if(existingRecord.length!==0){
-                  const newRecord = { ...existingRecord, created_at:dateStamp,
-                    updated_at:dateStamp,guard_id:array_guard_id[i] };
-                  this.ScheduleModel.create(newRecord);
+
+
+                  existingRecord.map(existingId => {
+                      this.ScheduleModel.findOne({where: {id:existingId.id },
+                  attributes: ['start_time', 'settlement_status'
+                  , 'end_time', 
+                  'status_per_staff', 'check_in_date', 
+                  'check_out_date', 'job_id', 'created_by_id',
+                   'guard_id', 'schedule_accepted_by_admin',
+                    'created_at', 'updated_at']
+                      }).then(existingRecord => {
+                      // Create a new object with the updated parameter
+                      const newRecord = { ...existingRecord.dataValues, created_at:dateStamp,
+                        updated_at:dateStamp,guard_id:array_guard_id[i],status_per_staff:'PENDING'};
+                      // Use the create method to create a new record in the table
+                        this.ScheduleModel.create(newRecord)
+                    });
+                  });
+
+  
+
                 }
               })
 
@@ -965,34 +984,66 @@ async replyMemo(data: any): Promise<any> {
                   ]}
               }).then(existingRecord => {
               if(existingRecord.length!==0){
-                const newRecord = { ...existingRecord, created_at:dateStamp,
-                  updated_at:dateStamp,guard_id:array_guard_id[i] };
-                this.AgendasModel.create(newRecord);
+             
+                existingRecord.map(existingId => {
+                  this.AgendasModel.findOne({where: {id:existingId.id } ,
+                  attributes: ['title', 'description'
+                  , 'job_id', 
+                  'guard_id', 'created_by_id','date_schedule_id', 
+                  'agenda_type', 'status_per_staff', 'operation_date',
+                   'agenda_done', 'coordinates_id',
+                    'created_at', 'updated_at']
+                  }).then(existingRecord => {
+                  // Create a new object with the updated parameter
+                  const newRecord = { ...existingRecord.dataValues, created_at:dateStamp,
+                    updated_at:dateStamp,guard_id:array_guard_id[i]};
+                  // Use the create method to create a new record in the table
+                    this.AgendasModel.create(newRecord);
+                });
+              })
+
+
+
+
               }
             })
 
-            await  this.JobSecurityModel.findAll({
+            await  this.JobSecurityCodeModel.findAll({
               where: {[Op.and]:[ 
                 { job_id},
                 {guard_id:old_guard_id}
                 ]}
             }).then(existingRecord => {
             if(existingRecord.length!==0){
-              const newRecord = { ...existingRecord, created_at:dateStamp,
-                updated_at:dateStamp,guard_id:array_guard_id[i] };
-              this.AgendasModel.create(newRecord);
+
+              existingRecord.map(existingId => {
+                this.JobSecurityCodeModel.findOne({where: {id:existingId.id }
+                  ,
+                  attributes: ['agenda_id', 'guard_id'
+                  , 'job_id', 
+                  'security_code',
+                    'created_at', 'updated_at']
+                }).then(existingRecord => {
+                // Create a new object with the updated parameter
+                const newRecord = { ...existingRecord.dataValues, created_at:dateStamp,
+                  updated_at:dateStamp,guard_id:array_guard_id[i]};
+                // Use the create method to create a new record in the table
+                  this.JobSecurityCodeModel.create(newRecord);
+              });
+            })
+
             }
             })
             if(i==array_guard_id.length-1){
+
 
               await  this.ScheduleModel.destroy({
                 where: {[Op.and]:[ 
                   { job_id},
                   {guard_id:old_guard_id}
                   ]}
-            })
-
-
+              })
+             
             await  this.AgendasModel.destroy({
               where: {[Op.and]:[ 
                 { job_id},
@@ -1000,13 +1051,12 @@ async replyMemo(data: any): Promise<any> {
                 ]}
             })
 
-          await  this.JobSecurityModel.destroy({
-            where: {[Op.and]:[ 
-              { job_id},
-              {guard_id:old_guard_id}
-              ]}
-          })
-
+            await  this.JobSecurityCodeModel.destroy({
+              where: {[Op.and]:[ 
+                { job_id},
+                {guard_id:old_guard_id}
+                ]}
+            })
 
           }
       }
@@ -1161,7 +1211,7 @@ async replyMemo(data: any): Promise<any> {
                   info:{
                     fullName:'',
                     operation_date:'',
-                    issues:"no new shedule was created dublicate found"
+                    issues:"No new schedule was created dublicate found"
                   }
                 }
                 throw(obj)
@@ -1187,7 +1237,7 @@ async replyMemo(data: any): Promise<any> {
                 created_at:dateStamp,
                 updated_at:dateStamp
               }
-              await this.JobSecurityModel.create(myObj) 
+              await this.JobSecurityCodeModel.create(myObj) 
             }
           }
 
@@ -1403,7 +1453,7 @@ async replyMemo(data: any): Promise<any> {
 
                   return  await this.ScheduleModel.bulkCreate(scheduleWithTimeStamp);
                 }else{
-                  throw new DateSheduleError("no new shedule was created dublicate found");
+                  throw new DateSheduleError("No new schedule was created dublicate found");
                 }
             }
           }
@@ -2557,7 +2607,7 @@ async getOneShedulePerGuard(obj) {
     }
     =  await jobUtil.verifygetGetSecurityCodePerJob.validateAsync(obj);
       
-    let foundJC=await  this.JobSecurityModel.findAll({
+    let foundJC=await  this.JobSecurityCodeModel.findAll({
       where:{
         job_id
       },
@@ -2574,7 +2624,7 @@ async getOneShedulePerGuard(obj) {
 
       for(let i=0; i<foundJC.length;i++){
 
-        let foundJC2=await  this.JobSecurityModel.findOne({
+        let foundJC2=await  this.JobSecurityCodeModel.findOne({
           where:{
             security_code:foundJC[i].security_code
           },
@@ -2587,7 +2637,7 @@ async getOneShedulePerGuard(obj) {
           }
         })
 
-        let foundJSC=await  this.JobSecurityModel.findAll({
+        let foundJSC=await  this.JobSecurityCodeModel.findAll({
           where:{
             security_code:foundJC[i].security_code
           }
@@ -2944,6 +2994,78 @@ async getOneShedulePerGuard(obj) {
   }
 
   
+
+  async  getFreeGuard(obj) {
+
+    let arrayId=[]
+    let detail=[]
+      let foundG=await  this.UserModel.findAll({
+        where:
+        {[Op.and]:    
+          [
+            {availability:true},
+            {suspended:false},
+          {role:'GUARD'}
+          ]}
+      })
+
+      if(foundG.length!=0){
+
+        for(let j=0;j<foundG.length;j++){
+
+          if(arrayId.includes(foundG[j].id)||await this.checkIfGuardIsInAnyActiveJob2(foundG[j].id,obj.job_id)){
+
+          }
+          else{
+            arrayId.push(foundG[j].id)
+          }
+          
+          if(j==foundG.length-1){
+            
+            if(arrayId.length!=0){
+              for(let i=0;i<arrayId.length;i++){
+                let obj2={}
+              
+                let name =await this.getSingleGuardDetail(arrayId[i])
+      
+                obj2["guard_id"]=arrayId[i]
+                obj2["full_name"]=name["first_name"]+" "+name["last_name"]
+                detail.push(obj2)
+      
+                if(i==arrayId.length-1){
+                    return detail
+                }
+              }
+             }
+             else{
+              return detail
+            }
+          }
+        }
+      }
+      else{
+
+        if(arrayId.length!=0){
+          for(let i=0;i<arrayId.length;i++){
+            let obj2={}
+          
+            let name =await this.getSingleGuardDetail(arrayId[i])
+  
+            obj2["guard_id"]=arrayId[i]
+            obj2["full_name"]=name["first_name"]+" "+name["last_name"]
+            detail.push(obj2)
+  
+            if(i==arrayId.length-1){
+                return detail
+            }
+          }
+         }
+         else{
+          return detail
+        }
+      }
+  }
+
   async getGuard(obj) {
 
     let arrayId=[]
@@ -2974,13 +3096,13 @@ async getOneShedulePerGuard(obj) {
             
             if(arrayId.length!=0){
               for(let i=0;i<arrayId.length;i++){
-                let obj={}
+                let obj2={}
               
                 let name =await this.getSingleGuardDetail(arrayId[i])
       
-                obj["guard_id"]=arrayId[i]
-                obj["full_name"]=name["first_name"]+" "+name["last_name"]
-                detail.push(obj)
+                obj2["guard_id"]=arrayId[i]
+                obj2["full_name"]=name["first_name"]+" "+name["last_name"]
+                detail.push(obj2)
       
                 if(i==arrayId.length-1){
                     return detail
@@ -2997,13 +3119,13 @@ async getOneShedulePerGuard(obj) {
 
         if(arrayId.length!=0){
           for(let i=0;i<arrayId.length;i++){
-            let obj={}
+            let obj2={}
           
             let name =await this.getSingleGuardDetail(arrayId[i])
   
-            obj["guard_id"]=arrayId[i]
-            obj["full_name"]=name["first_name"]+" "+name["last_name"]
-            detail.push(obj)
+            obj2["guard_id"]=arrayId[i]
+            obj2["full_name"]=name["first_name"]+" "+name["last_name"]
+            detail.push(obj2)
   
             if(i==arrayId.length-1){
                 return detail
@@ -3014,74 +3136,7 @@ async getOneShedulePerGuard(obj) {
           return detail
         }
       }
-  //  }
-
-    
-
-  /*
-    let foundG=await  this.UserModel.findAll({
-      where:
-      {[Op.and]: 
-        [
-          {availability:true},
-          {suspended:false},
-        {role:'GUARD'}
-        ]}
-    })
-
-   
-    let availabLeGuard=[]
-    if(foundG.length!=0){
-
-
-      let foundJ= await this.JobModel.findAll({where:{job_status:"ACTIVE"}})
-
-
-          for(let i=0; i<foundG.length; i++){
-
-            let obj={}
-            for(let j=0; j<foundJ.length; j++){
-
-                  
-              let foundS= await this.ScheduleModel.findOne({
-                
-                where: {[Op.and]: 
-                  [
-                    {guard_id:foundG[i].id},
-                  {job_id:foundJ[j].id }
-                  ]}
-              })
-
-
-              if(foundS){
-                break;
-              }
-
-              if(j==foundJ.length-1){
-
-                let name =await this.getSingleGuardDetail(foundG[i].id)
-
-                obj["guard_id"]=foundG[i].id
-                obj["full_name"]=name["first_name"]+" "+name["last_name"]
-                availabLeGuard.push(obj)
-
-              }
-
-            }
-
-            if(i==foundG.length-1){
-              return  availabLeGuard
-
-
-            }
-          }
-    }
-    else{
-      return "NO GUARD AVAILABLE"
-    }
-
-
-    */
+  
   }
 
   
@@ -3292,7 +3347,7 @@ async getOneShedulePerGuard(obj) {
         
         if(foundA.agenda_type=="INSTRUCTION"){
 
-          await this.JobSecurityModel.destroy(
+          await this.JobSecurityCodeModel.destroy(
             {
               where: 
                 {agenda_id:foundA.id}
@@ -3408,7 +3463,7 @@ async getOneShedulePerGuard(obj) {
       
 
   
-      const foundSC =await this.JobSecurityModel.findOne(
+      const foundSC =await this.JobSecurityCodeModel.findOne(
         {
           where: {[Op.and]: 
             [
@@ -4346,7 +4401,7 @@ async getJobDetail(val){
       where: {id:val}
     })
 
-    let foundJC=await  this.JobSecurityModel.findAll({
+    let foundJC=await  this.JobSecurityCodeModel.findAll({
       where:{
         job_id:val
       },
@@ -4467,6 +4522,8 @@ async combineUnsettleShift(val){
   }
 
 async checkifAgendaDateIsInScheduleDate(agendaSchedule){
+
+
   for(let i=0; i<agendaSchedule.length;i++){
 
     //THIS ONE IS USE BY INSTRUCTION TO MATCH DATE PROPERLY FOR SEARCH
@@ -4523,11 +4580,9 @@ async checkifAgendaDateIsInScheduleDate(agendaSchedule){
 
             for(let k=0; k< foundItemS2.length;k++){
 
-              if(await this.compareDateOnlySame(moment(foundItemS2[k].check_in_date).format('YYYY-MM-DD'),operation_date2)||await this.compareDateOnlySame(moment(foundItemS2[k].check_out_date).format('YYYY-MM-DD'),operation_date2) ){
 
+              if(await this.checkIfDateIsBetweenTwoDate(operation_date2,moment(foundItemS2[k].check_in_date).format('YYYY-MM-DD'),moment(foundItemS2[k].check_out_date).format('YYYY-MM-DD'))){
                 agendaSchedule[i]={...agendaSchedule[i] ,date_schedule_id:foundItemS2[k].id}
-                console.log(agendaSchedule)
-
                 break
               }
 
@@ -4622,7 +4677,7 @@ for(let i=0;i<combinedArray.length ;i++){
   
 }
 
-  async checkIfGuardIsInAnyActiveJob(guard_id,job_id){
+async checkIfGuardIsInAnyActiveJob(guard_id,job_id){
 
   let foundJ=await this.JobModel.findAll(
     {
@@ -4658,6 +4713,40 @@ for(let i=0;i<combinedArray.length ;i++){
     }
   }
 
+
+  async checkIfGuardIsInAnyActiveJob2(guard_id,job_id){
+
+    let foundJ=await this.JobModel.findAll(
+      {
+        where:
+        {job_status:'ACTIVE'
+         }
+      }
+    )
+  
+  
+      if(foundJ.length!=0){
+        for(let i=0;i<foundJ.length;i++){
+  
+          let foundS=await this.ScheduleModel.findAll({
+            where: {[Op.and]: [{job_id:foundJ[i].id },
+            {guard_id}]}
+          })
+  
+          if(foundS.length!=0){
+            return true
+          }
+  
+          if(i==foundJ.length-1){
+              return false
+          }
+        }
+      }
+      else{
+        return false
+      }
+    }
+  
 
 
 
@@ -4778,6 +4867,14 @@ for(let i=0;i<combinedArray.length ;i++){
       }
     
   
+    
+  }
+
+
+  async checkIfDateIsBetweenTwoDate(checkDate,startDate,endDate){
+   
+
+      return moment(checkDate).isBetween(checkDate, endDate, null, '[]')
     
   }
 

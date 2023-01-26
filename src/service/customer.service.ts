@@ -352,6 +352,60 @@ class CustomerService {
     return res;
   }
 
+
+  
+  async getAllSiteOrSingleSite(data: any): Promise<any> {
+
+    let mytype=data.query.type
+      
+    try {
+
+      if(mytype=='allSite'){
+
+        /** */
+      }
+      else if(mytype=='singleSite'){
+          let foundF=await this.FacilityModel.findOne({
+            where:{
+              id:data.query.id
+            }
+          })
+          let foundL=await this.FacilityLocationModel.findOne({
+            where:{
+              id:foundF.facility_location_id
+            }
+          })
+
+          let foundFC=await this.CoordinatesModel.findOne({
+            where:{
+              id:foundL.coordinates_id
+            }
+          })
+
+          let obj={
+            id: foundF.id,
+            site_name: foundF.name,
+            facility_location_id:foundL.id,
+            client_charge: foundF.client_charge,
+            guard_charge: foundF.guard_charge,
+            address: foundL.address,
+            latitude: foundFC.latitude,
+            longitude: foundFC.longitude,
+            operations_area_constraint:foundL.operations_area_constraint,
+            operations_area_constraint_active:foundL.operations_area_constraint_active,
+          }
+          return obj;
+      }
+
+    
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  
+ 
+}
+
   async handleGetSingleCustomer(data: any): Promise<any> {
 
       try {

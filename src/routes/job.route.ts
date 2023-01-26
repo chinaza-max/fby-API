@@ -64,8 +64,12 @@ class JobRoutes extends JobController {
     this.router.post("/settleShift", this.settleShift);
     this.router.get("/getGeneralUnsettleShift", this.getGeneralUnsettleShift);
 
-    //THIS IS FOR AVAILABLE GUARD
+    //THIS IS FOR AVAILABLE GUARD (guard on job and free guard)
     this.router.post("/getGuard", this.getGuard);
+
+     //THIS IS FOR ONLY FREE GUARD
+     this.router.post("/get_free_Guard", this.getFreeGuard);
+
     //THIS IS FOR ALL GUARD
     this.router.get("/getAllGuard", this.getAllGuard);
     this.router.get("/getAllSite", this.getAllSite);

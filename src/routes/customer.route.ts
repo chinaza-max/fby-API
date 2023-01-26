@@ -22,6 +22,11 @@ class CustomerRoutes extends CustomerController {
       authMiddleware.validateUserToken,
         this.getSingleCustomer
       );
+    this.router.get(
+      "/get_all_site_or_single_site",
+      authMiddleware.validateUserToken,
+     this.getAllSiteOrSingleSite);
+     
     this.router.post(
       "/",
       authMiddleware.validateUserToken,
@@ -57,6 +62,9 @@ class CustomerRoutes extends CustomerController {
       authMiddleware.validateUserToken,
       this.testEmail
     );
+
+
+    
 
     // this.router.get("/", authMiddleware.validateUserToken, this.getAllCustomers);
     // this.router.post("/register", this.signup);

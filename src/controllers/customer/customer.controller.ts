@@ -257,6 +257,31 @@ export default class CustomerController {
   }
 
 
+  
+  protected async getAllSiteOrSingleSite(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+
+      const obj = await customerService.getAllSiteOrSingleSite(req)
+      if(obj?.length === null){
+        return res.status(400).json({
+          status: 400,
+          data: obj ?? "Failed to process request",
+        });
+      }
+
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   protected async getSingleCustomer(
     req: Request,
     res: Response,

@@ -147,6 +147,28 @@ export default class JobController {
     }
   }
 
+
+  protected async getFreeGuard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+
+      const obj = await jobService.getFreeGuard(data);
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
   protected async getGuard(
     req: Request,
     res: Response,
@@ -1000,7 +1022,6 @@ export default class JobController {
         old_guard_id:req.body.old_guard_id,
         my_time_zone:req["user_time_zone"]
       }
-
       const obj = await jobService.rescheduleAndRemoveGuard(data2);
 
       return res.status(200).json({
