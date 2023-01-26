@@ -272,7 +272,7 @@ function associate() {
     },
     as: "agenda",
   });
-
+  Admin.hasMany(Suspension_comments)
   Suspension_comments.belongsTo(Admin, {
     foreignKey: {
       allowNull: false,
@@ -281,6 +281,7 @@ function associate() {
     },
     as: "suspension_comments",
   });
+  Customer.hasMany(Customer_suspension_comments);
 
   Customer_suspension_comments.belongsTo(Customer, {
     foreignKey: {
@@ -288,7 +289,7 @@ function associate() {
       name: "customer_id",
       field: "customer_id",
     },
-    as: "suspension_comments",
+    as: "customer_suspension_comments",
   });
 }
 

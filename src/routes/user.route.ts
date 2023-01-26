@@ -25,12 +25,9 @@ class UserRoutes extends UserController {
     this.router.post("/toggleVisibilty", this.toggleVisibilty);
     this.router.post("/suspend_user_account", this.suspendAccount);
     this.router.post("/unsuspend_user_account", this.UnsuspendAccount);
-    this.router.post("/suspend_customer_account", this.suspendCustomerAccount);
-    this.router.post("/unsuspend_customer_account", this.UnsuspendCustomerAccount);
     this.router.post("/suspend_account_authorization", this.suspendAccountAuthorization);
     this.router.post("/suspend_account_unauthorization", this.suspendAccountUnAuthorization);
     this.router.get("/suspended_staffs", this.getSuspendedStaffs);
-    this.router.get("/suspended_customers", this.getSuspendedCustomers);
     
   }
 }

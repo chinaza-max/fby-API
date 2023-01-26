@@ -5,7 +5,6 @@ import {
   License,
   Suspension_comments,
   Customer,
-  Customer_suspension_comments,
 } from "../db/models";
 import {
   Admin as AdminDeleted,
@@ -27,7 +26,6 @@ class UserService {
   private LicenseModel = License;
   private Suspension_commentsModel = Suspension_comments;
   private CustomerModel = Customer;
-  private Customer_suspension_commentsModel = Customer_suspension_comments;
 
   private UserDeletedModel = AdminDeleted;
   private LocationDeletedModel = LocationDeleted;
@@ -628,92 +626,145 @@ console.log(file.path)
     }
   }
 
-  async handleSuspensionOfCustomer(data: any) {
-    // try {
-      const { admin_id, body } = data;
 
-      const { customer_id, comment } =
-        await userUtil.verifyCustomerSuspension.validateAsync(body);
 
-      const { role, can_suspend } = (
-        await this.UserModel.findOne({ where: { id: admin_id } })
-      ).dataValues;
+  async handleGetSuspendedStaffs(data:any) {
+    if (data.role == "ADMIN") {
+      var staffs = await this.UserModel.findAll({
+        limit: data.limit,
+        offset: data.offset,
+        where: {
+          [Op.and]:[
+            {role: {
+              [Op.ne]: "GUARD",
+            }},
+            {
+              suspended: true
+            }
+          ]
+          
+        },
+        include: [{
+          model: Location,
+          as: "location",
+        },
+        {model: this.Suspension_commentsModel}
+      ],
+        order: [["created_at", "DESC"]],
+      });
+      if (staffs == null) return [];
+      var staffRes = [];
+      for (let index = 0; index < staffs.length; index++) {
+        const staff = staffs[index];
+        const staffData = {
+          id: staff.id,
+          image: staff.image,
+          full_name: `${staff.first_name} ${staff.last_name}`,
+          first_name: staff.first_name,
+          last_name: staff.last_name,
+          email: staff.email,
+          date_of_birth: staff.date_of_birth,
+          gender: staff.gender,
+          phone_number: staff.phone_number,
+          address: (staff.location as any)?.address,
+          address_id: staff.location["id"],
+          comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
 
-      if (
-        role === "SUPER_ADMIN" ||
-        (role === "ADMIN" && can_suspend === true)
-      ) {
-        const user = await this.CustomerModel.findOne({
-          where: { id: customer_id },
-        });
-        if (user) {
-          user.update({ suspended: true });
-          await this.Customer_suspension_commentsModel.create({
-            comment,
-            customer_id,
-            admin_id,
-          });
-        } else {
-          throw new NotFoundError("user not found");
-        }
-      } else {
-        throw new UnAuthorizedError("you are not unauthorized");
+        };
+
+        staffRes.push(staffData);
       }
-    // } catch (error) {
-    //   console.log(error.message)
-    //   //throw new SystemError(error.toString());
-    // }
-  }
+      return staffRes;
+    } else if (data.role == "GUARD") {
+      var staffs = await this.UserModel.findAll({
+        limit: data.limit,
+        offset: data.offset,
+        where: {
+          [Op.and]:[
+            {role: {
+              [Op.eq]: "GUARD",
+            }},
+            {
+              suspended: true
+            }
+          ]
+          
+        },
+        include: [{
+          model: Location,
+          as: "location",
+        },
+        {model: this.Suspension_commentsModel}
+      ],
+        order: [["created_at", "DESC"]],
+      });
+      if (staffs == null) return [];
+      var staffRes = [];
+      for (let index = 0; index < staffs.length; index++) {
+        const staff = staffs[index];
+        const staffData = {
+          id: staff.id,
+          image: staff.image,
+          full_name: `${staff.first_name} ${staff.last_name}`,
+          first_name: staff.first_name,
+          last_name: staff.last_name,
+          email: staff.email,
+          date_of_birth: staff.date_of_birth,
+          gender: staff.gender,
+          phone_number: staff.phone_number,
+          address: (staff.location as any)?.address,
+          address_id: (staff.location as any)?.id,
+          comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
 
-  async handleUnSuspensionOfCustomer(data: any) {
-    try {
-      const { admin_id, body } = data;
-
-      const { customer_id } =
-        await userUtil.verifyCustomerUnSuspension.validateAsync(body);
-      const comment = "user has been unsuspened";
-      const { role, can_suspend } = (
-        await this.UserModel.findOne({ where: { id: admin_id } })
-      ).dataValues;
-
-      if (
-        role === "SUPER_ADMIN" ||
-        (role === "ADMIN" && can_suspend === true)
-      ) {
-        const user = await this.CustomerModel.findOne({
-          where: { id: customer_id },
-        });
-        if (user) {
-          user.update({ suspended: false });
-        } else {
-          throw new NotFoundError("user not found");
-        }
-
-        await this.Customer_suspension_commentsModel.create({
-          comment,
-          customer_id,
-          admin_id,
-        });
-      } else {
-        throw new UnAuthorizedError("you are not unauthorized");
+        };
+        staffRes.push(staffData);
       }
-    } catch (error) {
-      throw new SystemError(error.toString());
+      return staffRes;
+    } else if (data.role == "ALL_GUARD") {
+      var staffs = await this.UserModel.findAll({
+        where: {
+          [Op.and]:[
+            {role: {
+              [Op.eq]: "GUARD",
+            }},
+            {
+              suspended: true
+            }
+          ]
+          
+        },
+        include: [{
+          model: Location,
+          as: "location",
+        },
+        {model: this.Suspension_commentsModel}
+      ],
+        order: [["created_at", "DESC"]],
+      });
+      if (staffs == null) return [];
+      var staffRes = [];
+      for (let index = 0; index < staffs.length; index++) {
+        const staff = staffs[index];
+        const staffData = {
+          id: staff.id,
+          image: staff.image,
+          full_name: `${staff.first_name} ${staff.last_name}`,
+          first_name: staff.first_name,
+          last_name: staff.last_name,
+          email: staff.email,
+          date_of_birth: staff.date_of_birth,
+          gender: staff.gender,
+          phone_number: staff.phone_number,
+          address: (staff.location as any)?.address,
+          address_id: (staff.location as any)?.id,
+          comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
+        };
+        staffRes.push(staffData);
+      }
+      return staffRes;
     }
   }
 
-  async handleGetSuspendedStaffs() {
-    const data = this.UserModel.findAll({ where: { suspended: true } });
-    return data;
-  }
-  async handleGetSuspendedCustomers() {
-    try {
-      const data = this.CustomerModel.findAll({ where: { suspended: true } });
-      return data;
-    } catch (error) {
-      throw new SystemError(error.toString());
-    }
-  }
   async getDateAndTimeForStamp(my_time_zone) {
     let con_fig_time_zone = momentTimeZone.tz(my_time_zone);
     let date = new Date(con_fig_time_zone.format("YYYY-MM-DD hh:mm:ss a"));

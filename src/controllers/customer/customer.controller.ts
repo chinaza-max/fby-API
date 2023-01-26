@@ -302,4 +302,69 @@ export default class CustomerController {
       next(error);
     }
   }
+
+  protected async suspendCustomerAccount(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = {
+        body: req.body,
+        admin_id: req?.user?.id,
+      };
+      const obj = await customerService.handleSuspensionOfCustomer(data);
+      return res.status(200).json({
+        status: 200,
+        message: "Account has been suspended",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async UnsuspendCustomerAccount(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = {
+        body: req.body,
+        admin_id: req?.user?.id,
+      };
+      const obj = await customerService.handleUnSuspensionOfCustomer(data);
+      return res.status(200).json({
+        status: 200,
+        message: "Account has been unsuspended",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  protected async getSuspendedCustomers(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      let myData;
+
+      if(Object.keys(req.query).length === 0){
+        myData="all" 
+      }else{
+        myData={
+          limit:Number(req.query.limit),
+          offset:Number(req.query.offset) 
+        }
+      }
+      const obj = await customerService.handleGetSuspendedCustomers(myData);
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
