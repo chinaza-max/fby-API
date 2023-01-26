@@ -62,6 +62,7 @@ export default class AuthenticationController {
       } catch (error) {
         console.log(error);
       }
+      console.log(obj)
       if (obj == -1)
         return res.status(401).json({
           status: 401,

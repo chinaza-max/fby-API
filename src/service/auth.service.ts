@@ -62,7 +62,7 @@ class AuthenticationService {
     console.log(bcrypt.compare(password, user.password));
 
     if (!(await bcrypt.compare(password, user.password))) return null;
-    if (user.role != "ADMIN") return -1;
+    if (user.role == "GUARD" ) return -1;
 
     var relatedLocation = await this.LocationModel.findByPk(user.location_id);
     user.last_logged_in = new Date();

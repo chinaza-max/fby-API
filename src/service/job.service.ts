@@ -2475,7 +2475,214 @@ class UserService {
       return decline;
     }
   }
+  async  getFreeGuard(obj) {
 
+    let arrayId=[]
+    let detail=[]
+      let foundG=await  this.UserModel.findAll({
+        where:
+        {[Op.and]:    
+          [
+            {availability:true},
+            {suspended:false},
+          {role:'GUARD'}
+          ]}
+      })
+
+      if(foundG.length!=0){
+
+        for(let j=0;j<foundG.length;j++){
+
+          if(arrayId.includes(foundG[j].id)||await this.checkIfGuardIsInAnyActiveJob2(foundG[j].id,obj.job_id)){
+
+          }
+          else{
+            arrayId.push(foundG[j].id)
+          }
+          
+          if(j==foundG.length-1){
+            
+            if(arrayId.length!=0){
+              for(let i=0;i<arrayId.length;i++){
+                let obj2={}
+              
+                let name =await this.getSingleGuardDetail(arrayId[i])
+      
+                obj2["guard_id"]=arrayId[i]
+                obj2["full_name"]=name["first_name"]+" "+name["last_name"]
+                detail.push(obj2)
+      
+                if(i==arrayId.length-1){
+                    return detail
+                }
+              }
+             }
+             else{
+              return detail
+            }
+          }
+        }
+      }
+      else{
+
+        if(arrayId.length!=0){
+          for(let i=0;i<arrayId.length;i++){
+            let obj2={}
+          
+            let name =await this.getSingleGuardDetail(arrayId[i])
+  
+            obj2["guard_id"]=arrayId[i]
+            obj2["full_name"]=name["first_name"]+" "+name["last_name"]
+            detail.push(obj2)
+  
+            if(i==arrayId.length-1){
+                return detail
+            }
+          }
+         }
+         else{
+          return detail
+        }
+      }
+  }
+
+  async  rescheduleAndRemoveGuard(data: any): Promise<any> {
+    try {
+      const {
+        job_id,
+        my_time_zone,
+        array_guard_id,
+        old_guard_id
+      } = await jobUtil.verifyRescheduleAndRemoveGuard.validateAsync(data);
+
+
+      let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
+
+      for (let i = 0; i < array_guard_id.length; i++) {
+
+              await  this.ScheduleModel.findAll({
+                  where: {[Op.and]:[ 
+                    { job_id},
+                    {guard_id:old_guard_id}
+                    ]}
+
+              }).then(existingRecord => {
+                if(existingRecord.length!==0){
+
+
+                  existingRecord.map(existingId => {
+                      this.ScheduleModel.findOne({where: {id:existingId.id },
+                  attributes: ['start_time', 'settlement_status'
+                  , 'end_time', 
+                  'status_per_staff', 'check_in_date', 
+                  'check_out_date', 'job_id', 'created_by_id',
+                   'guard_id', 'schedule_accepted_by_admin',
+                    'created_at', 'updated_at']
+                      }).then(existingRecord => {
+                      // Create a new object with the updated parameter
+                      const newRecord = { ...existingRecord.dataValues, created_at:dateStamp,
+                        updated_at:dateStamp,guard_id:array_guard_id[i],status_per_staff:'PENDING'};
+                      // Use the create method to create a new record in the table
+                        this.ScheduleModel.create(newRecord)
+                    });
+                  });
+
+  
+
+                }
+              })
+
+
+              await  this.AgendasModel.findAll({
+                where: {[Op.and]:[ 
+                  { job_id},
+                  {guard_id:old_guard_id}
+                  ]}
+              }).then(existingRecord => {
+              if(existingRecord.length!==0){
+             
+                existingRecord.map(existingId => {
+                  this.AgendasModel.findOne({where: {id:existingId.id } ,
+                  attributes: ['title', 'description'
+                  , 'job_id', 
+                  'guard_id', 'created_by_id','date_schedule_id', 
+                  'agenda_type', 'status_per_staff', 'operation_date',
+                   'agenda_done', 'coordinates_id',
+                    'created_at', 'updated_at']
+                  }).then(existingRecord => {
+                  // Create a new object with the updated parameter
+                  const newRecord = { ...existingRecord.dataValues, created_at:dateStamp,
+                    updated_at:dateStamp,guard_id:array_guard_id[i]};
+                  // Use the create method to create a new record in the table
+                    this.AgendasModel.create(newRecord);
+                });
+              })
+
+
+
+
+              }
+            })
+
+            await  this.JobSecurityCodeModel.findAll({
+              where: {[Op.and]:[ 
+                { job_id},
+                {guard_id:old_guard_id}
+                ]}
+            }).then(existingRecord => {
+            if(existingRecord.length!==0){
+
+              existingRecord.map(existingId => {
+                this.JobSecurityCodeModel.findOne({where: {id:existingId.id }
+                  ,
+                  attributes: ['agenda_id', 'guard_id'
+                  , 'job_id', 
+                  'security_code',
+                    'created_at', 'updated_at']
+                }).then(existingRecord => {
+                // Create a new object with the updated parameter
+                const newRecord = { ...existingRecord.dataValues, created_at:dateStamp,
+                  updated_at:dateStamp,guard_id:array_guard_id[i]};
+                // Use the create method to create a new record in the table
+                  this.JobSecurityCodeModel.create(newRecord);
+              });
+            })
+
+            }
+            })
+            if(i==array_guard_id.length-1){
+
+
+              await  this.ScheduleModel.destroy({
+                where: {[Op.and]:[ 
+                  { job_id},
+                  {guard_id:old_guard_id}
+                  ]}
+              })
+             
+            await  this.AgendasModel.destroy({
+              where: {[Op.and]:[ 
+                { job_id},
+                {guard_id:old_guard_id}
+                ]}
+            })
+
+            await  this.JobSecurityCodeModel.destroy({
+              where: {[Op.and]:[ 
+                { job_id},
+                {guard_id:old_guard_id}
+                ]}
+            })
+
+          }
+      }
+
+      
+    } catch (error) {
+      console.log(error);
+      throw new SystemError(error.toString());
+    }
+  }
   async getDashBoardInfoGuard(req) {
     let foundS = await this.ScheduleModel.findAll({
       where: { guard_id: req.user.id },
@@ -2537,31 +2744,36 @@ class UserService {
   }
 
   async getDashBoardInfo(obj) {
-    let foundC = await this.CustomerModel.findAll();
-    let foundG = await this.UserModel.findAll({
-      where: {
-        role: "GUARD",
-      },
-    });
-
-    let foundA = await this.UserModel.findAll({
-      where: {
-        role: "ADMIN",
-      },
-    });
-    let foundJ = await this.JobModel.findAll({
-      where: {
-        job_status: "ACTIVE",
-      },
-    });
-    obj = {
-      noCustomer: foundC.length,
-      noStaff: foundA.length,
-      noGuard: foundG.length,
-      noActive: foundJ.length,
-    };
-
-    return obj;
+    try {
+      let foundC = await this.CustomerModel.findAll();
+      let foundG = await this.UserModel.findAll({
+        where: {
+          role: "GUARD",
+        },
+      });
+  
+      let foundA = await this.UserModel.findAll({
+        where: {
+          role: "ADMIN",
+        },
+      });
+      let foundJ = await this.JobModel.findAll({
+        where: {
+          job_status: "ACTIVE",
+        },
+      });
+      
+      obj = {
+        noCustomer: foundC.length,
+        noStaff: foundA.length,
+        noGuard: foundG.length,
+        noActive: foundJ.length,
+      };
+  
+      return obj;
+    } catch (error) {
+        console.log(error)
+    }
   }
 
   async getAllSite(obj) {
@@ -3895,6 +4107,38 @@ class UserService {
     return job;
   }
 
+  async checkIfGuardIsInAnyActiveJob2(guard_id,job_id){
+
+    let foundJ=await this.JobModel.findAll(
+      {
+        where:
+        {job_status:'ACTIVE'
+         }
+      }
+    )
+  
+  
+      if(foundJ.length!=0){
+        for(let i=0;i<foundJ.length;i++){
+  
+          let foundS=await this.ScheduleModel.findAll({
+            where: {[Op.and]: [{job_id:foundJ[i].id },
+            {guard_id}]}
+          })
+  
+          if(foundS.length!=0){
+            return true
+          }
+  
+          if(i==foundJ.length-1){
+              return false
+          }
+        }
+      }
+      else{
+        return false
+      }
+    }
   async getSiteDetail(val) {
     const foundF = await this.FacilityModel.findOne({
       where: { id: val },

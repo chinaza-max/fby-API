@@ -522,9 +522,7 @@ class CustomerService {
           let tempCustomer = {
             id: customer.id,
             image: customer.image,
-            full_name: `${customer.first_name} ${customer.last_name}`,
-            first_name: customer.first_name,
-            last_name: customer.last_name,
+            company_name: customer.company_name,
             address: customer.location.address,
             address_id: customer.location.id,
             email: customer.email,
@@ -541,7 +539,7 @@ class CustomerService {
               latitude: facility.facility_location.coordinates.latitude,
               longitude: facility.facility_location.coordinates.longitude,
               operations_area_constraint:
-                facility.facility_location.operations_area_constraint,
+              facility.facility_location.operations_area_constraint,
               operations_area_constraint_active:
                 facility.facility_location.operations_area_constraint_active,
             });
@@ -588,9 +586,7 @@ class CustomerService {
           let tempCustomer = {
             id: customer.id,
             image: customer.image,
-            full_name: `${customer.first_name} ${customer.last_name}`,
-            first_name: customer.first_name,
-            last_name: customer.last_name,
+            company_name: customer.company_name,
             address: customer.location.address,
             address_id: customer.location.id,
             email: customer.email,
