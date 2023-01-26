@@ -158,11 +158,6 @@ export default class AuthenticationController {
         my_time_zone:req["user_time_zone"]
       }
 
-      console.log(my_bj)
-      console.log(req.user)
-
-      console.log("''''''''''''''''''''''''''''aaaaaaaaaaaaaaa''''''''''''''''''''''''''''")
-
       const obj = await authService.handleAdminCreation(my_bj);
 
       try {

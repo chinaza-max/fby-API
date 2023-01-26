@@ -172,6 +172,74 @@ class UserService {
     }
   }
 
+
+  
+  async updateProfileOtherAdmin(
+    id: number,
+    data: any,
+    file?: Express.Multer.File
+  ): Promise<Admin> {
+    const userUpdateData = await userUtil.verifyUpdateProfileOtherAdmin.validateAsync(
+      data
+    );
+
+    const user = await this.UserModel.findByPk(id);
+
+    if (!user) throw new NotFoundError("User not found.");
+
+    try {
+      /*
+        var filePath =global.__basedir+"\\"+"public"+user.image.slice(serverConfig.DOMAIN.length, user.image.length); 
+    
+        if(filePath.includes("fbyDefaultIMG.png")){
+        }
+        else{
+        fs.unlinkSync(filePath);
+        }
+
+        */
+    } finally {
+      if (file) {
+        /*let accessPath =
+          serverConfig.DOMAIN +
+          file.path.replace("/home/fbyteamschedule/public_html", "");
+*/
+
+
+          let accessPath =
+          serverConfig.DOMAIN +
+          file.path.replace("public", "");
+
+        await user.update({ image: accessPath });
+      }
+
+      var relatedLocation = await this.LocationModel.findOrCreate({
+        where: {
+          id: user.location_id,
+        },
+        defaults: {
+          address: userUpdateData.address,
+        },
+      });
+
+      relatedLocation[0].update({
+        address: userUpdateData.address,
+      });
+      user.update({
+        first_name: data.first_name,
+        last_name: data.last_name,
+        location_id: relatedLocation[0].id,
+        email: data.email,
+        date_of_birth: data.date_of_birth,
+        gender: data.gender,
+        phone_number: data.phone_number,
+        role: data.role
+      });
+      // await user.update();
+      return user;
+    }
+  }
+
   async updateUser(
     id: number,
     data: any,
@@ -198,9 +266,16 @@ class UserService {
         */
     } finally {
       if (file) {
-        let accessPath =
+        /*let accessPath =
           serverConfig.DOMAIN +
           file.path.replace("/home/fbyteamschedule/public_html", "");
+*/
+
+console.log(file.path)
+          let accessPath =
+          serverConfig.DOMAIN +
+          file.path.replace("/home/fbyteamschedule/public_html", "");
+
 
         await user.update({ image: accessPath });
       }
@@ -225,6 +300,9 @@ class UserService {
         date_of_birth: data.date_of_birth,
         gender: data.gender,
         phone_number: data.phone_number,
+        role: data.role,
+        suspended: data.staff_status,
+
       });
       // await user.update();
       return user;
@@ -392,6 +470,45 @@ class UserService {
       }
       return staffRes;
     }
+    else if(data.role == "ALL_ADMINISTRATORS"){
+        var staffs = await this.UserModel.findAll({
+          limit: data.limit,
+          offset: data.offset,
+          where: {
+            role: {
+              [Op.ne]: "GUARD",
+            },
+          },
+          include: {
+            model: Location,
+            as: "location",
+          },
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            date_of_birth: staff.date_of_birth,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: staff.location["id"],
+          };
+  
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      
+    }
+
   }
 
   async handleSuspension(data: any) {

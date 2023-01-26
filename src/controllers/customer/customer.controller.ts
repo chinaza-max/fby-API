@@ -136,16 +136,9 @@ export default class CustomerController {
         created_by_id:req.user.id
       }
 
-
-      console.log(my_bj)
-      console.log(req.user.id)
-
-      console.log("''''''''''''''''''''''''''''my_bj''''''''''''''''''''''''''''")
-
       const obj = await customerService.handleCustomerCreation(my_bj);
 
       try {
-
 
         if (obj != null) {
           await mailService.sendMail({

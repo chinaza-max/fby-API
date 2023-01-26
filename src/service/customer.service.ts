@@ -263,7 +263,6 @@ class CustomerService {
     } catch (error) {
       throw new SystemError("An error occured while processing your request");
     }
-    console.log(hashedPassword);
 
     var existingUser = await this.getUserByEmail(email);
     console.log(existingUser);

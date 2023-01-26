@@ -4,6 +4,7 @@ import serverConfig from "../config/server.config";
 import authUtil from "../utils/auth.util";
 import IAdmin from "../interfaces/admin.interface";
 import bcrypt from "bcrypt";
+
 import {
   ConflictError,
   NotFoundError,
@@ -155,6 +156,7 @@ class AuthenticationService {
       address,
       my_time_zone,
       phone_number,
+      staffRole,
       created_by_id
     } = await authUtil.verifyUserCreationData.validateAsync(data);
 
@@ -195,7 +197,7 @@ class AuthenticationService {
       password: hashedPassword,
       location_id: createdLocation.id,
       phone_number,
-      role: "ADMIN",
+      role:staffRole,
       created_by_id,
       created_at:dateStamp, 
       updated_at:dateStamp
@@ -318,8 +320,16 @@ class AuthenticationService {
         created_at,
         updated_at,
         is_archived,
+        role,
+        created_at, 
+        updated_at,
+        suspended,
         availability
       } = data;
+
+
+
+    
 
       var transfromedUser = {
         id,
@@ -328,13 +338,15 @@ class AuthenticationService {
         last_name,
         email,
         phone_number,
+        role,
+        suspended,
         // Added Location
         availability,
         address: locationObj.address,
         date_of_birth,
         gender,
-        created_at,
-        updated_at,
+        created_at:this.getDateAndTime(created_at),
+        updated_at:this.getDateAndTime(updated_at),
         is_archived,
       };
       return { transfromedUser, data };
@@ -413,6 +425,10 @@ class AuthenticationService {
       password += chars.substring(randomNumber, randomNumber + 1);
     }
     return password;
+  }
+
+   getDateAndTime(val) {
+    return moment(val).format("YYYY-MM-DD hh:mm:ss a");
   }
 }
 
