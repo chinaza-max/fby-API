@@ -17,6 +17,8 @@ export default interface IAdmin {
     last_logged_in?: Date;
     phone_number:number;
     availability:boolean;
-    suspended:boolean
+    suspended:boolean;
+    can_suspend:boolean;
+    
 }
   

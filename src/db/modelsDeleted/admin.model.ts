@@ -35,9 +35,9 @@ import IAdmin from "../../interfaces/admin.interface";
     declare location_id?: CreationOptional<number>;
     declare is_archived: CreationOptional<boolean>;
     declare last_logged_in?: CreationOptional<Date>;
-    declare can_suspend:boolean;
 
     public getLocation!: BelongsToGetAssociationMixin<Location>;
+    declare can_suspend:boolean;
 
     public location?: Location;
   }
@@ -100,10 +100,10 @@ import IAdmin from "../../interfaces/admin.interface";
         },
         role: {
           type: DataTypes.ENUM(
-              'ADMIN',
-              'GUARD',
-              'SUPER_ADMIN',
-              'ACCOUNT_MANGER'
+            'ADMIN',
+            'GUARD',
+            'SUPER_ADMIN',
+            'ACCOUNT_MANGER'
           ),
           allowNull: true,
         },

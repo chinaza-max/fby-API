@@ -27,6 +27,10 @@ class JobRoutes extends JobController {
     this.router.post("/add_agenda", this.sheduleAgenda);
     this.router.post("/create_memo", this.createMemo);
 
+    this.router.get("/all_jobs_done_by_gaurd", this.getAllJobsdoneByGaurd);
+    this.router.get("/get_site_from_job", this.getAllSiteWorkByGaurdForCompany);
+    this.router.get("/get_job_details", this.getJobDetails);
+
     this.router.post("/delete_job", this.deleteJob);
     this.router.post("/reasign_schedule_and_remove_guard", this.rescheduleAndRemoveGuard);
     this.router.post("/delete_memo", this.deleteMemo);
@@ -91,6 +95,8 @@ class JobRoutes extends JobController {
     
    // this.router.get("/myJobsAdminDetail", this.getMyJobsAdminDetail);
     this.router.post("/", this.createJob);
+
+    this.router.get("/calender", this.calender);
   }
 }
 

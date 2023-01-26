@@ -48,6 +48,20 @@ class UserUtil {
       return errors;
     }),
   });
+  public verifySuspension = Joi.object().keys({
+    user_id : Joi.number().required(),
+    comment: Joi.string().required()
+  });
+  public verifyUnSuspension = Joi.object().keys({
+    user_id : Joi.number().required(),
+  })
+  public verifyCustomerSuspension = Joi.object().keys({
+    customer_id : Joi.number().required(),
+    comment: Joi.string().required()
+  });
+  public verifyCustomerUnSuspension = Joi.object().keys({
+    customer_id : Joi.number().required(),
+  })
 }
 
 export default new UserUtil();

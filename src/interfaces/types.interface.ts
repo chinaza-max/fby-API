@@ -6,7 +6,7 @@ export type JobTypes = "INSTANT" | "ONGOING" | "TEMPORAL" | "PERMANENT";
 
 export type ScheduleLengthTypes = "LIMITED" | "CONTINUOUS";
 
-export type RoleTypes = "ADMIN" | "GUARD";
+export type RoleTypes = "ADMIN" | "GUARD" | "SUPER_ADMIN" | "ACCOUNT_MANGER";
 
 export type StatTypes =
   | "CUSTOMER_SIGNIN"

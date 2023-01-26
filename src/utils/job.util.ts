@@ -324,6 +324,15 @@ class JobUtil {
     guard_id: Joi.number().min(1),
     accept: Joi.boolean().required(),
   });
+  public verifyAllJobsdoneByGaurd = Joi.object().keys({
+    guard_id: Joi.number().min(1),
+  })
+  public getAllSiteWorkByGaurdForCompany = Joi.object().keys({
+    job_id: Joi.number().min(1),
+  })
+  public getJobDetails = Joi.object().keys({
+    job_id: Joi.number().min(1),
+  })
 }
 
 export default new JobUtil();

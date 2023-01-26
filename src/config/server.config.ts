@@ -19,6 +19,7 @@ class ServerConfig {
   public DB_PORT = process.env.DB_PORT;
   public DB_NAME = process.env.DB_NAME;
   public DB_URI = process.env.DB_URI;
+  public DB_NAME2 = process.env.DB_NAME2;
 
   public FIREBASE_TYPE = process.env.FIREBASE_TYPE;
   public FIREBASE_PROJECT_ID = process.env.FIREBASE_PROJECT_ID;

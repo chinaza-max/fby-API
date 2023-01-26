@@ -17,8 +17,7 @@ import ICustomer from "../../interfaces/customer.interface";
   {
     declare id: CreationOptional<number>;
     declare image?: CreationOptional<string>;
-    declare first_name: string;
-    declare last_name: string;
+    declare company_name: string;
     declare email: string;
     declare password: CreationOptional<string>;
     declare date_of_birth: Date;
@@ -26,6 +25,7 @@ import ICustomer from "../../interfaces/customer.interface";
     declare phone_number:number;
     declare created_by_id:number;
     declare location_id?: CreationOptional<number>;
+    declare suspended:boolean;
     declare created_at: Date;
     declare updated_at: Date;
     declare is_archived: CreationOptional<boolean>;
@@ -46,11 +46,7 @@ import ICustomer from "../../interfaces/customer.interface";
           defaultValue:
           `${serverConfig.DOMAIN}/images/avatars/fbyDefaultIMG.png`,
         },
-        first_name: {
-          type: DataTypes.STRING,
-          allowNull: false,
-        },
-        last_name: {
+        company_name: {
           type: DataTypes.STRING,
           allowNull: false,
         },
@@ -66,6 +62,11 @@ import ICustomer from "../../interfaces/customer.interface";
         phone_number: {
           type: DataTypes.NUMBER,
           allowNull: true,
+        },
+        suspended: {
+          type: DataTypes.BOOLEAN,
+          allowNull: false,
+          defaultValue: false
         },
         created_by_id: {
           type: DataTypes.NUMBER,

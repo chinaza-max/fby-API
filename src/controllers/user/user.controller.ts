@@ -166,4 +166,165 @@ export default class UserController {
       next(error);
     }
   }
+
+  protected async suspendAccount(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = {
+        body: req.body,
+        admin_id: req?.user?.id,
+      };
+      const obj = await userService.handleSuspension(data);
+      return res.status(200).json({
+        status: 200,
+        message: "Account has been suspended",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async UnsuspendAccount(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = {
+        body: req.body,
+        admin_id: req?.user?.id,
+      };
+      const obj = await userService.handleUnSuspension(data);
+      return res.status(200).json({
+        status: 200,
+        message: "Account has been unsuspended",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async suspendCustomerAccount(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = {
+        body: req.body,
+        admin_id: req?.user?.id,
+      };
+      const obj = await userService.handleSuspensionOfCustomer(data);
+      return res.status(200).json({
+        status: 200,
+        message: "Account has been suspended",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async UnsuspendCustomerAccount(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = {
+        body: req.body,
+        admin_id: req?.user?.id,
+      };
+      const obj = await userService.handleUnSuspensionOfCustomer(data);
+      return res.status(200).json({
+        status: 200,
+        message: "Account has been unsuspended",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async suspendAccountAuthorization(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = {
+        body: req.body,
+        admin_id: req?.user?.id,
+      };
+      const obj = await userService.handleSuspensionAuth(data);
+      return res.status(200).json({
+        status: 200,
+        message: "Admin can now suspend users",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async suspendAccountUnAuthorization(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = {
+        body: req.body,
+        admin_id: req?.user?.id,
+      };
+      const obj = await userService.handleSuspensionUnAuth(data);
+      return res.status(200).json({
+        status: 200,
+        message: "Admin can no longer suspend users",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async getSuspendedStaffs(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = {
+        body: req.body,
+        admin_id: req?.user?.id,
+      };
+      const obj = await userService.handleGetSuspendedStaffs();
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async getSuspendedCustomers(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = {
+        body: req.body,
+        admin_id: req?.user?.id,
+      };
+      const obj = await userService.handleGetSuspendedCustomers();
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
 }
