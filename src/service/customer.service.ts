@@ -857,7 +857,13 @@ class CustomerService {
             ],
           },
           {
-            model: this.Customer_suspension_commentsModel,          
+            model: this.Customer_suspension_commentsModel,
+            include: [
+              {
+              model: this.UserModel,
+              as: "Admin_details",
+              attributes: ["first_name", "last_name"]}
+            ]          
           }
         ],
         order: [["created_at", "DESC"]],
