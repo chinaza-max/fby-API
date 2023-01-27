@@ -60,6 +60,10 @@ import Suspension_comments, {
 import Customer_suspension_comments, { init as initCustomer_suspension_comments}
 from "./customer_suspension_comments.model "
 
+import Shift_comments , {
+  init as initShift_comments
+} from "./shift_comments.model"
+
 import Connection from "mysql2/typings/mysql/lib/Connection";
 
 
@@ -302,6 +306,19 @@ function associate() {
     },
     as: "customer_suspension_comments",
   });
+
+  Shift_comments.belongsTo(Schedule,
+    {
+      foreignKey: {
+        allowNull: false,
+        name: "schedule_id",
+        field: "schedule_id",
+      },
+      as: "Shift_comments",
+  })
+
+  Schedule.hasMany(Shift_comments)  
+
 }
 
 export {
@@ -330,7 +347,8 @@ export {
   Memo,
   MemoReceiver,
   Suspension_comments,
-  Customer_suspension_comments
+  Customer_suspension_comments,
+  Shift_comments
 }
 
 export function init(connection: Sequelize) {
@@ -360,5 +378,6 @@ export function init(connection: Sequelize) {
   initMemoReceiver(connection);
   initSuspension_comments(connection)
   initCustomer_suspension_comments(connection)
+  initShift_comments(connection)
   associate();
 }
