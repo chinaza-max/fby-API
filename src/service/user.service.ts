@@ -465,7 +465,7 @@ class UserService {
       }
       return staffRes;
     }
-    else if(data.role == "ALL_ADMINISTRATORS"){
+    else if(data.role == "ALL_ADMINISTRATORS_AVAILABLE"){
         var staffs = await this.UserModel.findAll({
           limit: data.limit,
           offset: data.offset,
@@ -504,13 +504,52 @@ class UserService {
         return staffRes;
       
     }
+    else if(data.role == "ALL_GUARD_AVAILABLE"){
+      var staffs = await this.UserModel.findAll({
+        limit: data.limit,
+        offset: data.offset,
+        where: {
+          [Op.and]: [{ suspended:false }, {   role: {
+            [Op.eq]: "GUARD",
+          },
+          }],
+        },
+      
+        include: {
+          model: Location,
+          as: "location",
+        },
+        order: [["created_at", "DESC"]],
+      });
+      if (staffs == null) return [];
+      var staffRes = [];
+      for (let index = 0; index < staffs.length; index++) {
+        const staff = staffs[index];
+        const staffData = {
+          id: staff.id,
+          image: staff.image,
+          full_name: `${staff.first_name} ${staff.last_name}`,
+          first_name: staff.first_name,
+          last_name: staff.last_name,
+          email: staff.email,
+          date_of_birth: staff.date_of_birth,
+          gender: staff.gender,
+          phone_number: staff.phone_number,
+          address: (staff.location as any)?.address,
+          address_id: staff.location["id"],
+        };
+
+        staffRes.push(staffData);
+      }
+      return staffRes;
+    
+  }
 
   }
 
   async handleSuspension(data: any) {
     try {
       const { admin_id, body } = data;
-      console.log(admin_id);
       const { user_id, comment } =
         await userUtil.verifySuspension.validateAsync(body);
 
@@ -679,7 +718,8 @@ class UserService {
         staffRes.push(staffData);
       }
       return staffRes;
-    } else if (data.role == "GUARD") {
+    } 
+    else if (data.role == "GUARD") {
       var staffs = await this.UserModel.findAll({
         limit: data.limit,
         offset: data.offset,
@@ -726,7 +766,6 @@ class UserService {
           address: (staff.location as any)?.address,
           address_id: (staff.location as any)?.id,
           comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
-
         };
         staffRes.push(staffData);
       }

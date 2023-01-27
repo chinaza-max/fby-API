@@ -860,7 +860,7 @@ class CustomerService {
             model: this.Customer_suspension_commentsModel,
             include: [
               {
-              model: this.UserModel,
+              model: this.AdminModel,
               as: "Admin_details",
               attributes: ["first_name", "last_name"]}
             ]          

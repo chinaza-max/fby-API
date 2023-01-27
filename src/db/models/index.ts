@@ -296,6 +296,16 @@ function associate() {
     },
     as: "Admin_details",
   });
+
+  Customer_suspension_comments.belongsTo(Admin, {
+    foreignKey: {
+      allowNull: false,
+      name: "admin_id",
+      field: "admin_id",
+    },
+    as: "Admin_details",
+  });
+
   Customer.hasMany(Customer_suspension_comments);
 
   Customer_suspension_comments.belongsTo(Customer, {

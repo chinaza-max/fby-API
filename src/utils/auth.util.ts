@@ -14,7 +14,7 @@ class AdminUtil {
     password: Joi.string(),
     date_of_birth: Joi.date().min(new Date("1900-01-01").toLocaleDateString("af-AZ")).required(),
     gender: Joi.string().required().valid('MALE', 'FEMALE', 'NOT_SPECIFIED'),
-  });
+  })
 
   public validateUserEmail = Joi.object().keys({
     email: Joi.string().email().required(),
