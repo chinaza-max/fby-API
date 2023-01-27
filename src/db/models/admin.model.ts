@@ -103,6 +103,7 @@ import IAdmin from "../../interfaces/admin.interface";
               'ADMIN',
               'GUARD',
               'SUPER_ADMIN',
+              'USER',
               'ACCOUNT_MANGER'
           ),
           allowNull: true,

@@ -136,16 +136,9 @@ export default class CustomerController {
         created_by_id:req.user.id
       }
 
-
-      console.log(my_bj)
-      console.log(req.user.id)
-
-      console.log("''''''''''''''''''''''''''''my_bj''''''''''''''''''''''''''''")
-
       const obj = await customerService.handleCustomerCreation(my_bj);
 
       try {
-
 
         if (obj != null) {
           await mailService.sendMail({
@@ -309,6 +302,34 @@ export default class CustomerController {
       next(error);
     }
   }
+
+
+  
+
+
+  protected async updateProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const { id } = req.body;
+      const data = req.body;
+      const { file } = req;
+     
+      console.log(data)
+      const user = await customerService.updateProfile(id, data, file);
+
+      return res.status(200).json({
+        status: 200,
+        message: "User update successful.",
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
 
   protected async suspendCustomerAccount(
     req: Request,

@@ -5,6 +5,7 @@ class AdminUtil {
   public verifyUserCreationData = Joi.object().keys({
     my_time_zone: Joi.string().required(),
     first_name: Joi.string().required(),
+    staffRole:Joi.string().required(),
     last_name: Joi.string().required(),
     phone_number: Joi.number().required(),
     created_by_id: Joi.number().required(),

@@ -52,10 +52,19 @@ class CustomerUtil {
     created_by_id:Joi.number().required(),
     my_time_zone: Joi.string().required(),
     // password: Joi.string().required(),
-    date_of_birth: Joi.date().min(new Date("1900-01-01").toLocaleDateString("af-AZ")).required(),
     gender: Joi.string().required().valid('MALE', 'FEMALE', 'NOT_SPECIFIED'),
     // image: Joi.string().min(5),
    
+  });
+
+  
+  public verifyUpdateProfile = Joi.object().keys({
+    company_name: Joi.string().required(),
+    email: Joi.string().required(),
+    phone_number: Joi.number().required(),
+    id: Joi.number().required(),
+    gender: Joi.string().required(),
+    address: Joi.string().required()
   });
   
   public verifyUserUpdateData = Joi.object().keys({

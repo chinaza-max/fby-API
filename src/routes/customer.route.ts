@@ -1,6 +1,7 @@
 import { Router } from "express";
 import authMiddleware from "../middlewares/auth.middleware";
 import CustomerController from "../controllers/customer/customer.controller";
+import uploadHandler from "../middlewares/upload.middleware";
 
 class CustomerRoutes extends CustomerController {
   public router: Router;
@@ -61,6 +62,12 @@ class CustomerRoutes extends CustomerController {
       "/test",
       authMiddleware.validateUserToken,
       this.testEmail
+    );
+    this.router.post(
+      "/updateProfile",
+      authMiddleware.validateUserToken,
+      uploadHandler.avatars.single("image"),
+      this.updateProfile
     );
     this.router.post(
       "/suspend_customer_account", 
