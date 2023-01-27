@@ -4215,24 +4215,58 @@ class UserService {
   }
 
 
-  async calender(customer_id, guard_id, site_id) {
+  async calender(customer_id, guard_id, site_id, from_date = null, to_date = null) {
     try {
       const all = [];
+      if (!from_date && !to_date){
 
+      from_date = new Date()
+      to_date = new Date()
+
+      const date = this.getOneWeek(from_date,to_date)
+      if (date){
+      var from = date[0]
+      var to = date[1]
+      }}
+      else if (from_date && to_date) {
+        var from = from_date
+        var to = to_date
+      }
+      else{
+        const date = this.getOneWeek(from_date,to_date)
+      if (date){
+      var from = date[0]
+      var to = date[1]
+      }}
       var data = await this.ScheduleModel.findAll(
         {
           include: {
             model: this.JobModel,
             as: "job",
+            include: [
+              {
+              model: this.JobLogsModel,
+              where: {
+                [Op.and]:
+                [
+                {check_in_status: true},
+                  {check_out_status: true}
+                ]
+              }
+            }          
+            ],
             where: {
               [Op.and]: [
-                { "customer_id": {[Op.like]:customer_id ? customer_id : "%" }},
-                { "facility_id":{[Op.like]: site_id ? site_id : "%" }}
+                { "customer_id": { [Op.like]: customer_id ? customer_id : "%" } },
+                { "facility_id": { [Op.like]: site_id ? site_id : "%" } }
               ],
               // attributes:['customer_id']
             }
           },
-          where: { guard_id: {[Op.like]:guard_id ? guard_id : "%" }}
+          where: {[Op.and]:[{check_in_date:{[Op.gt]: from}},
+          {check_out_date:{[Op.lt]: to}},
+          { guard_id: { [Op.like]: guard_id ? guard_id : "%" }}
+        ]},
         });
 
       const users = await this.UserModel.findAll({ where: { role: "GUARD" } })
@@ -4247,7 +4281,7 @@ class UserService {
           if (data[j]?.guard_id == users[i].id) {
             var check_in_date: any = new Date(data[j].check_in_date);
             var check_out_date: any = new Date(data[j].check_out_date)
-            a.hours_worked = (check_out_date - check_in_date) / 3600000 + a.hours_worked
+            a.hours_worked = ((check_out_date - check_in_date) / 3600000 + a.hours_worked)
             a.data.push(data[j])
           }
 
@@ -4679,7 +4713,41 @@ class UserService {
     var difference = time2Total - time1Total;
     // if(difference == 20){}
   }
+  getOneWeek(dDate1: Date | null, dDate2: Date | null) {
 
+    var dates = [];
+    if (dDate1 && dDate2) {
+      if (dDate1.getDay() === 0 && dDate2.getDay() === 6) {
+        dates.push(dDate1)
+        dates.push(dDate2)
+  
+      } else {
+  
+        const a = 0 - dDate1.getDay();
+        const b = 6 - dDate2.getDay();
+        dDate1.setDate(dDate1.getDate() + a)
+        dDate2.setDate(dDate2.getDate() + b)
+  
+        dates.push(dDate1)
+        dates.push(dDate2)
+  
+      }
+    } else if (!dDate2) {
+      dDate2 = dDate1
+      dDate2.setDate(dDate2.getDate() + 6)
+      dates.push(dDate1)
+      dates.push(dDate2)
+
+    }
+    else{
+      dDate1 = dDate2
+      dDate1.setDate(dDate1.getDate() - 6)
+      dates.push(dDate1)
+      dates.push(dDate2)
+    }
+
+return dates
+}
   async updateJob(data: any): Promise<any> { }
 }
 

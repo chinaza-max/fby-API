@@ -233,6 +233,8 @@ function associate() {
     as: "coordinates",
   });
   
+  Job.hasMany(JobLogs);
+  
   JobLogs.belongsTo(Job, {
     onDelete: 'cascade',
     foreignKey: {
@@ -280,6 +282,15 @@ function associate() {
       field: "user_id",
     },
     as: "suspension_comments",
+  });
+
+  Suspension_comments.belongsTo(Admin, {
+    foreignKey: {
+      allowNull: false,
+      name: "admin_id",
+      field: "admin_id",
+    },
+    as: "Admin_details",
   });
   Customer.hasMany(Customer_suspension_comments);
 

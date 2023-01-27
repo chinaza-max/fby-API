@@ -531,7 +531,13 @@ class UserService {
           model: Location,
           as: "location",
         },
-        {model: this.Suspension_commentsModel}
+        {model: this.Suspension_commentsModel,
+        include: [
+          {
+          model: this.UserModel,
+          as: "Admin_details",
+          attributes: ["first_name", "last_name"]}
+        ]}
       ],
         order: [["created_at", "DESC"]],
       });
