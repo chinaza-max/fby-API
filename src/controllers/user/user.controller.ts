@@ -39,6 +39,7 @@ export default class UserController {
       const data = req.body;
       const { file } = req;
      
+
       const user = await userService.updateUser(id, data, file);
 
       return res.status(200).json({

@@ -6,7 +6,6 @@ export default interface ICustomer {
     company_name: string;
     email: string;
     password: string;
-    date_of_birth: Date;
     gender: GenderTypes;
     location_id?: number;
     suspended: boolean;

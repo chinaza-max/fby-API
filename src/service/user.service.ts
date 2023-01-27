@@ -202,8 +202,6 @@ class UserService {
           serverConfig.DOMAIN +
           file.path.replace("/home/fbyteamschedule/public_html", "");
 */
-
-
           let accessPath =
           serverConfig.DOMAIN +
           file.path.replace("public", "");
@@ -269,7 +267,6 @@ class UserService {
           file.path.replace("/home/fbyteamschedule/public_html", "");
 */
 
-console.log(file.path)
           let accessPath =
           serverConfig.DOMAIN +
           file.path.replace("/home/fbyteamschedule/public_html", "");
@@ -473,10 +470,11 @@ console.log(file.path)
           limit: data.limit,
           offset: data.offset,
           where: {
-            role: {
+            [Op.and]: [{ suspended:false }, {   role: {
               [Op.ne]: "GUARD",
-            },
+            },}],
           },
+        
           include: {
             model: Location,
             as: "location",

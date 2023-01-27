@@ -246,10 +246,8 @@ class CustomerService {
       company_name,
       email,
       image,
-      date_of_birth,
       gender,
       address,
-      sites,
       phone_number,
       my_time_zone,
       created_by_id,
@@ -282,7 +280,6 @@ class CustomerService {
       company_name,
       email,
       image,
-      date_of_birth,
       gender,
       password: hashedPassword,
       location_id: createdLocation.id,
@@ -292,63 +289,10 @@ class CustomerService {
       updated_at: dateStamp,
     });
 
-    console.log(sites);
-    if (sites?.length) {
-      const coordinates = [];
-      for (const site of sites) {
-        // coordinates.push({
-        //   longitude: site.longitude,
-        //   latitude: site.latitude,
-        // });
-        const createdCoordinates = await this.CoordinatesModel.create({
-          longitude: site.longitude,
-          latitude: site.latitude,
-        });
-        const createdFacilityLocation = await this.FacilityLocationModel.create(
-          {
-            address: site.address,
-            coordinates_id: createdCoordinates.id,
-            operations_area_constraint: site.operations_area_constraint,
-            operations_area_constraint_active:
-              site.operations_area_constraint_active,
-          }
-        );
-        const createdFacility = await this.FacilityModel.create({
-          customer_id: user.id,
-          facility_location_id: createdFacilityLocation.id,
-          name: site.site_name,
-          client_charge: site.amount,
-        });
-      }
-      // const createdCoordinates = await this.CoordinatesModel.bulkCreate(
-      //   coordinates
-      // );
-      // const facilityLocations = [];
-      // for (var i = 0; i < createdCoordinates.length; i++) {
-      //   const coordinate = createdCoordinates[i];
-      //   facilityLocations.push({
-      //     address: sites[i].site_name,
-      //     coordinates_id: createdCoordinates[i].id,
-      //   });
-      // }
-      // const createdFacilityLocations =
-      //   await this.FacilityLocationModel.bulkCreate(facilityLocations);
-      // const facilities = [];
-      // for (var i = 0; i < createdFacilityLocations.length; i++) {
-      //   const coordinate = createdFacilityLocations[i];
-      //   facilities.push({
-      //     customer_id: user.id,
-      //     facility_location_id: createdFacilityLocations[i].id,
-      //     name: sites[i].address,
-      //     client_charge: sites[i].amount,
-      //   });
-      // }
-      // const createdFacilities = await this.FacilityModel.bulkCreate(facilities);
-    }
+ 
     var transfromedUserObj = await this.transformCustomerForResponse(
       user,
-      address,
-      sites
+      address
     );
     transfromedUserObj.transfromedUser.password = password;
     utilService.updateStat("CUSTOMER_SIGNUP");
@@ -448,23 +392,18 @@ class CustomerService {
 
       let tempCustomers = [];
 
-      console.log(allCustomers);
-
       allCustomers?.forEach((customer: any) => {
         let tempCustomer = {
           id: customer.id,
           image: customer.image,
-          full_name: `${customer.first_name} ${customer.last_name}`,
-          first_name: customer.first_name,
-          last_name: customer.last_name,
+          company_name: customer.company_name,
+          tel: customer.phone_number,
           address: customer.location.address,
           email: customer.email,
           gender: customer.gender,
-          date_of_birth: customer.date_of_birth,
         };
         let sites = [];
         customer.facilities?.forEach((facility) => {
-          console.log(facility);
           sites.push({
             id: facility.id,
             site_name: facility.name,
@@ -530,7 +469,6 @@ class CustomerService {
             address_id: customer.location.id,
             email: customer.email,
             gender: customer.gender,
-            date_of_birth: customer.date_of_birth,
           };
           let sites = [];
           customer.facilities?.forEach((facility) => {
@@ -595,7 +533,6 @@ class CustomerService {
             address_id: customer.location.id,
             email: customer.email,
             gender: customer.gender,
-            date_of_birth: customer.date_of_birth,
             phone_number: customer.phone_number,
           };
           let sites = [];
@@ -627,7 +564,7 @@ class CustomerService {
   transformCustomerForResponse(
     data: Customer,
     address,
-    sites
+
   ): { transfromedUser; data: Customer } {
     try {
       var {
@@ -635,7 +572,6 @@ class CustomerService {
         image,
         company_name,
         email,
-        date_of_birth,
         gender,
         created_at,
         updated_at,
@@ -649,8 +585,6 @@ class CustomerService {
         email,
         // Added Location
         address,
-        sites,
-        date_of_birth,
         gender,
         created_at,
         updated_at,
@@ -742,15 +676,82 @@ class CustomerService {
           address: userAddress.address,
           email: user.email,
           gender: user.gender,
-          date_of_birth: user.date_of_birth,
-          sites,
+          sites
         });
       }
-      console.log("k: " + users.length);
       return users;
     } catch (error) {
       console.log(error);
       return [];
+    }
+  }
+
+
+  async updateProfile(
+    id: number,
+    data: any,
+    file?: Express.Multer.File
+  ): Promise<Customer> {
+    const userUpdateData = await customerUtil.verifyUpdateProfile.validateAsync(
+      data
+    );
+    const user = await this.UserModel.findByPk(id);
+
+    if (!user) throw new NotFoundError("User not found.");
+
+    try {
+      /*
+        var filePath =global.__basedir+"\\"+"public"+user.image.slice(serverConfig.DOMAIN.length, user.image.length); 
+    
+        if(filePath.includes("fbyDefaultIMG.png")){
+        }
+        else{
+        fs.unlinkSync(filePath);
+        }
+
+        */
+    } finally {
+      if (file) {
+        /*let accessPath =
+          serverConfig.DOMAIN +
+          file.path.replace("/home/fbyteamschedule/public_html", "");
+*/
+          let accessPath =
+          serverConfig.DOMAIN +
+          file.path.replace("public", "");
+
+        await user.update({ image: accessPath });
+      }
+
+     
+
+
+      var relatedLocation = await this.LocationModel.findOrCreate({
+        where: {
+          id: user.location_id,
+        },
+        defaults: {
+          address: userUpdateData.address,
+        },
+      })
+
+      relatedLocation[0].update({
+        address: userUpdateData.address,
+      });
+
+      console.log("data")
+      console.log(data)
+      console.log("data")
+
+      user.update({
+        company_name: data.company_name,
+        location_id: relatedLocation[0].id,
+        email: data.email,
+        gender: data.gender,
+        phone_number: data.phone_number,
+      });
+      // await user.update();
+      return user;
     }
   }
 
@@ -871,7 +872,6 @@ class CustomerService {
           address_id: customer.location.id,
           email: customer.email,
           gender: customer.gender,
-          date_of_birth: customer.date_of_birth,
           phone_number: customer.phone_number,
           comment: customer.Customer_suspension_comments[customer.Customer_suspension_comments.length -1]
         };

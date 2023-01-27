@@ -303,6 +303,34 @@ export default class CustomerController {
     }
   }
 
+
+  
+
+
+  protected async updateProfile(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const { id } = req.body;
+      const data = req.body;
+      const { file } = req;
+     
+      console.log(data)
+      const user = await customerService.updateProfile(id, data, file);
+
+      return res.status(200).json({
+        status: 200,
+        message: "User update successful.",
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
   protected async suspendCustomerAccount(
     req: Request,
     res: Response,

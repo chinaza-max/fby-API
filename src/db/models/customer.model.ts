@@ -20,7 +20,6 @@ import ICustomer from "../../interfaces/customer.interface";
     declare company_name: string;
     declare email: string;
     declare password: CreationOptional<string>;
-    declare date_of_birth: Date;
     declare gender: GenderTypes;
     declare phone_number:number;
     declare created_by_id:number;
@@ -72,11 +71,7 @@ import ICustomer from "../../interfaces/customer.interface";
           type: DataTypes.NUMBER,
           allowNull: false,
         },
-        date_of_birth: {
-          type: DataTypes.DATE,
-          defaultValue: new Date(),
-          allowNull: false,
-        },
+       
         gender: {
           type: DataTypes.ENUM(
               'MALE',
