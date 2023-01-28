@@ -720,6 +720,16 @@ class UserService {
       return staffRes;
     } 
     else if (data.role == "GUARD") {
+
+
+
+      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+
       var staffs = await this.UserModel.findAll({
         limit: data.limit,
         offset: data.offset,

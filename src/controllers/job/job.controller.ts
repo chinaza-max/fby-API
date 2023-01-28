@@ -864,7 +864,7 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const data = req.body;
+      const data = req.query;
       const obj = await jobService.getAllJobsdoneByGaurd(data);
       return res.status(200).json({
         status: 200,
@@ -883,7 +883,7 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const data = req.body;
+      const data = req.query;
 
       const obj = await jobService.getAllSiteWorkByGaurdForCompany(data);
     
@@ -903,7 +903,7 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const data = req.body;
+      const data = req.query;
 
       const obj = await jobService.getJobDetails(data);
       return res.status(200).json({
@@ -1322,7 +1322,7 @@ export default class JobController {
 
       const obj = await jobService.allMemoDetailGuard(req);
    
-
+      console.log(obj)
       return res.status(200).json({
         status: 200,
         data: obj,

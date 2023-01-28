@@ -634,7 +634,7 @@ class UserService {
           where: {
             [Op.and]: [
               { reply_message: { [Op.ne]: "" } },
-              { staff_id: data.user.id },
+              { staff_id: data.query.id||data.user.id },
             ],
           },
         });
@@ -647,6 +647,10 @@ class UserService {
               },
             });
 
+            let adminDetails = await this.getSingleGuardDetail(
+              foundM.created_by_id
+            );
+
             let obj = {};
 
             obj["message"] = foundM.memo_message;
@@ -654,6 +658,18 @@ class UserService {
             obj["memo_id"] = foundM.id;
             obj["memo_receiver_id"] = foundMR[i].id;
             obj["Created"] = await this.getDateAndTime(foundM.created_at);
+            obj["CreatedBy"] = adminDetails["first_name"] + " " + adminDetails["last_name"];
+            const dateStamp = await this.getDateAndTimeForStamp(
+              foundM.time_zone
+            )
+            
+            if (moment(foundM.send_date).isAfter(dateStamp)) {
+              obj["send_status"] = "Pending";
+            } else {
+              obj["send_status"] = "Sent";
+            }
+
+
             detail.push(obj);
             if (i == foundMR.length - 1) {
               return detail;
@@ -707,6 +723,7 @@ class UserService {
             const dateStamp = await this.getDateAndTimeForStamp(
               foundM[i].time_zone
             );
+
             if (moment(foundM[i].send_date).isAfter(dateStamp)) {
               obj["send_status"] = "Pending";
             } else {
