@@ -680,7 +680,6 @@ class UserService {
                 suspended: true
               }
             ]
-            
           },
           include: [{
             model: Location,

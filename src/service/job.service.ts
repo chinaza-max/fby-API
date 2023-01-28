@@ -628,7 +628,7 @@ class UserService {
           where: {
             [Op.and]: [
               { reply_message: { [Op.ne]: "" } },
-              { staff_id: data.user.id },
+              { staff_id: data.query.id||data.user.id },
             ],
           },
         });
@@ -641,6 +641,10 @@ class UserService {
               },
             });
 
+            let adminDetails = await this.getSingleGuardDetail(
+              foundM.created_by_id
+            );
+
             let obj = {};
 
             obj["message"] = foundM.memo_message;
@@ -648,6 +652,18 @@ class UserService {
             obj["memo_id"] = foundM.id;
             obj["memo_receiver_id"] = foundMR[i].id;
             obj["Created"] = await this.getDateAndTime(foundM.created_at);
+            obj["CreatedBy"] = adminDetails["first_name"] + " " + adminDetails["last_name"];
+            const dateStamp = await this.getDateAndTimeForStamp(
+              foundM.time_zone
+            )
+            
+            if (moment(foundM.send_date).isAfter(dateStamp)) {
+              obj["send_status"] = "Pending";
+            } else {
+              obj["send_status"] = "Sent";
+            }
+
+
             detail.push(obj);
             if (i == foundMR.length - 1) {
               return detail;
@@ -701,6 +717,7 @@ class UserService {
             const dateStamp = await this.getDateAndTimeForStamp(
               foundM[i].time_zone
             );
+
             if (moment(foundM[i].send_date).isAfter(dateStamp)) {
               obj["send_status"] = "Pending";
             } else {
@@ -2241,21 +2258,26 @@ class UserService {
           start_time: foundS[i].start_time,
           check_out_date: await this.getDateOnly(foundS[i].check_out_date),
           end_time: foundS[i].end_time,
-          hours: (
-            await this.calculateHoursSetToWork(
-              foundS[i].check_out_date,
-              foundS[i].check_in_date
+          hours: (await this.calculateHoursSetToWork(foundS[i].check_out_date,foundS[i].check_in_date
             )
           ).toFixed(2),
           guard_id: foundS[i].guard_id,
           schedule_id: foundS[i].id,
           schedule_accepted_by_admin: foundS[i].schedule_accepted_by_admin,
           job_id: foundS[i].job_id,
+          is_started:await this.checkIfShiftHasStarted(foundS[i].job_id,foundS[i].check_in_date)
+
         };
         all_shedule.push(obj);
 
         if (i == foundS.length - 1) {
-          return all_shedule;
+          let allScheduleStarted=await this.checkIfAllShiftHasStarted(all_shedule)
+
+          all_shedule.forEach(function(obj){
+                  obj.is_started_all=allScheduleStarted
+                });
+  
+          return  all_shedule  
         }
       }
     } else {
@@ -4741,6 +4763,29 @@ class UserService {
       if (i == foundJ.length - 1) {
       }
     }
+  }
+  async checkIfShiftHasStarted(job_id,startDate){
+   
+    const foundJ =await this.JobModel.findOne(
+      {
+        where: {id:job_id}
+      })
+
+      const dateStamp=await this.getDateAndTimeForStamp(foundJ.time_zone)
+        if(moment(startDate).isAfter(dateStamp)){
+            return false
+        }
+        else{
+            return true
+        }
+  }
+
+
+  async checkIfAllShiftHasStarted(obj){
+   
+    const checkKeyValue = obj.every(object => object["is_started"] === true);
+
+    return checkKeyValue
   }
 
   async returnJobPercentage(job_id) {
