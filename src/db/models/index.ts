@@ -278,7 +278,8 @@ function associate() {
     },
     as: "agenda",
   });
-  Admin.hasMany(Suspension_comments)
+  Admin.hasMany(Suspension_comments,{
+    foreignKey: "user_id"})
   Suspension_comments.belongsTo(Admin, {
     foreignKey: {
       allowNull: false,

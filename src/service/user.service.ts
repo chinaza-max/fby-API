@@ -666,159 +666,166 @@ class UserService {
 
 
   async handleGetSuspendedStaffs(data:any) {
-    if (data.role == "ADMIN") {
-      var staffs = await this.UserModel.findAll({
-        limit: data.limit,
-        offset: data.offset,
-        where: {
-          [Op.and]:[
-            {role: {
-              [Op.ne]: "GUARD",
-            }},
-            {
-              suspended: true
-            }
-          ]
-          
-        },
-        include: [{
-          model: Location,
-          as: "location",
-        },
-        {model: this.Suspension_commentsModel,
-        include: [
-          {
-          model: this.UserModel,
-          as: "Admin_details",
-          attributes: ["first_name", "last_name"]}
-        ]}
-      ],
-        order: [["created_at", "DESC"]],
-      });
-      if (staffs == null) return [];
-      var staffRes = [];
-      for (let index = 0; index < staffs.length; index++) {
-        const staff = staffs[index];
-        const staffData = {
-          id: staff.id,
-          image: staff.image,
-          full_name: `${staff.first_name} ${staff.last_name}`,
-          first_name: staff.first_name,
-          last_name: staff.last_name,
-          email: staff.email,
-          date_of_birth: staff.date_of_birth,
-          gender: staff.gender,
-          phone_number: staff.phone_number,
-          address: (staff.location as any)?.address,
-          address_id: staff.location["id"],
-          comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
-
-        };
-
-        staffRes.push(staffData);
-      }
-      return staffRes;
-    } 
-    else if (data.role == "GUARD") {
-      var staffs = await this.UserModel.findAll({
-        limit: data.limit,
-        offset: data.offset,
-        where: {
-          [Op.and]:[
-            {role: {
-              [Op.eq]: "GUARD",
-            }},
-            {
-              suspended: true
-            }
-          ]
-          
-        },
-        include: [{
-          model: Location,
-          as: "location",
-        },
-        {model: this.Suspension_commentsModel,
-          include: [
-            {
-            model: this.UserModel,
-            as: "Admin_details",
-            attributes: ["first_name", "last_name"]}
-          ] 
-        }
-      ],
-        order: [["created_at", "DESC"]],
-      });
-      if (staffs == null) return [];
-      var staffRes = [];
-      for (let index = 0; index < staffs.length; index++) {
-        const staff = staffs[index];
-        const staffData = {
-          id: staff.id,
-          image: staff.image,
-          full_name: `${staff.first_name} ${staff.last_name}`,
-          first_name: staff.first_name,
-          last_name: staff.last_name,
-          email: staff.email,
-          date_of_birth: staff.date_of_birth,
-          gender: staff.gender,
-          phone_number: staff.phone_number,
-          address: (staff.location as any)?.address,
-          address_id: (staff.location as any)?.id,
-          comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
-        };
-        staffRes.push(staffData);
-      }
-      return staffRes;
-    } else if (data.role == "ALL_GUARD") {
-      var staffs = await this.UserModel.findAll({
-        where: {
-          [Op.and]:[
-            {role: {
-              [Op.eq]: "GUARD",
-            }},
-            {
-              suspended: true
-            }
-          ]
-          
-        },
-        include: [{
-          model: Location,
-          as: "location",
-        },
-        {model: this.Suspension_commentsModel,
+    try{
+      if (data.role == "ADMIN") {
+        var staffs = await this.UserModel.findAll({
+          limit: data.limit,
+          offset: data.offset,
+          where: {
+            [Op.and]:[
+              {role: {
+                [Op.ne]: "GUARD",
+              }},
+              {
+                suspended: true
+              }
+            ]
+            
+          },
+          include: [{
+            model: Location,
+            as: "location",
+          },
+          {model: this.Suspension_commentsModel,
           include: [
             {
             model: this.UserModel,
             as: "Admin_details",
             attributes: ["first_name", "last_name"]}
           ]}
-      ],
-        order: [["created_at", "DESC"]],
-      });
-      if (staffs == null) return [];
-      var staffRes = [];
-      for (let index = 0; index < staffs.length; index++) {
-        const staff = staffs[index];
-        const staffData = {
-          id: staff.id,
-          image: staff.image,
-          full_name: `${staff.first_name} ${staff.last_name}`,
-          first_name: staff.first_name,
-          last_name: staff.last_name,
-          email: staff.email,
-          date_of_birth: staff.date_of_birth,
-          gender: staff.gender,
-          phone_number: staff.phone_number,
-          address: (staff.location as any)?.address,
-          address_id: (staff.location as any)?.id,
-          comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
-        };
-        staffRes.push(staffData);
+        ],
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            date_of_birth: staff.date_of_birth,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: staff.location["id"],
+            comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
+  
+          };
+  
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      } 
+      else if (data.role == "GUARD") {
+        var staffs = await this.UserModel.findAll({
+          limit: data.limit,
+          offset: data.offset,
+          where: {
+            [Op.and]:[
+              {role: {
+                [Op.eq]: "GUARD",
+              }},
+              {
+                suspended: true
+              }
+            ]
+            
+          },
+          include: [{
+            model: Location,
+            as: "location",
+          },
+          {model: this.Suspension_commentsModel,
+            include: [
+              {
+              model: this.UserModel,
+              as: "Admin_details",
+              attributes: ["first_name", "last_name"]}
+            ] 
+          }
+        ],
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            date_of_birth: staff.date_of_birth,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: (staff.location as any)?.id,
+            comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
+          };
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      } else if (data.role == "ALL_GUARD") {
+        var staffs = await this.UserModel.findAll({
+          where: {
+            [Op.and]:[
+              {role: {
+                [Op.eq]: "GUARD",
+              }},
+              {
+                suspended: true
+              }
+            ]
+            
+          },
+          include: [{
+            model: Location,
+            as: "location",
+          },
+          {model: this.Suspension_commentsModel,
+            // as: "suspension_comments",
+            include: [
+              {
+              model: this.UserModel,
+              as: "Admin_details",
+              attributes: ["first_name", "last_name"]}
+            ]}
+        ],
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            date_of_birth: staff.date_of_birth,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: (staff.location as any)?.id,
+            comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
+          };
+          staffRes.push(staffData);
+        }
+        return staffRes;
       }
-      return staffRes;
     }
+    catch(error){
+      throw new SystemError(error)
+    }
+    
   }
 
   async getDateAndTimeForStamp(my_time_zone) {
