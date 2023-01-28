@@ -2258,21 +2258,26 @@ class UserService {
           start_time: foundS[i].start_time,
           check_out_date: await this.getDateOnly(foundS[i].check_out_date),
           end_time: foundS[i].end_time,
-          hours: (
-            await this.calculateHoursSetToWork(
-              foundS[i].check_out_date,
-              foundS[i].check_in_date
+          hours: (await this.calculateHoursSetToWork(foundS[i].check_out_date,foundS[i].check_in_date
             )
           ).toFixed(2),
           guard_id: foundS[i].guard_id,
           schedule_id: foundS[i].id,
           schedule_accepted_by_admin: foundS[i].schedule_accepted_by_admin,
           job_id: foundS[i].job_id,
+          is_started:await this.checkIfShiftHasStarted(foundS[i].job_id,foundS[i].check_in_date)
+
         };
         all_shedule.push(obj);
 
         if (i == foundS.length - 1) {
-          return all_shedule;
+          let allScheduleStarted=await this.checkIfAllShiftHasStarted(all_shedule)
+
+          all_shedule.forEach(function(obj){
+                  obj.is_started_all=allScheduleStarted
+                });
+  
+          return  all_shedule  
         }
       }
     } else {
@@ -4724,6 +4729,29 @@ class UserService {
       if (i == foundJ.length - 1) {
       }
     }
+  }
+  async checkIfShiftHasStarted(job_id,startDate){
+   
+    const foundJ =await this.JobModel.findOne(
+      {
+        where: {id:job_id}
+      })
+
+      const dateStamp=await this.getDateAndTimeForStamp(foundJ.time_zone)
+        if(moment(startDate).isAfter(dateStamp)){
+            return false
+        }
+        else{
+            return true
+        }
+  }
+
+
+  async checkIfAllShiftHasStarted(obj){
+   
+    const checkKeyValue = obj.every(object => object["is_started"] === true);
+
+    return checkKeyValue
   }
 
   async returnJobPercentage(job_id) {
