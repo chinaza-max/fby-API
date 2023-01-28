@@ -33,6 +33,7 @@ import {
   SecurityCheckLog as SecurityCheckLogDeleted,
   Memo as MemoDeleted,
   MemoReceiver as MemoReceiverDeleted,
+  Shift_comments as Shift_commentsDeleted
 } from "../db/modelsDeleted";
 import {
   BadRequestError,
@@ -57,6 +58,7 @@ import { JobStatus } from "../interfaces/types.interface";
 import { IJobSecurityCode } from "../interfaces/job_security_code.interface";
 import authService from "./auth.service";
 import { func, number } from "joi";
+import Shift_comments from "../db/models/shift_comments.model";
 
 class UserService {
   private UserModel = Admin;
@@ -76,24 +78,16 @@ class UserService {
   private SecurityCheckLogModel = SecurityCheckLog;
   private MemoModel = Memo;
   private MemoReceiverModel = MemoReceiver;
+  private Shift_commentsModel = Shift_comments;
 
-  private UserDeletedModel = AdminDeleted;
   private JobDeletedModel = JobDeleted;
   private ScheduleDeletedModel = ScheduleDeleted;
-  private JobOperationsDeletedModel = JobOperationsDeleted;
-  private AssignedStaffsDeletedModel = AssignedStaffsDeleted;
-  private CustomerDeletedModel = CustomerDeleted;
   private JobLogsDeletedModel = JobLogsDeleted;
-  private LocationDeletedModel = Location;
-  private CoordinatesDeletedModel = CoordinatesDeleted;
-  private FacilityDeletedModel = FacilityDeleted;
-  private FacilityLocationDeletedModel = FacilityLocationDeleted;
   private AgendasDeletedModel = AgendasDeleted;
-  private JobReportsDeletedModel = JobReportsDeleted;
   private JobSecurityDeletedModel = JobSecurityCodeDeleted;
-  private SecurityCheckLogDeletedModel = SecurityCheckLogDeleted;
   private MemoDeletedModel = MemoDeleted;
   private MemoReceiverDeletedModel = MemoReceiverDeleted;
+  private Shift_commentsDeletedModel = Shift_commentsDeleted;
 
   async getSinglejob(myObj: any): Promise<any[]> {
     try {
@@ -4311,6 +4305,95 @@ class UserService {
     catch (error) {
       console.log(error)
       throw new SystemError(error)
+    }
+  }
+
+  async addShiftComment(data){
+    try {
+      let { comment, schedule_id, created_by_id, my_time_zone } =
+        await jobUtil.verifyCreateShiftComment.validateAsync(data);
+
+      let dateStamp = await this.getDateAndTimeForStamp(my_time_zone);
+
+      let obj = {
+        comment: comment,
+        created_by_id,
+        schedule_id,
+        time_zone: my_time_zone,
+        created_at: dateStamp,
+        updated_at: dateStamp,
+      };
+
+      let createdC = await this.Shift_commentsModel.create(obj);
+
+    } catch (error) {
+      throw new SystemError(error.toString());
+    }
+  }
+
+  async deleteShiftComment(data){
+    try {
+      const { comment_id } = await jobUtil.verifyDeleteShiftComment.validateAsync(data);
+
+      const record = await this.Shift_commentsModel.findOne({
+        where: {
+          id: comment_id,
+        },
+      });
+      if (record) {
+        await this.Shift_commentsDeletedModel.create(record.dataValues);
+        await record.destroy()
+      }
+
+    } catch (error) {
+      throw new SystemError(error.toString());
+    }
+  }
+
+  async getShiftComment(data){
+    try {
+      const { comment_id } = await jobUtil.verifyGetShiftComment.validateAsync(data);
+
+      const record = await this.Shift_commentsModel.findOne({
+        where: {
+          id: comment_id,
+        },
+      });
+      return record
+    } catch (error) {
+      throw new SystemError(error.toString());
+    }
+  }
+
+  async getJobsAttachedToSite(data){
+    try {
+      const {site_id} = await jobUtil.verifyGetJobsAttachedToSite.validateAsync(data);
+      const returned_data = await this.JobModel.findAll({
+        where: {
+          facility_id : site_id
+        }
+      })
+
+      let jobs = {
+        ACTIVE: [],
+        PENDING: [],
+        COMPLETED: []
+      }
+
+    //   returned_data.filter(job=>{
+    //     if(){
+
+    //     }
+    //     else if{
+
+    //     }
+    //     else if{
+          
+    //     }
+    //   })
+
+    } catch (error) {
+      
     }
   }
 

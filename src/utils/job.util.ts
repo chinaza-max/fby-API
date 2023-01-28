@@ -333,6 +333,25 @@ class JobUtil {
   public getJobDetails = Joi.object().keys({
     job_id: Joi.number().min(1),
   })
+
+  public verifyCreateShiftComment = Joi.object().keys({
+    my_time_zone: Joi.string().required(),
+    comment: Joi.string().required(),
+    created_by_id: Joi.number().required(),
+    schedule_id: Joi.number().required()
+  })
+
+  public verifyDeleteShiftComment = Joi.object().keys({
+    comment_id:Joi.number().required()
+  });
+
+  public verifyGetShiftComment = Joi.object().keys({
+    comment_id:Joi.number().required()
+  });
+
+  public verifyGetJobsAttachedToSite = Joi.object().keys({
+    site_id:Joi.number().required()
+  });
 }
 
 export default new JobUtil();

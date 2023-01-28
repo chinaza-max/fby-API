@@ -52,6 +52,18 @@ import Memo, {
 import MemoReceiver, {
   init as initMemoReceiver,
 } from "./memo_receiver.model";
+
+import Suspension_comments, {
+  init as initSuspension_comments
+} from "./suspension_comments.model"
+
+import Customer_suspension_comments, { init as initCustomer_suspension_comments}
+from "./customer_suspension_comments.model "
+
+import Shift_comments , {
+  init as initShift_comments
+} from "./shift_comments.model"
+
 import Connection from "mysql2/typings/mysql/lib/Connection";
 
 
@@ -225,6 +237,8 @@ function associate() {
     as: "coordinates",
   });
   
+  Job.hasMany(JobLogs);
+  
   JobLogs.belongsTo(Job, {
     onDelete: 'cascade',
     foreignKey: {
@@ -264,6 +278,46 @@ function associate() {
     },
     as: "agenda",
   });
+  Admin.hasMany(Suspension_comments)
+  Suspension_comments.belongsTo(Admin, {
+    foreignKey: {
+      allowNull: false,
+      name: "user_id",
+      field: "user_id",
+    },
+    as: "suspension_comments",
+  });
+
+  Suspension_comments.belongsTo(Admin, {
+    foreignKey: {
+      allowNull: false,
+      name: "admin_id",
+      field: "admin_id",
+    },
+    as: "Admin_details",
+  });
+  Customer.hasMany(Customer_suspension_comments);
+
+  Customer_suspension_comments.belongsTo(Customer, {
+    foreignKey: {
+      allowNull: false,
+      name: "customer_id",
+      field: "customer_id",
+    },
+    as: "customer_suspension_comments",
+  });
+
+  Shift_comments.belongsTo(Schedule,
+    {
+      foreignKey: {
+        allowNull: false,
+        name: "schedule_id",
+        field: "schedule_id",
+      },
+      as: "Shift_comments",
+  })
+
+  Schedule.hasMany(Shift_comments)  
 
 }
 
@@ -291,7 +345,10 @@ export {
   SecurityCheckLog,
   License,
   Memo,
-  MemoReceiver
+  MemoReceiver,
+  Suspension_comments,
+  Customer_suspension_comments,
+  Shift_comments
 }
 
 export function init(connection: Sequelize) {
@@ -318,7 +375,9 @@ export function init(connection: Sequelize) {
   initSecurityCheckLog(connection);
   initLicense(connection);
   initMemo(connection);
-  initMemoReceiver(connection)
-
+  initMemoReceiver(connection);
+  initSuspension_comments(connection)
+  initCustomer_suspension_comments(connection)
+  initShift_comments(connection)
   associate();
 }
