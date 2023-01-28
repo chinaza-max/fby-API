@@ -46,7 +46,7 @@ import {
   SecurityCodeVerificationError,
   AgendaSheduleError,
 } from "../errors";
-import { fn, col, Op, QueryError, where, FLOAT } from "sequelize";
+import { fn, col, Op, QueryError, where, FLOAT, Sequelize } from "sequelize";
 import moment from "moment";
 import axios from "axios";
 import momentTimeZone from "moment-timezone";
@@ -3224,6 +3224,25 @@ class UserService {
       ON schedule.job_id = jobs.id INNER JOIN customers ON jobs.customer_id = customers.id
       WHERE schedule.guard_id = ${guard_id}
       `)
+      // const returned_dat =   await this.ScheduleModel.findAll({
+      //   include:[
+      //     {
+      //       model: this.JobModel,
+      //       as: "job",
+      //       attributes: ["id"],
+      //       include: [
+      //         {
+      //           model: this.CustomerModel,
+      //           as: 'customer',
+      //           attributes: ["id", [Sequelize.fn('DISTINCT', Sequelize.col('job.customer.company_name')) ,'company_name']]
+                
+      //         }
+      //       ]
+      //     }
+      //   ],
+      //   attributes: ["guard_id"],
+      //   where: {guard_id:guard_id}
+      // })
       return returned_data[0]
     } catch (error) {
       throw new SystemError(error)
@@ -4261,21 +4280,24 @@ class UserService {
       }}
       var data = await this.ScheduleModel.findAll(
         {
-          include: {
+          include: [
+            {
             model: this.JobModel,
             as: "job",
             include: [
               {
               model: this.JobLogsModel,
-              where: {
-                [Op.and]:
-                [
-                {check_in_status: true},
-                  {check_out_status: true}
-                ]
-              }
-            }          
+              // where: {
+              //   [Op.and]:
+              //   [
+              //   {check_in_status: true},
+              //     {check_out_status: true}
+              //   ]
+              // }
+            }        
             ],
+
+            
             where: {
               [Op.and]: [
                 { "customer_id": { [Op.like]: customer_id ? customer_id : "%" } },
@@ -4284,13 +4306,25 @@ class UserService {
               // attributes:['customer_id']
             }
           },
-          where: {[Op.and]:[{check_in_date:{[Op.gt]: from}},
+          {
+            model: this.Shift_commentsModel,
+            as: "Shift_comments"
+          }  
+        ],
+          where:
+           {
+            [Op.and]:[
+            {check_in_date:{[Op.gt]: from}},
           {check_out_date:{[Op.lt]: to}},
           { guard_id: { [Op.like]: guard_id ? guard_id : "%" }}
-        ]},
+        ]
+      },
         });
 
-      const users = await this.UserModel.findAll({ where: { role: "GUARD" } })
+      const users = await this.UserModel.findAll({ where: { [Op.and]: [
+        { "id": { [Op.like]: guard_id ? guard_id : "%" } },
+        { "role": "GUARD" }
+      ] }})
       for (let i = 0; i < users.length; i++) {
         let a = {
           user_id: users[i]?.id,

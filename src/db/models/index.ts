@@ -321,7 +321,7 @@ function associate() {
   Shift_comments.belongsTo(Schedule,
     {
       foreignKey: {
-        allowNull: false,
+        // allowNull: false,
         name: "schedule_id",
         field: "schedule_id",
       },
