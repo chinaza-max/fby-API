@@ -4447,8 +4447,8 @@ class UserService {
 
 
       const all = {
-        company_name :  returned_data[0]["customer"]?.company_name,
-        site_name : returned_data[0]["facility"]?.name,
+        company_name :  returned_data[0]["customer"]?.company_name ?  returned_data[0]["customer"]?.company_name : null,
+        site_name : returned_data[0]["facility"]?.name ?  returned_data[0]["facility"]?.name : null,
         jobs: []
       };
 
