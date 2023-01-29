@@ -2241,6 +2241,11 @@ class UserService {
       await jobUtil.verifyGetOneShedulePerGuard.validateAsync(obj);
 
     const foundS = await this.ScheduleModel.findAll({
+      include: 
+        {
+          model: this.Shift_commentsModel,
+          as: "Shift_comments"
+        },
       where: {
         [Op.and]: [{ job_id }, { guard_id }],
       },
@@ -2265,8 +2270,8 @@ class UserService {
           schedule_id: foundS[i].id,
           schedule_accepted_by_admin: foundS[i].schedule_accepted_by_admin,
           job_id: foundS[i].job_id,
-          is_started:await this.checkIfShiftHasStarted(foundS[i].job_id,foundS[i].check_in_date)
-
+          is_started:await this.checkIfShiftHasStarted(foundS[i].job_id,foundS[i].check_in_date),
+          comments: foundS[i]["Shift_comments"]
         };
         all_shedule.push(obj);
 
@@ -4285,13 +4290,10 @@ class UserService {
       else if (from_date && to_date) {
         var from = from_date
         var to = to_date
+        from.setUTCHours(0,0,0,0);
+        to.setUTCHours(23,59,59,999);
       }
-      else{
-        const date = this.getOneWeek(from_date,to_date)
-      if (date){
-      var from = date[0]
-      var to = date[1]
-      }}
+
       var data = await this.ScheduleModel.findAll(
         {
           include: [
@@ -4343,14 +4345,15 @@ class UserService {
         let a = {
           user_id: users[i]?.id,
           name: users[i]?.first_name + " " + users[i]?.last_name,
-          hours_worked: 0,
+          hours_assigned: 0,
+          hours_worked: 0,          
           data: []
         }
         for (let j = 0; j < data.length; j++) {
           if (data[j]?.guard_id == users[i].id) {
             var check_in_date: any = new Date(data[j].check_in_date);
             var check_out_date: any = new Date(data[j].check_out_date)
-            a.hours_worked = ((check_out_date - check_in_date) / 3600000 + a.hours_worked)
+            a.hours_assigned = Number(((check_out_date - check_in_date) / 3600000 + a.hours_assigned).toFixed(2))
             a.data.push(data[j])
           }
 
@@ -4429,29 +4432,13 @@ class UserService {
       const returned_data = await this.JobModel.findAll({
         where: {
           facility_id : site_id
-        }
+        },
+        order: [["created_at", "DESC"]],
       })
-
-      let jobs = {
-        ACTIVE: [],
-        PENDING: [],
-        COMPLETED: []
-      }
-
-    //   returned_data.filter(job=>{
-    //     if(){
-
-    //     }
-    //     else if{
-
-    //     }
-    //     else if{
-          
-    //     }
-    //   })
+      return returned_data
 
     } catch (error) {
-      
+      throw new SystemError(error.toString());
     }
   }
 
@@ -4913,6 +4900,8 @@ class UserService {
     var dates = [];
     if (dDate1 && dDate2) {
       if (dDate1.getDay() === 0 && dDate2.getDay() === 6) {
+        dDate1.setUTCHours(0,0,0,0);
+        dDate2.setUTCHours(23,59,59,999);
         dates.push(dDate1)
         dates.push(dDate2)
   
@@ -4922,7 +4911,8 @@ class UserService {
         const b = 6 - dDate2.getDay();
         dDate1.setDate(dDate1.getDate() + a)
         dDate2.setDate(dDate2.getDate() + b)
-  
+        dDate1.setUTCHours(0,0,0,0);
+        dDate2.setUTCHours(23,59,59,999);
         dates.push(dDate1)
         dates.push(dDate2)
   
@@ -4930,6 +4920,8 @@ class UserService {
     } else if (!dDate2) {
       dDate2 = dDate1
       dDate2.setDate(dDate2.getDate() + 6)
+      dDate1.setUTCHours(0,0,0,0);
+      dDate2.setUTCHours(23,59,59,999);
       dates.push(dDate1)
       dates.push(dDate2)
 
@@ -4937,6 +4929,8 @@ class UserService {
     else{
       dDate1 = dDate2
       dDate1.setDate(dDate1.getDate() - 6)
+      dDate1.setUTCHours(0,0,0,0);
+      dDate2.setUTCHours(23,59,59,999);
       dates.push(dDate1)
       dates.push(dDate2)
     }

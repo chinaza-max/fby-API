@@ -1487,6 +1487,86 @@ export default class JobController {
   }
   } 
 
+  protected async getJobsAttachedToSite(req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try{
+
+    if (!req.query.site_id) return res.status(200).json("site_id query not provided")
+    const data = {
+      site_id : req.query.site_id
+    } 
+    const obj = await jobService.getJobsAttachedToSite(data);  
+
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+  } catch (error) {
+    next(error);
+  }
+  } 
+
+  protected async addShiftComment(req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try{
+
+    const data = req.body 
+    const obj = await jobService.addShiftComment(data);  
+
+      return res.status(200).json({
+        status: 200,
+        message: "shift comment has been added",
+      });
+  } catch (error) {
+    next(error);
+  }
+  } 
+  
+  protected async deleteShiftComment(req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try{
+
+      const data = req.body 
+
+    const obj = await jobService.deleteShiftComment(data);  
+
+      return res.status(200).json({
+        status: 200,
+        message: "shift comment has been deleted",
+      });
+  } catch (error) {
+    next(error);
+  }
+  } 
+  
+  protected async getShiftComment(req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try{
+
+    if (!req.query.comment_id) return res.status(200).json("comment_id query not provided")
+    const data = {
+      comment_id : Number(req.query.comment_id)
+    } 
+    const obj = await jobService.getShiftComment(data);  
+
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+  } catch (error) {
+    next(error);
+  }
+  } 
+  
+
 
 
 
