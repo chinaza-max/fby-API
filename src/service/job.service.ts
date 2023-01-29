@@ -4445,10 +4445,10 @@ class UserService {
         order: [["created_at", "DESC"]],
       })
 
-
+      const returned_data2:any = returned_data
       const all = {
-        company_name :  returned_data[0]["customer"]?.company_name ?  returned_data[0]["customer"]?.company_name : null,
-        site_name : returned_data[0]["facility"]?.name ?  returned_data[0]["facility"]?.name : null,
+        company_name :  returned_data2[0]?.customer?.company_name,
+        site_name : returned_data2[0]?.facility?.name,
         jobs: []
       };
 
