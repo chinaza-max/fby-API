@@ -4449,7 +4449,11 @@ class UserService {
         site_name : returned_data[0]["facility"]?.name,
         jobs: []
       };
-      await returned_data.filter(async prev=>{
+
+
+      for (let index = 0; index < returned_data.length; index++) {
+        let prev=returned_data[index]
+
         var data1 = {
           id: prev?.id,
           job_status: prev?.job_status,
@@ -4458,10 +4462,12 @@ class UserService {
           job_type: prev?.job_type,
           payment_status: prev?.payment_status,
           job_progress : await this.returnJobPercentage(prev?.id),
-          created_at: await this.getDateAndTime(prev?.created_at),
+          created_at: await this.getDateAndTime(prev?.created_at)
         }
-        all.push(data1)
-      })
+        all.jobs.push(data1)
+      }
+    
+
       return all
 
     } catch (error) {
