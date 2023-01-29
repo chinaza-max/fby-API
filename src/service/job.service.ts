@@ -2277,11 +2277,10 @@ class UserService {
 
         if (i == foundS.length - 1) {
           let allScheduleStarted=await this.checkIfAllShiftHasStarted(all_shedule)
-
           all_shedule.forEach(function(obj){
                   obj.is_started_all=allScheduleStarted
-                });
-  
+                })
+        
           return  all_shedule  
         }
       }
@@ -2804,8 +2803,14 @@ class UserService {
     if (foundF.length != 0) {
       for (let i = 0; i < foundF.length; i++) {
         let obj = {};
+
+
+        let myCustomer=await this.getCustomerName(foundF[i].customer_id)
+
         obj["name"] = foundF[i].name;
-        obj["guard"] = foundF[i].id;
+        obj["site_id"] = foundF[i].id;
+        obj["customer_name"] = myCustomer.company_name;
+
 
         availabLeGuard.push(obj);
 
@@ -4774,6 +4779,20 @@ class UserService {
 
     return checkKeyValue
   }
+
+  async getCustomerName(customer_id){
+   
+    let foundC = await this.CustomerModel.findOne({
+      where:{
+          id:customer_id
+      }
+    });
+
+    return foundC
+
+  }
+
+
 
   async returnJobPercentage(job_id) {
     let total = 0;
