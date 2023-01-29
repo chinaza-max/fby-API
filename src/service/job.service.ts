@@ -4457,6 +4457,7 @@ class UserService {
           site_name : prev["facility"].name,
           created_at: await this.getDateAndTime(prev.created_at),
         }
+
         all.push(data1)
       })
       return all
