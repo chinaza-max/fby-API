@@ -4444,20 +4444,23 @@ class UserService {
         },
         order: [["created_at", "DESC"]],
       })
-      const all = [];
+      const all = {
+        company_name :  returned_data[0]["customer"]?.company_name,
+        site_name : returned_data[0]["facility"]?.name,
+        jobs: []
+      };
       await returned_data.filter(async prev=>{
         var data1 = {
-          id: prev.id,
-          job_status: prev.job_status,
-          client_charge: prev.client_charge,
-          staff_charge: prev.staff_charge,
-          job_type: prev.job_type,
-          job_progress : await this.returnJobPercentage(prev.id),
-          company_name :  prev["customer"].company_name,
-          site_name : prev["facility"].name,
-          created_at: await this.getDateAndTime(prev.created_at),
+          id: prev?.id,
+          job_status: prev?.job_status,
+          client_charge: prev?.client_charge,
+          staff_charge: prev?.staff_charge,
+          job_type: prev?.job_type,
+          payment_status: prev?.payment_status,
+          job_progress : await this.returnJobPercentage(prev?.id),
+          created_at: await this.getDateAndTime(prev?.created_at),
         }
-        all.push(data1)
+        all.jobs.push(data1)
       })
       return all
 
