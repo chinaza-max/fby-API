@@ -130,16 +130,22 @@ class CustomerService {
       operations_area_constraint,
       client_charge,
       guard_charge,
-      site_name,
-      facility_location_id,
+      facility_address,
       site_id,
+      latitude,
+      longitude,
+      my_time_zone
     } = await customerUtil.verifyUpdateFacility.validateAsync(data);
+
+    let dateStamp = await this.getDateAndTimeForStamp(my_time_zone);
+
 
     await this.FacilityModel.update(
       {
         client_charge,
         guard_charge,
-        name: site_name,
+        updated_at: dateStamp
+
       },
       {
         where: {
@@ -148,16 +154,51 @@ class CustomerService {
       }
     );
 
-    await this.FacilityLocationModel.update(
-      {
-        operations_area_constraint,
-      },
+    let foundF=await this.FacilityModel.findOne(
       {
         where: {
-          id: facility_location_id,
+          id: site_id,
         },
       }
     );
+
+    let foundFL=await this.FacilityLocationModel.findOne(
+      {
+        where: {
+          id: foundF.facility_location_id,
+        },
+      }
+    );
+
+
+
+    await this.FacilityLocationModel.update(
+      {
+        operations_area_constraint,
+        address:facility_address,
+        updated_at: dateStamp
+
+      },
+      {
+        where: {
+          id: foundF.facility_location_id,
+        },
+      })
+    
+      await this.CoordinatesModel.update(
+        {
+          latitude,
+          longitude,
+          updated_at: dateStamp,
+
+        },
+        {
+          where: {
+            id: foundFL.coordinates_id,
+          },
+      })
+
+
   }
 
   async handleDeleteFacility(data: object): Promise<any> {
@@ -165,11 +206,6 @@ class CustomerService {
       data
     );
 
-    //let lo=await this.FacilityLocationModel.findOne({ where: { id:156} });
-
-    console.log("llllllllllllllllllllllllllllllllllllll");
-
-    console.log(site_id);
     try {
       const record = await this.FacilityModel.findOne({
         where: {
@@ -177,7 +213,6 @@ class CustomerService {
         },
       });
       if (record) {
-        console.log(record);
         const deleted_faclilty = await this.FacilityDeletedModel.create(
           record.dataValues
         );

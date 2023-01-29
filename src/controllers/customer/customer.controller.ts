@@ -44,10 +44,7 @@ export default class CustomerController {
         my_time_zone:req["user_time_zone"],
         created_by_id:req.user.id
       }
-
-      console.log(my_bj)
     
-      console.log("''''''''''''''''''''''''''''fffffffffffffffffff''''''''''''''''''''''''''''")
       const obj = await customerService.handleCreateFacility(my_bj);
 
       return res.status(200).json({
@@ -88,7 +85,12 @@ export default class CustomerController {
     try {
       const data = req.body;
 
-      const obj = await customerService.handleUpdateFacility(data);
+      let my_bj={
+        ...data,
+        my_time_zone:req["user_time_zone"],
+      }
+
+      const obj = await customerService.handleUpdateFacility(my_bj);
 
     
       return res.status(200).json({

@@ -2837,6 +2837,15 @@ class UserService {
         obj["name"] = foundG[i].first_name + " " + foundG[i].last_name;
         obj["guard"] = foundG[i].id;
 
+          console.log(foundG[i].suspended)
+        if(foundG[i].suspended){
+          obj["suspension_status"] ="Suspended";
+
+        }else{
+          obj["suspension_status"] = "";
+        }
+
+
         availabLeGuard.push(obj);
 
         if (i == foundG.length - 1) {
@@ -3986,6 +3995,15 @@ class UserService {
   }
 
   isInlocation(latitude, longitude, objLatLog) {
+
+
+    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkk")
+
+
     function getDistanceBetween(lat1, long1, lat2, long2) {
       var R = 6371; // Radius of the earth in km
       var dLat = deg2rad(lat2 - lat1); // deg2rad below
@@ -4001,17 +4019,13 @@ class UserService {
       d = d * 1000; //Distance in meters
       return d;
     }
+
     function deg2rad(deg) {
-      return deg * (Math.PI / 180);
+          return deg * (Math.PI / 180);
     }
 
     if (
-      getDistanceBetween(
-        latitude,
-        longitude,
-        objLatLog.latitude,
-        objLatLog.longitude
-      ) > objLatLog.radius
+      getDistanceBetween(latitude,longitude,objLatLog.latitude,objLatLog.longitude) > objLatLog.radius
     ) {
       return false;
     } else {

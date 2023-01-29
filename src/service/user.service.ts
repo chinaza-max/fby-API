@@ -39,8 +39,8 @@ class UserService {
     let dateStamp = await this.getDateAndTimeForStamp(data.my_time_zone);
 
     //'/home/fbyteamschedule/public_html/fby-security-api/public/images/avatars/image-1672174934995-161164152-glacier24.jpg',
-    let accessPath = serverConfig.DOMAIN + file.path.replace("public", "");
-    //let accessPath=serverConfig.DOMAIN +file.path.replace("/home/fbyteamschedule/public_html", "")
+    //let accessPath = serverConfig.DOMAIN + file.path.replace("public", "");
+    let accessPath=serverConfig.DOMAIN +file.path.replace("/home/fbyteamschedule/public_html", "")
 
     const foundL = await this.LicenseModel.findOne({
       where: {
@@ -198,14 +198,14 @@ class UserService {
         */
     } finally {
       if (file) {
-        /*let accessPath =
+        let accessPath =
           serverConfig.DOMAIN +
           file.path.replace("/home/fbyteamschedule/public_html", "");
-*/
+/*
           let accessPath =
           serverConfig.DOMAIN +
           file.path.replace("public", "");
-
+*/
         await user.update({ image: accessPath });
       }
 
@@ -266,6 +266,10 @@ class UserService {
           serverConfig.DOMAIN +
           file.path.replace("/home/fbyteamschedule/public_html", "");
 */
+
+  ///home/fbyteamschedule/public_html/fby-security-api/app.js  
+  
+  //https://fbyteamschedule.com/fby-security-api/public/images/avatars/fbyDefaultIMG.png│
 
           let accessPath =
           serverConfig.DOMAIN +
