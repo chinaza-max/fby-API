@@ -96,6 +96,11 @@ class JobRoutes extends JobController {
     this.router.post("/", this.createJob);
 
     this.router.get("/calender", this.calender);
+    this.router.get("/get_jobs_attached_to_site", this.getJobsAttachedToSite);
+    this.router.post("/add_shift_comment", this.addShiftComment);
+    this.router.post("/delete_shift_comment", this.deleteShiftComment);
+    this.router.get("/shift_comment", this.getShiftComment);
+    
   }
 }
 
