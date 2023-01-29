@@ -4430,25 +4430,28 @@ class UserService {
     try {
       const {site_id} = await jobUtil.verifyGetJobsAttachedToSite.validateAsync(data);
       const returned_data = await this.JobModel.findAll({
-        include: [{
-          model:this.FacilityModel,
-          as: "facility"
-        },  
-        {
-          model: this.CustomerModel,
-          as: "customer"
-        }
-      ],
+
         where: {
           facility_id : site_id
         },
         order: [["created_at", "DESC"]],
       })
+      const site = await this.FacilityModel.findOne({
+        where: {
+          id: site_id
+        }
+      })
+      const company_name = (await this.CustomerModel.findOne({
+        where : {
+          company_name: site.customer_id
+        }
+      })).company_name
+
 
       const returned_data2:any = returned_data
       const all = {
-        company_name :  returned_data2[0]?.customer?.company_name,
-        site_name : returned_data2[0]?.facility?.name,
+        company_name :  company_name,
+        site_name : site.name,
         jobs: []
       };
 
