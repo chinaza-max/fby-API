@@ -4433,7 +4433,7 @@ class UserService {
         include: [{
           model:this.FacilityModel,
           as: "facility"
-        },
+        },  
         {
           model: this.CustomerModel,
           as: "customer"
@@ -4444,29 +4444,35 @@ class UserService {
         },
         order: [["created_at", "DESC"]],
       })
-      // const returned_data2: any = returned_data
+
+
       const all = {
-        company_name :  returned_data[0]["customer"]?.company_name ? returned_data[0]["customer"]?.company_name : null,
-        site_name : returned_data[0]["facility"]?.name ? returned_data[0]["facility"]?.name : null,
+        company_name :  returned_data[0]["customer"]?.company_name,
+        site_name : returned_data[0]["facility"]?.name,
         jobs: []
       };
 
-
-      for (let index = 0; index < returned_data.length; index++) {
-        let prev=returned_data[index]
-
-        var data1 = {
-          id: prev?.id,
-          job_status: prev?.job_status,
-          client_charge: prev?.client_charge,
-          staff_charge: prev?.staff_charge,
-          job_type: prev?.job_type,
-          payment_status: prev?.payment_status,
-          job_progress : await this.returnJobPercentage(prev?.id),
-          created_at: await this.getDateAndTime(prev?.created_at)
+      if(returned_data.length!=0){
+        for (let index = 0; index < returned_data.length; index++) {
+          let prev=returned_data[index]
+  
+          var data1 = {
+            id: prev?.id,
+            job_status: prev?.job_status,
+            client_charge: prev?.client_charge,
+            staff_charge: prev?.staff_charge,
+            job_type: prev?.job_type,
+            payment_status: prev?.payment_status,
+            job_progress : await this.returnJobPercentage(prev?.id),
+            created_at: await this.getDateAndTime(prev?.created_at)
+          }
+          all.jobs.push(data1)
         }
-        all.jobs.push(data1)
       }
+      else{
+        
+      }
+     
     
 
       return all
