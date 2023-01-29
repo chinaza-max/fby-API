@@ -21,9 +21,9 @@ class MailService {
   })
 
   async sendMail(options: MailOptionsI) {
-    //const filePath = `/home/fbyteamschedule/public_html/fby-security-api/src/resources/mailTemplates/${options.templateName}.html`;
+    const filePath = `/home/fbyteamschedule/public_html/fby-security-api/src/resources/mailTemplates/${options.templateName}.html`;
 
-    const filePath = `./src/resources/mailTemplates/${options.templateName}.html`;
+    //const filePath = `./src/resources/mailTemplates/${options.templateName}.html`;
     const source = fs.readFileSync(filePath, "utf-8").toString();
     const template = Handlebars.compile(source);
     const html = template(options.variables);
@@ -37,13 +37,9 @@ class MailService {
     this.transporter.sendMail(mailData, (error) => {
       if (error) {
 
-        console.log("error error error error")
-
-        console.log(error)
         DEBUG(`Error sending email: ${error}`)
         return false;
       }
-      console.log("sent sent sent sent sent sent")
 
       return true;
     })

@@ -12,11 +12,14 @@ class CustomerUtil {
 
   public verifyUpdateFacility = Joi.object().keys({
     guard_charge: Joi.number().required(),
-    site_name: Joi.string().required(),
+    facility_address: Joi.string().required(),
     client_charge: Joi.number().required(),
     site_id: Joi.number().required(),
     operations_area_constraint: Joi.number().required(),
-    facility_location_id: Joi.number().required(),
+    my_time_zone: Joi.string().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required()
+
   });
 
 

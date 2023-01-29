@@ -89,7 +89,7 @@ class AuthenticationService {
       phone_number,
       my_time_zone,
       created_by_id
-    } = await authUtil.verifyUserCreationData.validateAsync(data);
+    } = await authUtil.verifyUserCreationData2.validateAsync(data);
 
     let dateStamp=await this.getDateAndTimeForStamp(my_time_zone)
     let hashedPassword;

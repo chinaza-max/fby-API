@@ -28,7 +28,6 @@ class UserRoutes extends UserController {
     this.router.post("/suspend_account_authorization", this.suspendAccountAuthorization);
     this.router.post("/suspend_account_unauthorization", this.suspendAccountUnAuthorization);
     this.router.get("/suspended_staffs", this.getSuspendedStaffs)
-    
   }
 }
 
