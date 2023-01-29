@@ -4416,12 +4416,36 @@ class UserService {
     try {
       const {site_id} = await jobUtil.verifyGetJobsAttachedToSite.validateAsync(data);
       const returned_data = await this.JobModel.findAll({
+        include: [{
+          model:this.FacilityModel,
+          as: "facility"
+        },
+        {
+          model: this.CustomerModel,
+          as: "customer"
+        }
+      ],
         where: {
           facility_id : site_id
         },
         order: [["created_at", "DESC"]],
       })
-      return returned_data
+      const all = [];
+      await returned_data.filter(async prev=>{
+        var data1 = {
+          id: prev.id,
+          job_status: prev.job_status,
+          client_charge: prev.client_charge,
+          staff_charge: prev.staff_charge,
+          job_type: prev.job_type,
+          job_progress : await this.returnJobPercentage(prev.id),
+          company_name :  prev["customer"].company_name,
+          site_name : prev["facility"].name,
+          created_at: await this.getDateAndTime(prev.created_at),
+        }
+        all.push(data1)
+      })
+      return all
 
     } catch (error) {
       throw new SystemError(error.toString());
