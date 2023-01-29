@@ -1222,7 +1222,7 @@ class UserService {
     date_time_staff_shedule = await this.addCreatorsId(
       date_time_staff_shedule,
       created_by_id
-    );
+    )
 
     //GETTING ALL THE THE JOBS SCHEDULE SPECIFIC TO THE SHEDULE
     let myShedule = await this.ScheduleModel.findAll({
@@ -4161,6 +4161,9 @@ class UserService {
       facility_id: foundj.facility_id,
       guard_charge: foundj.staff_charge,
       no_qr_code: foundJC.length,
+      job_type: foundj.job_type,
+      payment_status:foundj.payment_status
+
     };
 
     return job;
@@ -4330,8 +4333,8 @@ class UserService {
           where:
            {
             [Op.and]:[
-            {check_in_date:{[Op.gt]: from}},
-          {check_out_date:{[Op.lt]: to}},
+            {check_in_date:{[Op.gte]: from}},
+          {check_out_date:{[Op.lte]: to}},
           { guard_id: { [Op.like]: guard_id ? guard_id : "%" }}
         ]
       },
@@ -4370,6 +4373,7 @@ class UserService {
   }
 
   async addShiftComment(data){
+
     try {
       let { comment, schedule_id, created_by_id, my_time_zone } =
         await jobUtil.verifyCreateShiftComment.validateAsync(data);
@@ -4436,14 +4440,17 @@ class UserService {
         },
         order: [["created_at", "DESC"]],
       })
+
       const site = await this.FacilityModel.findOne({
         where: {
           id: site_id
         }
       })
+
+
       const company_name = (await this.CustomerModel.findOne({
         where : {
-          company_name: site.customer_id
+          id: site.customer_id
         }
       })).company_name
 

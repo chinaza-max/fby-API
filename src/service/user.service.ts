@@ -55,6 +55,7 @@ class UserService {
         "public" +
         foundL.license.replace(serverConfig.DOMAIN, "");
       /*
+      
       try {
         fs.unlinkSync(filePath)
 

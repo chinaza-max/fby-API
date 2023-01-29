@@ -539,9 +539,6 @@ export default class JobController {
       req.user = req.body.guard_id;
 
       const obj = await jobService.getShiftPerGuard(data);
-
-      console.log(obj)
-      
       return res.status(200).json({
         status: 200,
         message: obj,
@@ -1514,8 +1511,15 @@ export default class JobController {
   ): Promise<Response> {
     try{
 
-    const data = req.body 
-    const obj = await jobService.addShiftComment(data);  
+    const data = req.body
+    let data2={
+      ...data,
+      created_by_id:req.user.id,
+      my_time_zone:req["user_time_zone"]
+    }
+
+
+    const obj = await jobService.addShiftComment(data2);  
 
       return res.status(200).json({
         status: 200,
