@@ -1471,8 +1471,11 @@ export default class JobController {
   ): Promise<Response> {
     try{
 
-    const {customer_id, guard_id, site_id, from_date, to_date} = req.query
-    const obj = await jobService.calender(customer_id, guard_id, site_id, from_date, to_date);  
+    const {customer_id, guard_id, site_id, from_date, to_date, limit,
+      offset} = req.query
+    const obj = await jobService.calender(customer_id, guard_id, site_id, from_date, to_date,
+      limit, offset
+      );  
 
       return res.status(200).json({
         status: 200,
