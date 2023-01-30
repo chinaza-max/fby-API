@@ -4299,7 +4299,7 @@ class UserService {
         to.setUTCHours(23,59,59,999);
       }
 
-      var data: any = await this.ScheduleModel.findAll(
+      var data1: any = await this.ScheduleModel.findAll(
         {
           attributes: {
           exclude: ["updated_at",
@@ -4366,18 +4366,16 @@ class UserService {
       },
         });
 
-    const data1 = null;
+    const data = [] 
+    data1.filter(pre =>{
+      data.push(pre.dataValues)
+    });
+    const users = await this.UserModel.findAll({ where: { [Op.and]: [
+      { "id": { [Op.like]: guard_id ? guard_id : "%" } },
+      { "role": "GUARD" }
+    ] }})
 
-    for (let i = 0; i < data.length; i++) {
-      if ((data[i].check_in_date >= from && data[i].check_out_date <= to) 
-      || (data[i].check_in_date <= to && data[i].check_out_date >= to) || 
-      (data[i].check_in_date <= from && data[i].check_out_date >= from) 
-      ){
 
-      const users = await this.UserModel.findAll({ where: { [Op.and]: [
-        { "id": { [Op.like]: guard_id ? guard_id : "%" } },
-        { "role": "GUARD" }
-      ] }})
       for (let i = 0; i < users.length; i++) {
         let a = {
           user_id: users[i]?.id,
@@ -4387,6 +4385,12 @@ class UserService {
           data: []
         }
         for (let j = 0; j < data.length; j++) {
+          if (( new Date(data[j].check_in_date) >= from && new Date (data[j].check_out_date) <= to) 
+
+          // || (data[j].check_in_date <= to && data[j].check_out_date >= to) || 
+          // (data[j].check_in_date <= from && data[j].check_out_date >= from) 
+          ){
+            console.log(from, to)
           if (data[j]?.guard_id == users[i].id) {
             var check_in_date: any = new Date(data[j].check_in_date);
             var check_out_date: any = new Date(data[j].check_out_date);
@@ -4399,13 +4403,10 @@ class UserService {
 
             a.hours_assigned = Number(((check_out_date - check_in_date) / 3600000 + a.hours_assigned).toFixed(2));
 
-            const start_date = this.getDateOnly(data[j].check_in_date);
 
-            data[j]["start_date"] = start_date;
+            data[j].start_date = moment(data[j].check_in_date).format("YYYY-MM-DD");
 
-            const end_date = this.getDateOnly(data[j].check_out_date);
-            
-            data[j]["end_date"] = await this.getDateOnly(data[j].check_out_date);
+            data[j].end_date = moment(data[j].check_out_date).format("YYYY-MM-DD");
             
             a.data.push(data[j])
           }
@@ -4416,7 +4417,7 @@ class UserService {
     }
       // return data
       return all
-    }}
+    }
     catch (error) {
       console.log(error)
       throw new SystemError(error)
@@ -5011,9 +5012,11 @@ class UserService {
         dDate2.setTime(dDate2.getTime() -  (2*60 * 60 * 1000));
         dates.from = dDate1
         dates.to = dDate2
+        const date1 = dDate1
+        const date2 = dDate2
         const twoWeeks = {
-          date1: new Date(dDate1.setDate(dDate1.getDate() - 7)),
-          date2: new Date(dDate2.setDate(dDate2.getDate() + 7))
+          date1: new Date(date1.setDate(date1.getDate() - 7)),
+          date2: new Date(date2.setDate(date2.getDate() + 7))
         }
         dates.twoWeeks = twoWeeks
   
@@ -5027,13 +5030,15 @@ class UserService {
         dDate2.setTime(dDate2.getTime() -  (2*60 * 60 * 1000));
         dates.from = dDate1
         dates.to = dDate2
+        const date1 = dDate1
+        const date2 = dDate2
         const twoWeeks = {
-          date1: new Date(dDate1.setDate(dDate1.getDate() - 7)),
-          date2: new Date(dDate2.setDate(dDate2.getDate() + 7))
+          date1: new Date(date1.setDate(date1.getDate() - 7)),
+          date2: new Date(date2.setDate(date2.getDate() + 7))
         }
         dates.twoWeeks = twoWeeks
   
-  
+    
       }
     } else if (!dDate2) {
       dDate2 = dDate1
@@ -5042,9 +5047,11 @@ class UserService {
       dDate2.setTime(dDate2.getTime() -  (2*60 * 60 * 1000));
       dates.from = dDate1
       dates.to = dDate2
+      const date1 = dDate1
+      const date2 = dDate2
       const twoWeeks = {
-        date1: new Date(dDate1.setDate(dDate1.getDate() - 7)),
-        date2: new Date(dDate2.setDate(dDate2.getDate() + 7))
+        date1: new Date(date1.setDate(date1.getDate() - 7)),
+        date2: new Date(date2.setDate(date2.getDate() + 7))
       }
       dates.twoWeeks = twoWeeks
 
@@ -5057,9 +5064,11 @@ class UserService {
       dDate2.setUTCHours(23,59,59,999);
       dates.from = dDate1
       dates.to = dDate2
+      const date1 = dDate1
+      const date2 = dDate2
       const twoWeeks = {
-        date1: new Date(dDate1.setDate(dDate1.getDate() - 7)),
-        date2: new Date(dDate2.setDate(dDate2.getDate() + 7))
+        date1: new Date(date1.setDate(date1.getDate() - 7)),
+        date2: new Date(date2.setDate(date2.getDate() + 7))
       }
       dates.twoWeeks = twoWeeks
 

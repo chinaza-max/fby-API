@@ -1476,7 +1476,7 @@ export default class JobController {
 
       return res.status(200).json({
         status: 200,
-        data: obj,
+        data: {my_time_zone:req["user_time_zone"],obj}
       })
 
   } catch (error) {
