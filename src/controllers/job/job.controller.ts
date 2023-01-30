@@ -1463,12 +1463,15 @@ export default class JobController {
   ): Promise<Response> {
     try{
 
-    const {customer_id, guard_id, site_id, from_date, to_date} = req.query
-    const obj = await jobService.calender(customer_id, guard_id, site_id, from_date, to_date);  
+    const {customer_id, guard_id, site_id, from_date, to_date, limit,
+      offset} = req.query
+    const obj = await jobService.calender(customer_id, guard_id, site_id, from_date, to_date,
+      limit, offset
+      );  
 
       return res.status(200).json({
         status: 200,
-        data: obj,
+        data: {my_time_zone:req["user_time_zone"],obj}
       })
 
   } catch (error) {
@@ -1552,6 +1555,27 @@ export default class JobController {
       comment_id : Number(req.query.comment_id)
     } 
     const obj = await jobService.getShiftComment(data);  
+
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+  } catch (error) {
+    next(error);
+  }
+  } 
+
+  protected async getDeletedJobs(req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try{
+
+    // if (!req.query.comment_id) return res.status(200).json("comment_id query not provided")
+    // const data = {
+    //   comment_id : Number(req.query.comment_id)
+    // } 
+    const obj = await jobService.getDeletedJobs();  
 
       return res.status(200).json({
         status: 200,

@@ -100,6 +100,7 @@ class JobRoutes extends JobController {
     this.router.post("/add_shift_comment", this.addShiftComment);
     this.router.post("/delete_shift_comment", this.deleteShiftComment);
     this.router.get("/shift_comment", this.getShiftComment);
+    this.router.get("/deleted_job", this.getDeletedJobs);
     
   }
 }
