@@ -78,6 +78,52 @@ export default class UserController {
       next(error);
     }
   }
+  protected async getAllStaffLicense(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+         
+      const data2={
+          guard_id:data.id,
+          my_time_zone:req["user_time_zone"]
+      }
+
+      const user = await userService.getAllStaffLicense(data2);
+
+      return res.status(200).json({
+        status: 200,
+        // message: req.query.type=="delete"?"delete successful":"update successful",
+        data: user,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+  protected async deleteStaffLicense(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+         
+      const data2={
+          id:data.id,
+      }
+
+      const user = await userService.deleteStaffLicense(data2);
+
+      return res.status(200).json({
+        status: 200,
+        message: "delete successful"
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
   
   protected async uploadLicense(
     req: Request,

@@ -73,6 +73,15 @@ class UserUtil {
   });
   public verifyUnSuspension = Joi.object().keys({
     user_id : Joi.number().required(),
+  });
+
+  public verifyGetAllStaffLicense = Joi.object().keys({
+    guard_id: Joi.number().required(),
+    my_time_zone: Joi.string().required(),
+  });
+
+  public verifyDeleteStaffLicense = Joi.object().keys({
+    id : Joi.number().required(),
   })
 }
 

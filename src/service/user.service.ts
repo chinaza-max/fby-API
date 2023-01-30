@@ -11,7 +11,7 @@ import {
   Location as LocationDeleted,
   PasswordReset as PasswordResetDeleted,
 } from "../db/modelsDeleted";
-import { NotFoundError, SystemError, UnAuthorizedError } from "../errors";
+import { ConflictError, NotFoundError, SystemError, UnAuthorizedError } from "../errors";
 import { fn, col, Op, and } from "sequelize";
 import momentTimeZone from "moment-timezone";
 import moment from "moment";
@@ -31,6 +31,67 @@ class UserService {
   private LocationDeletedModel = LocationDeleted;
   private PasswordResetDeletedModel = PasswordResetDeleted;
 
+  async getAllStaffLicense(data) {
+    try {
+      const { guard_id, my_time_zone } = await userUtil.verifyGetAllStaffLicense.validateAsync(data);
+
+      const AllFoundL = await this.LicenseModel.findAll({
+        where: { staff_id: guard_id },
+      });
+      const all = [];
+
+      if (AllFoundL.length > 0) {
+        AllFoundL.filter(async (foundL) => {
+          let dateStamp = await this.getDateAndTimeForStamp(my_time_zone);
+          if (foundL.approved == true) {
+            if (moment(dateStamp).isAfter(foundL.expires_in)) {
+              const obj = {
+                expiry_date: await this.getDateOnly(foundL.expires_in),
+                license_id: foundL.id,
+                url: foundL.license,
+                status: "Expired",
+                Posted: await this.getDateOnly(foundL.updated_at),
+              };
+              all.push(obj);
+            } else {
+              const obj = {
+                expiry_date: await this.getDateOnly(foundL.expires_in),
+                license_id: foundL.id,
+                url: foundL.license,
+                status: "Approved",
+                Posted: await this.getDateOnly(foundL.updated_at),
+              };
+              all.push(obj);
+            }
+          } else {
+            const obj = {
+              expiry_date: await this.getDateOnly(foundL.expires_in),
+              license_id: foundL.id,
+              url: foundL.license,
+              status: "Pending",
+              Posted: await this.getDateOnly(foundL.updated_at),
+            };
+
+            all.push(obj);
+          }
+        });
+      }
+
+      return all;
+    } catch (error) {
+      throw new SystemError(error);
+    }
+  }
+
+  async deleteStaffLicense(body) {
+    const { id } = await userUtil.verifyDeleteStaffLicense.validateAsync(body);
+    await this.LicenseModel.destroy({
+      where: {
+        id: id,
+      },
+    });
+  }
+
   async uploadLicense(id: number, data: any, file?: Express.Multer.File) {
     const userUpdateData = await userUtil.verifyUploadLicense.validateAsync(
       data
@@ -40,46 +101,17 @@ class UserService {
 
     //'/home/fbyteamschedule/public_html/fby-security-api/public/images/avatars/image-1672174934995-161164152-glacier24.jpg',
     //let accessPath = serverConfig.DOMAIN + file.path.replace("public", "");
-    let accessPath=serverConfig.DOMAIN +file.path.replace("/home/fbyteamschedule/public_html", "")
+    let accessPath =
+      serverConfig.DOMAIN +
+      file.path.replace("/home/fbyteamschedule/public_html", "");
 
-    const foundL = await this.LicenseModel.findOne({
+    const foundL = await this.LicenseModel.findAll({
       where: {
         staff_id: id,
       },
     });
 
-    if (foundL) {
-      const filePath =
-        global.__basedir +
-        "\\" +
-        "public" +
-        foundL.license.replace(serverConfig.DOMAIN, "");
-      /*
-      
-      try {
-        fs.unlinkSync(filePath)
-
-      } catch (error) {
-          console.log(error)
-      }*/
-
-      const obj = {
-        ...data,
-        time_zone: data.my_time_zone,
-        license: accessPath,
-        updated_at: dateStamp,
-      };
-
-      try {
-        await this.LicenseModel.update(obj, {
-          where: {
-            staff_id: id,
-          },
-        });
-      } catch (error) {
-        throw new SystemError(error.toString());
-      }
-    } else {
+    if (foundL.length < 5) {
       const obj = {
         ...data,
         staff_id: id,
@@ -94,6 +126,8 @@ class UserService {
       } catch (error) {
         throw new SystemError(error.toString());
       }
+    } else {
+      throw new ConflictError("Can't upload license. You already have five")
     }
   }
 
@@ -171,16 +205,13 @@ class UserService {
     }
   }
 
-
-  
   async updateProfileOtherAdmin(
     id: number,
     data: any,
     file?: Express.Multer.File
   ): Promise<Admin> {
-    const userUpdateData = await userUtil.verifyUpdateProfileOtherAdmin.validateAsync(
-      data
-    );
+    const userUpdateData =
+      await userUtil.verifyUpdateProfileOtherAdmin.validateAsync(data);
 
     const user = await this.UserModel.findByPk(id);
 
@@ -202,11 +233,11 @@ class UserService {
         let accessPath =
           serverConfig.DOMAIN +
           file.path.replace("/home/fbyteamschedule/public_html", "");
-/*
-          let accessPath =
-          serverConfig.DOMAIN +
-          file.path.replace("public", "");
-*/
+        /*
+                  let accessPath =
+                  serverConfig.DOMAIN +
+                  file.path.replace("public", "");
+        */
         await user.update({ image: accessPath });
       }
 
@@ -230,7 +261,7 @@ class UserService {
         date_of_birth: data.date_of_birth,
         gender: data.gender,
         phone_number: data.phone_number,
-        role: data.role
+        role: data.role,
       });
       // await user.update();
       return user;
@@ -268,14 +299,13 @@ class UserService {
           file.path.replace("/home/fbyteamschedule/public_html", "");
 */
 
-  ///home/fbyteamschedule/public_html/fby-security-api/app.js  
-  
-  //https://fbyteamschedule.com/fby-security-api/public/images/avatars/fbyDefaultIMG.png│
+        ///home/fbyteamschedule/public_html/fby-security-api/app.js
 
-          let accessPath =
+        //https://fbyteamschedule.com/fby-security-api/public/images/avatars/fbyDefaultIMG.png│
+
+        let accessPath =
           serverConfig.DOMAIN +
           file.path.replace("/home/fbyteamschedule/public_html", "");
-
 
         await user.update({ image: accessPath });
       }
@@ -302,7 +332,6 @@ class UserService {
         phone_number: data.phone_number,
         role: data.role,
         suspended: data.staff_status,
-
       });
       // await user.update();
       return user;
@@ -469,57 +498,21 @@ class UserService {
         staffRes.push(staffData);
       }
       return staffRes;
-    }
-    else if(data.role == "ALL_ADMINISTRATORS_AVAILABLE"){
-        var staffs = await this.UserModel.findAll({
-          limit: data.limit,
-          offset: data.offset,
-          where: {
-            [Op.and]: [{ suspended:false }, {   role: {
-              [Op.ne]: "GUARD",
-            },}],
-          },
-        
-          include: {
-            model: Location,
-            as: "location",
-          },
-          order: [["created_at", "DESC"]],
-        });
-        if (staffs == null) return [];
-        var staffRes = [];
-        for (let index = 0; index < staffs.length; index++) {
-          const staff = staffs[index];
-          const staffData = {
-            id: staff.id,
-            image: staff.image,
-            full_name: `${staff.first_name} ${staff.last_name}`,
-            first_name: staff.first_name,
-            last_name: staff.last_name,
-            email: staff.email,
-            date_of_birth: staff.date_of_birth,
-            gender: staff.gender,
-            phone_number: staff.phone_number,
-            address: (staff.location as any)?.address,
-            address_id: staff.location["id"],
-          };
-  
-          staffRes.push(staffData);
-        }
-        return staffRes;
-      
-    }
-    else if(data.role == "ALL_GUARD_AVAILABLE"){
+    } else if (data.role == "ALL_ADMINISTRATORS_AVAILABLE") {
       var staffs = await this.UserModel.findAll({
         limit: data.limit,
         offset: data.offset,
         where: {
-          [Op.and]: [{ suspended:false }, {   role: {
-            [Op.eq]: "GUARD",
-          },
-          }],
+          [Op.and]: [
+            { suspended: false },
+            {
+              role: {
+                [Op.ne]: "GUARD",
+              },
+            },
+          ],
         },
-      
+
         include: {
           model: Location,
           as: "location",
@@ -547,9 +540,49 @@ class UserService {
         staffRes.push(staffData);
       }
       return staffRes;
-    
-  }
+    } else if (data.role == "ALL_GUARD_AVAILABLE") {
+      var staffs = await this.UserModel.findAll({
+        limit: data.limit,
+        offset: data.offset,
+        where: {
+          [Op.and]: [
+            { suspended: false },
+            {
+              role: {
+                [Op.eq]: "GUARD",
+              },
+            },
+          ],
+        },
 
+        include: {
+          model: Location,
+          as: "location",
+        },
+        order: [["created_at", "DESC"]],
+      });
+      if (staffs == null) return [];
+      var staffRes = [];
+      for (let index = 0; index < staffs.length; index++) {
+        const staff = staffs[index];
+        const staffData = {
+          id: staff.id,
+          image: staff.image,
+          full_name: `${staff.first_name} ${staff.last_name}`,
+          first_name: staff.first_name,
+          last_name: staff.last_name,
+          email: staff.email,
+          date_of_birth: staff.date_of_birth,
+          gender: staff.gender,
+          phone_number: staff.phone_number,
+          address: (staff.location as any)?.address,
+          address_id: staff.location["id"],
+        };
+
+        staffRes.push(staffData);
+      }
+      return staffRes;
+    }
   }
 
   async handleSuspension(data: any) {
@@ -668,36 +701,40 @@ class UserService {
     }
   }
 
-
-
-  async handleGetSuspendedStaffs(data:any) {
-    try{
+  async handleGetSuspendedStaffs(data: any) {
+    try {
       if (data.role == "ADMIN") {
         var staffs = await this.UserModel.findAll({
           limit: data.limit,
           offset: data.offset,
           where: {
-            [Op.and]:[
-              {role: {
-                [Op.ne]: "GUARD",
-              }},
+            [Op.and]: [
               {
-                suspended: true
-              }
-            ]
+                role: {
+                  [Op.ne]: "GUARD",
+                },
+              },
+              {
+                suspended: true,
+              },
+            ],
           },
-          include: [{
-            model: Location,
-            as: "location",
-          },
-          {model: this.Suspension_commentsModel,
           include: [
             {
-            model: this.UserModel,
-            as: "Admin_details",
-            attributes: ["first_name", "last_name"]}
-          ]}
-        ],
+              model: Location,
+              as: "location",
+            },
+            {
+              model: this.Suspension_commentsModel,
+              include: [
+                {
+                  model: this.UserModel,
+                  as: "Admin_details",
+                  attributes: ["first_name", "last_name"],
+                },
+              ],
+            },
+          ],
           order: [["created_at", "DESC"]],
         });
         if (staffs == null) return [];
@@ -716,42 +753,47 @@ class UserService {
             phone_number: staff.phone_number,
             address: (staff.location as any)?.address,
             address_id: staff.location["id"],
-            comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
-  
+            comment:
+              staff["Suspension_comments"][
+                staff["Suspension_comments"].length - 1
+              ],
           };
-  
+
           staffRes.push(staffData);
         }
         return staffRes;
-      } 
-      else if (data.role == "GUARD") {
+      } else if (data.role == "GUARD") {
         var staffs = await this.UserModel.findAll({
           limit: data.limit,
           offset: data.offset,
           where: {
-            [Op.and]:[
-              {role: {
-                [Op.eq]: "GUARD",
-              }},
+            [Op.and]: [
               {
-                suspended: true
-              }
-            ]
-            
-          },
-          include: [{
-            model: Location,
-            as: "location",
-          },
-          {model: this.Suspension_commentsModel,
-            include: [
+                role: {
+                  [Op.eq]: "GUARD",
+                },
+              },
               {
-              model: this.UserModel,
-              as: "Admin_details",
-              attributes: ["first_name", "last_name"]}
-            ] 
-          }
-        ],
+                suspended: true,
+              },
+            ],
+          },
+          include: [
+            {
+              model: Location,
+              as: "location",
+            },
+            {
+              model: this.Suspension_commentsModel,
+              include: [
+                {
+                  model: this.UserModel,
+                  as: "Admin_details",
+                  attributes: ["first_name", "last_name"],
+                },
+              ],
+            },
+          ],
           order: [["created_at", "DESC"]],
         });
         if (staffs == null) return [];
@@ -770,7 +812,10 @@ class UserService {
             phone_number: staff.phone_number,
             address: (staff.location as any)?.address,
             address_id: (staff.location as any)?.id,
-            comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
+            comment:
+              staff["Suspension_comments"][
+                staff["Suspension_comments"].length - 1
+              ],
           };
           staffRes.push(staffData);
         }
@@ -778,29 +823,34 @@ class UserService {
       } else if (data.role == "ALL_GUARD") {
         var staffs = await this.UserModel.findAll({
           where: {
-            [Op.and]:[
-              {role: {
-                [Op.eq]: "GUARD",
-              }},
+            [Op.and]: [
               {
-                suspended: true
-              }
-            ]
-            
-          },
-          include: [{
-            model: Location,
-            as: "location",
-          },
-          {model: this.Suspension_commentsModel,
-            // as: "suspension_comments",
-            include: [
+                role: {
+                  [Op.eq]: "GUARD",
+                },
+              },
               {
-              model: this.UserModel,
-              as: "Admin_details",
-              attributes: ["first_name", "last_name"]}
-            ]}
-        ],
+                suspended: true,
+              },
+            ],
+          },
+          include: [
+            {
+              model: Location,
+              as: "location",
+            },
+            {
+              model: this.Suspension_commentsModel,
+              // as: "suspension_comments",
+              include: [
+                {
+                  model: this.UserModel,
+                  as: "Admin_details",
+                  attributes: ["first_name", "last_name"],
+                },
+              ],
+            },
+          ],
           order: [["created_at", "DESC"]],
         });
         if (staffs == null) return [];
@@ -819,17 +869,18 @@ class UserService {
             phone_number: staff.phone_number,
             address: (staff.location as any)?.address,
             address_id: (staff.location as any)?.id,
-            comment: staff["Suspension_comments"][staff["Suspension_comments"].length -1]
+            comment:
+              staff["Suspension_comments"][
+                staff["Suspension_comments"].length - 1
+              ],
           };
           staffRes.push(staffData);
         }
         return staffRes;
       }
+    } catch (error) {
+      throw new SystemError(error);
     }
-    catch(error){
-      throw new SystemError(error)
-    }
-    
   }
 
   async getDateAndTimeForStamp(my_time_zone) {

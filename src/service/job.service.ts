@@ -4559,6 +4559,17 @@ class UserService {
     }
   }
 
+  async getDeletedJobs(){
+    try {
+      const job = await this.JobDeletedModel.findAll({
+      })
+      return job
+    } catch (error) {
+      throw new SystemError(error)
+    }
+
+  }
+
   async checkifAgendaDateIsInScheduleDate(agendaSchedule) {
     for (let i = 0; i < agendaSchedule.length; i++) {
       //THIS ONE IS USE BY INSTRUCTION TO MATCH DATE PROPERLY FOR SEARCH

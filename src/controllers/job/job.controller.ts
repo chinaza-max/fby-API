@@ -1572,6 +1572,27 @@ export default class JobController {
     next(error);
   }
   } 
+
+  protected async getDeletedJobs(req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try{
+
+    // if (!req.query.comment_id) return res.status(200).json("comment_id query not provided")
+    // const data = {
+    //   comment_id : Number(req.query.comment_id)
+    // } 
+    const obj = await jobService.getDeletedJobs();  
+
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+  } catch (error) {
+    next(error);
+  }
+  } 
   
 
 
