@@ -4287,8 +4287,10 @@ class UserService {
 
       const date = this.getOneWeek(from_date,to_date)
       if (date){
-      var from = date[0]
-      var to = date[1]
+      var from = date.from
+      var to = date.to
+      var twoWeeks = date.twoWeeks
+      var {date1, date2} = twoWeeks 
       }}
       else if (from_date && to_date) {
         var from = from_date
@@ -4297,8 +4299,13 @@ class UserService {
         to.setUTCHours(23,59,59,999);
       }
 
-      var data = await this.ScheduleModel.findAll(
+      var data: any = await this.ScheduleModel.findAll(
         {
+          attributes: {
+          exclude: ["updated_at",
+                    "JobId",
+                    "is_archived",]
+        },
           include: [
             {
             model: this.JobModel,
@@ -4306,6 +4313,8 @@ class UserService {
             include: [
               {
               model: this.JobLogsModel,
+              attributes: ["check_in_status",
+                "check_out_status", "hours_worked"]
               // where: {
               //   [Op.and]:
               //   [
@@ -4313,32 +4322,57 @@ class UserService {
               //     {check_out_status: true}
               //   ]
               // }
+            },
+            {
+              model: this.FacilityModel,
+              as: "facility",
+              attributes: ["name",
+                "client_charge",
+                "guard_charge"]
+            },
+            {
+              model: this.CustomerModel,
+              as: "customer",
+              attributes: ["company_name",
+                "email",
+                "phone_number"]
             }        
             ],
-
+            attributes: {
+              exclude: ["updated_at",
+                "is_archived"]
+            },
             
             where: {
               [Op.and]: [
                 { "customer_id": { [Op.like]: customer_id ? customer_id : "%" } },
                 { "facility_id": { [Op.like]: site_id ? site_id : "%" } }
               ],
-              // attributes:['customer_id']
             }
           },
           {
             model: this.Shift_commentsModel,
-            as: "Shift_comments"
+            as: "Shift_comments",
+            attributes: ["comment"]
           }  
         ],
           where:
            {
             [Op.and]:[
-            {check_in_date:{[Op.gte]: from}},
-          {check_out_date:{[Op.lte]: to}},
+            {check_in_date:{[Op.gte]: date1}},
+          {check_out_date:{[Op.lte]: date2}},
           { guard_id: { [Op.like]: guard_id ? guard_id : "%" }}
         ]
       },
         });
+
+    const data1 = null;
+
+    for (let i = 0; i < data.length; i++) {
+      if ((data[i].check_in_date >= from && data[i].check_out_date <= to) 
+      || (data[i].check_in_date <= to && data[i].check_out_date >= to) || 
+      (data[i].check_in_date <= from && data[i].check_out_date >= from) 
+      ){
 
       const users = await this.UserModel.findAll({ where: { [Op.and]: [
         { "id": { [Op.like]: guard_id ? guard_id : "%" } },
@@ -4349,23 +4383,40 @@ class UserService {
           user_id: users[i]?.id,
           name: users[i]?.first_name + " " + users[i]?.last_name,
           hours_assigned: 0,
-          hours_worked: 0,          
+          hours_worked: 0, 
           data: []
         }
         for (let j = 0; j < data.length; j++) {
           if (data[j]?.guard_id == users[i].id) {
             var check_in_date: any = new Date(data[j].check_in_date);
-            var check_out_date: any = new Date(data[j].check_out_date)
-            a.hours_assigned = Number(((check_out_date - check_in_date) / 3600000 + a.hours_assigned).toFixed(2))
+            var check_out_date: any = new Date(data[j].check_out_date);
+
+            data[j]?.job?.JobLogs.filter(prev=>{
+              if (prev.check_in_status == true && prev.check_out_status == true) {
+                a.hours_worked = Number(((prev.hours_worked) + a.hours_worked).toFixed(2))
+              }
+            })  
+
+            a.hours_assigned = Number(((check_out_date - check_in_date) / 3600000 + a.hours_assigned).toFixed(2));
+
+            const start_date = this.getDateOnly(data[j].check_in_date);
+
+            data[j]["start_date"] = start_date;
+
+            const end_date = this.getDateOnly(data[j].check_out_date);
+            
+            data[j]["end_date"] = await this.getDateOnly(data[j].check_out_date);
+            
             a.data.push(data[j])
           }
 
         }
         all.push(a)
       }
+    }
       // return data
       return all
-    }
+    }}
     catch (error) {
       console.log(error)
       throw new SystemError(error)
@@ -4450,15 +4501,15 @@ class UserService {
 
       const company_name = (await this.CustomerModel.findOne({
         where : {
-          id: site.customer_id
+          id: site?.customer_id ? site.customer_id : ""
         }
-      })).company_name
+      }))?.company_name
 
 
       const returned_data2:any = returned_data
       const all = {
         company_name :  company_name,
-        site_name : site.name,
+        site_name : site?.name,
         jobs: []
       };
 
@@ -4947,13 +4998,24 @@ class UserService {
   }
   getOneWeek(dDate1: Date | null, dDate2: Date | null) {
 
-    var dates = [];
+    var dates = {
+      from: null,
+      to: null,
+      twoWeeks: null
+    };
     if (dDate1 && dDate2) {
       if (dDate1.getDay() === 0 && dDate2.getDay() === 6) {
         dDate1.setUTCHours(0,0,0,0);
         dDate2.setUTCHours(23,59,59,999);
-        dates.push(dDate1)
-        dates.push(dDate2)
+        dDate1.setTime(dDate1.getTime() -  (2*60 * 60 * 1000));
+        dDate2.setTime(dDate2.getTime() -  (2*60 * 60 * 1000));
+        dates.from = dDate1
+        dates.to = dDate2
+        const twoWeeks = {
+          date1: new Date(dDate1.setDate(dDate1.getDate() - 7)),
+          date2: new Date(dDate2.setDate(dDate2.getDate() + 7))
+        }
+        dates.twoWeeks = twoWeeks
   
       } else {
   
@@ -4961,19 +5023,31 @@ class UserService {
         const b = 6 - dDate2.getDay();
         dDate1.setDate(dDate1.getDate() + a)
         dDate2.setDate(dDate2.getDate() + b)
-        dDate1.setUTCHours(0,0,0,0);
-        dDate2.setUTCHours(23,59,59,999);
-        dates.push(dDate1)
-        dates.push(dDate2)
+        dDate1.setTime(dDate1.getTime() -  (2*60 * 60 * 1000));
+        dDate2.setTime(dDate2.getTime() -  (2*60 * 60 * 1000));
+        dates.from = dDate1
+        dates.to = dDate2
+        const twoWeeks = {
+          date1: new Date(dDate1.setDate(dDate1.getDate() - 7)),
+          date2: new Date(dDate2.setDate(dDate2.getDate() + 7))
+        }
+        dates.twoWeeks = twoWeeks
+  
   
       }
     } else if (!dDate2) {
       dDate2 = dDate1
       dDate2.setDate(dDate2.getDate() + 6)
-      dDate1.setUTCHours(0,0,0,0);
-      dDate2.setUTCHours(23,59,59,999);
-      dates.push(dDate1)
-      dates.push(dDate2)
+      dDate1.setTime(dDate1.getTime() -  (2*60 * 60 * 1000));
+      dDate2.setTime(dDate2.getTime() -  (2*60 * 60 * 1000));
+      dates.from = dDate1
+      dates.to = dDate2
+      const twoWeeks = {
+        date1: new Date(dDate1.setDate(dDate1.getDate() - 7)),
+        date2: new Date(dDate2.setDate(dDate2.getDate() + 7))
+      }
+      dates.twoWeeks = twoWeeks
+
 
     }
     else{
@@ -4981,8 +5055,14 @@ class UserService {
       dDate1.setDate(dDate1.getDate() - 6)
       dDate1.setUTCHours(0,0,0,0);
       dDate2.setUTCHours(23,59,59,999);
-      dates.push(dDate1)
-      dates.push(dDate2)
+      dates.from = dDate1
+      dates.to = dDate2
+      const twoWeeks = {
+        date1: new Date(dDate1.setDate(dDate1.getDate() - 7)),
+        date2: new Date(dDate2.setDate(dDate2.getDate() + 7))
+      }
+      dates.twoWeeks = twoWeeks
+
     }
 
 return dates
