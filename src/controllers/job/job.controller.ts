@@ -1463,8 +1463,12 @@ export default class JobController {
   ): Promise<Response> {
     try{
 
+
     const {customer_id, guard_id, site_id, from_date, to_date, limit,
       offset} = req.query
+    if(!limit || !offset){
+       return res.status(401).json("limit and offset")
+      }
     const obj = await jobService.calender(customer_id, guard_id, site_id, from_date, to_date,
       limit, offset
       );  

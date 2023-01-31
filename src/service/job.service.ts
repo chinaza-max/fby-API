@@ -4301,7 +4301,10 @@ class UserService {
       }
 
       var data1: any = await this.ScheduleModel.findAll(
-        {
+        { order: [[
+          "check_in_date","ASC"
+        ]
+      ],
           attributes: {
           exclude: ["updated_at",
                     "JobId",
@@ -4354,7 +4357,14 @@ class UserService {
           {
             model: this.Shift_commentsModel,
             as: "Shift_comments",
-            attributes: ["comment"]
+            attributes: ["comment"],
+            include: [
+              {
+                model: this.UserModel,
+                as: "Admin_details",
+                attributes: ["first_name", "last_name"],
+              }
+            ]
           }  
         ],
           where:{
@@ -4385,7 +4395,10 @@ class UserService {
     data1.filter(pre =>{
       data.push(pre.dataValues)
     });
-    const users = await this.UserModel.findAll({ where: { [Op.and]: [
+    const users = await this.UserModel.findAll({ 
+       limit: Number(limit),
+      offset: Number(offset), 
+      where: { [Op.and]: [
       { "id": { [Op.like]: guard_id ? guard_id : "%" } },
       { "role": "GUARD" }
     ] }})
