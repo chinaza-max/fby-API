@@ -4301,7 +4301,12 @@ class UserService {
       }
 
       var data1: any = await this.ScheduleModel.findAll(
-        {
+        { order: [[
+          "check_in_date","ASC"
+        ]
+      ],
+      limit: Number(limit),
+      offset: Number(offset),
           attributes: {
           exclude: ["updated_at",
                     "JobId",
@@ -4354,7 +4359,13 @@ class UserService {
           {
             model: this.Shift_commentsModel,
             as: "Shift_comments",
-            attributes: ["comment"]
+            attributes: ["comment"],
+            include: [
+              {
+                model: this.UserModel,
+                as: "Admin_details"
+              }
+            ]
           }  
         ],
           where:{

@@ -328,6 +328,17 @@ function associate() {
       as: "Shift_comments",
   })
 
+  Shift_comments.belongsTo(Admin,
+    {
+      foreignKey: {
+        // allowNull: false,
+        name: "created_by_id",
+        field: "created_by_id",
+      },
+      as:"Admin_details"
+    }
+  )
+      
   Schedule.hasMany(Shift_comments)  
 
 }
