@@ -4361,7 +4361,8 @@ class UserService {
             include: [
               {
                 model: this.UserModel,
-                as: "Admin_details"
+                as: "Admin_details",
+                attributes: ["first_name", "last_name"],
               }
             ]
           }  
