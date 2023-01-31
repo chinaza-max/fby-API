@@ -4305,8 +4305,6 @@ class UserService {
           "check_in_date","ASC"
         ]
       ],
-      limit: Number(limit),
-      offset: Number(offset),
           attributes: {
           exclude: ["updated_at",
                     "JobId",
@@ -4396,7 +4394,10 @@ class UserService {
     data1.filter(pre =>{
       data.push(pre.dataValues)
     });
-    const users = await this.UserModel.findAll({ where: { [Op.and]: [
+    const users = await this.UserModel.findAll({ 
+       limit: Number(limit),
+      offset: Number(offset), 
+      where: { [Op.and]: [
       { "id": { [Op.like]: guard_id ? guard_id : "%" } },
       { "role": "GUARD" }
     ] }})
