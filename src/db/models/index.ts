@@ -64,6 +64,11 @@ import Shift_comments , {
   init as initShift_comments
 } from "./shift_comments.model"
 
+
+import SecurityCheckComments, {
+  init as initSecurityCheckComments
+} from "./security_check_comments.model"
+
 import Connection from "mysql2/typings/mysql/lib/Connection";
 
 
@@ -339,8 +344,29 @@ function associate() {
     }
   )
       
-  Schedule.hasMany(Shift_comments)  
+  Schedule.hasMany(Shift_comments) 
 
+  SecurityCheckComments.belongsTo(SecurityCheckLog,
+    {
+      foreignKey: {
+        // allowNull: false,
+        name: "security_check_id",
+        field: "security_check_id",
+      },
+      as:"Security_check"
+    }
+  )
+   
+  SecurityCheckComments.belongsTo(Admin,
+    {
+      foreignKey: {
+        // allowNull: false,
+        name: "guard_id",
+        field: "guard_id",
+      },
+      as:"Admin_details"
+    }
+  )
 }
 
 export {
@@ -370,7 +396,8 @@ export {
   MemoReceiver,
   Suspension_comments,
   Customer_suspension_comments,
-  Shift_comments
+  Shift_comments,
+  SecurityCheckComments
 }
 
 export function init(connection: Sequelize) {
@@ -401,5 +428,6 @@ export function init(connection: Sequelize) {
   initSuspension_comments(connection)
   initCustomer_suspension_comments(connection)
   initShift_comments(connection)
+  initSecurityCheckComments(connection)
   associate();
 }

@@ -103,7 +103,8 @@ class JobUtil {
     latitude: Joi.number().required(),
     longitude: Joi.number().required(),
     job_id: Joi.number().required(),
-    guard_id: Joi.number().required()
+    guard_id: Joi.number().required(),
+    comment: Joi.string().required()
 });
 
   public verifyCheckPositionQRcode = Joi.object().keys({
