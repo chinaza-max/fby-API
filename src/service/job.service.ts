@@ -5083,13 +5083,13 @@ class UserService {
   async isAnyGuardInJobHavingActiveShift(job_id) {
 
 
-    let allID=[]
+
+   let allID=[]
    let foundS=await this.ScheduleModel.findAll({
                 where:{
                   job_id
                 }
               })
-
 
         if(await foundS.length!=0){
 
