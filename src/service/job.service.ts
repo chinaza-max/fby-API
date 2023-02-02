@@ -817,6 +817,7 @@ class UserService {
         setTimeout(() => {
           this.shiftJobToCompleted();
         }, 1000 * 60 * 60);
+
       } else if (mytype == "PENDING") {
         availableJobs = await this.JobModel.findAll({
           limit: parseInt(data.query.limit),
@@ -846,6 +847,8 @@ class UserService {
         });
       }
 
+
+
       for (const availableJob of availableJobs) {
         let foundC = await this.CustomerModel.findOne({
           where: {
@@ -858,6 +861,12 @@ class UserService {
           },
         });
         let job_progress = await this.returnJobPercentage(availableJob.id);
+        let foundS= await this.ScheduleModel.findAll({
+          where:{
+              job_id:availableJob.id
+          }
+        })
+
 
         const jobRes = {
           id: availableJob.id,
@@ -869,6 +878,7 @@ class UserService {
           customer: foundC.company_name,
           site: foundF.name,
           create: await this.getDateAndTime(availableJob.created_at),
+          has_shift: foundS.length==0?true:false
         };
 
         jobs.push(jobRes);
@@ -887,13 +897,6 @@ class UserService {
         await jobUtil.verifyReplyMemo.validateAsync(data);
 
       let dateStamp = await this.getDateAndTimeForStamp(my_time_zone);
-
-      console.log("kkkkkkkkkkkkkiiiiiiiiiiiikkkkkkkkkkkkkkkk");
-
-      console.log(dateStamp);
-
-      console.log("kkkkkkkkkkkkkkiiiiiiiiiiiiikkkkkkkkkkkkkkk");
-
       let obj = {
         reply_message: message,
         updated_at: dateStamp,
@@ -2513,7 +2516,8 @@ class UserService {
 
         for(let j=0;j<foundG.length;j++){
 
-          if(arrayId.includes(foundG[j].id)||await this.checkIfGuardIsInAnyActiveJob2(foundG[j].id,obj.job_id)){
+          let activeJobDetail=await this.checkIfGuardIsInAnyActiveJob2(foundG[j].id)
+          if(arrayId.includes(foundG[j].id)||activeJobDetail.status){
 
           }
           else{
@@ -3383,16 +3387,84 @@ class UserService {
     }
   }
 
-  async updateJobStatus(obj) {
-    var { job_id, status_value } =
-      await jobUtil.verifyUpdateJobStatus.validateAsync(obj);
-
-    await this.JobModel.update(
-      { job_status: status_value },
+  
+  async isJobCompleted(job_id) {
+    
+    let foundJ=await this.JobModel.findOne(
       {
         where: { id: job_id },
       }
+    )
+   let foundS =await this.ScheduleModel.max(
+      "check_out_date",
+      {
+        where: { job_id: job_id },
+      }
+    )
+    const dateStamp = await this.getDateAndTimeForStamp(
+      foundJ.time_zone
     );
+
+    if(foundS){
+      if (moment(foundS).isAfter(dateStamp)) {
+        return false
+      } else {
+        return true
+      }
+    }
+    else{
+      throw new ConflictError("JOB HAS NO SHIFT")
+    }
+   
+
+  }
+
+  async updateJobStatus(obj) {
+    
+    var { job_id, status_value } =
+      await jobUtil.verifyUpdateJobStatus.validateAsync(obj);
+
+
+ 
+      
+      if(status_value=='COMPLETED'){
+
+          if(await  this.isJobCompleted(job_id)){
+
+            await this.JobModel.update(
+              { job_status: status_value },
+              {
+                where: { id: job_id },
+              }
+            )
+          }
+          else{
+            throw new ConflictError("STILL HAS ACTIVE SHIFT")
+          }
+      }
+      else if(status_value=='ACTIVE'){
+        let obj=await this.isAnyGuardInJobHavingActiveShift(job_id)
+        if(obj.status){
+          throw new TimeError(JSON.stringify(obj.obj));
+        }
+        else{
+          await this.JobModel.update(
+            { job_status: status_value },
+            {
+              where: { id: job_id },
+            }
+          )
+        }
+      }
+      else{
+        await this.JobModel.update(
+          { job_status: status_value },
+          {
+            where: { id: job_id },
+          }
+        )
+      }
+ 
   }
 
   async RemoveGuardSheduleLog(obj) {
@@ -3996,14 +4068,6 @@ class UserService {
 
   isInlocation(latitude, longitude, objLatLog) {
 
-
-    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
-    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
-    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
-    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk")
-    console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkk")
-
-
     function getDistanceBetween(lat1, long1, lat2, long2) {
       var R = 6371; // Radius of the earth in km
       var dLat = deg2rad(lat2 - lat1); // deg2rad below
@@ -4033,10 +4097,10 @@ class UserService {
     }
   }
 
-  async getSingleGuardDetail(val) {
+  async getSingleGuardDetail(guard_id) {
     let obj = {};
     const foundU = await this.UserModel.findOne({
-      where: { id: val },
+      where: { id: guard_id },
     });
     if (foundU) {
       (obj["first_name"] = foundU.first_name),
@@ -4169,7 +4233,7 @@ class UserService {
     return job;
   }
 
-  async checkIfGuardIsInAnyActiveJob2(guard_id,job_id){
+  async checkIfGuardIsInAnyActiveJob2(guard_id){
 
     let foundJ=await this.JobModel.findAll(
       {
@@ -4189,16 +4253,33 @@ class UserService {
           })
   
           if(foundS.length!=0){
-            return true
+            let obj={
+              data:{
+                job_id:foundJ[i].id
+              },
+              status:true
+            }
+            return obj
           }
   
           if(i==foundJ.length-1){
-              return false
+
+              let obj={
+                obj:'',
+                status:false
+              }
+              return obj
           }
         }
       }
       else{
-        return false
+    
+        let obj={
+          obj:'',
+          status:false
+        }
+        return obj
+
       }
     }
   async getSiteDetail(val) {
@@ -4301,14 +4382,14 @@ class UserService {
       }
 
       var data1: any = await this.ScheduleModel.findAll(
-        { order: [[
-          "check_in_date","ASC"
-        ]
-      ],
+        {
+          order: [
+            ['check_in_date', 'ASC']
+        ],
           attributes: {
           exclude: ["updated_at",
                     "JobId",
-                    "is_archived",]
+                    "is_archived"]
         },
           include: [
             {
@@ -4350,21 +4431,16 @@ class UserService {
             where: {
               [Op.and]: [
                 { "customer_id": { [Op.like]: customer_id ? customer_id : "%" } },
-                { "facility_id": { [Op.like]: site_id ? site_id : "%" } }
+                { "facility_id": { [Op.like]: site_id ? site_id : "%" } },
+                { job_status: { [Op.ne]: 'PENDING' } }
+
               ],
             }
           },
           {
             model: this.Shift_commentsModel,
             as: "Shift_comments",
-            attributes: ["comment"],
-            include: [
-              {
-                model: this.UserModel,
-                as: "Admin_details",
-                attributes: ["first_name", "last_name"],
-              }
-            ]
+            attributes: ["comment"]
           }  
         ],
           where:{
@@ -4395,10 +4471,7 @@ class UserService {
     data1.filter(pre =>{
       data.push(pre.dataValues)
     });
-    const users = await this.UserModel.findAll({ 
-       limit: Number(limit),
-      offset: Number(offset), 
-      where: { [Op.and]: [
+    const users = await this.UserModel.findAll({ where: { [Op.and]: [
       { "id": { [Op.like]: guard_id ? guard_id : "%" } },
       { "role": "GUARD" }
     ] }})
@@ -4830,7 +4903,6 @@ class UserService {
       );
       // console.log(response.data.url);
       // console.log(response.data.explanation);
-      console.log(response.data);
 
       return response.data.timeZoneId;
     } catch (error) {
@@ -4871,6 +4943,7 @@ class UserService {
     }
   }
 
+  //this function help to change the status of job that has completed to complete
   async shiftJobToCompleted() {
     const foundJ = await this.JobModel.findAll({
       where: {
@@ -5004,6 +5077,77 @@ class UserService {
       return all_guard_id;
     }
   }
+
+
+
+  async isAnyGuardInJobHavingActiveShift(job_id) {
+
+
+    let allID=[]
+   let foundS=await this.ScheduleModel.findAll({
+                where:{
+                  job_id
+                }
+              })
+
+
+        if(await foundS.length!=0){
+
+          for (let index = 0; index < foundS.length; index++) {
+            allID.push(foundS[index].guard_id)
+
+
+            if(index==foundS.length-1){
+          
+                allID=await this.removeDuplicateID(allID)
+                for (let index2 = 0; index2 < allID.length; index2++) {
+                  const guard_id = allID[index2]
+
+
+
+                  let activeJobDetail=await this.checkIfGuardIsInAnyActiveJob2(guard_id)
+
+                    if(activeJobDetail.status){
+                      let name=await this.getSingleGuardDetail(guard_id)
+                      let data = {
+                        message: `
+                            This guard ${name["first_name"]} ${name["last_name"]}
+                            has an active shift in a job with this ID(${activeJobDetail["data"].job_id}) `,
+                        solution: `SOLUTION :remove this guard (${name["first_name"]} ${name["last_name"]}) from the schedule `,
+                      }
+            
+
+                      let obj={
+                        status:true,
+                        obj:data
+                      }
+                      return obj
+                    }
+
+
+                    if(allID.length-1==index2){
+
+                      let obj={
+                        status:false,
+                        obj:""
+                      }
+                      return obj
+                    }
+                }
+            }
+          }
+
+        }
+        else{
+          let obj={
+            status:false,
+            obj:""
+          }
+          return obj
+        }
+        
+  }
+
 
   async removeDuplicateID(array) {
     var uniqueArray = [];
