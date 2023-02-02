@@ -268,14 +268,6 @@ export default class JobController {
         latitude:req["objLatLon"][0],
       }
 
-      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkk")
-
-      console.log("latitude", req["objLatLon"][0])
-      console.log("longitude", req["objLatLon"][1])
-
-      console.log("kkkkkkkkkkkkkkkkkkkkkkkkkkkk")
-
-
       const obj = await jobService.checkPositionQRcode(data2);
       
       return res.status(200).json({
