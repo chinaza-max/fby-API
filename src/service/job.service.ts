@@ -15,6 +15,7 @@ import {
   SecurityCheckLog,
   Memo,
   MemoReceiver,
+  SecurityCheckComments
 } from "../db/models";
 import {
   Admin as AdminDeleted,
@@ -79,7 +80,7 @@ class UserService {
   private MemoModel = Memo;
   private MemoReceiverModel = MemoReceiver;
   private Shift_commentsModel = Shift_comments;
-
+  private SecurityCheckCommentsModel = SecurityCheckComments
   private JobDeletedModel = JobDeleted;
   private ScheduleDeletedModel = ScheduleDeleted;
   private JobLogsDeletedModel = JobLogsDeleted;
@@ -3104,7 +3105,9 @@ class UserService {
         updated_at: dateStamp,
       };
       await this.SecurityCheckLogModel.create(obj);
-
+      await this.SecurityCheckCommentsModel.create({
+        
+      })
       throw new LocationError("You are not in location");
     }
   }
@@ -4357,7 +4360,6 @@ class UserService {
           {
             model: this.Shift_commentsModel,
             as: "Shift_comments",
-            attributes: ["comment"],
             include: [
               {
                 model: this.UserModel,
