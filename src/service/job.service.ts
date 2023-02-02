@@ -3056,7 +3056,7 @@ class UserService {
   }
 
   async performSecurityCheck(obj) {
-    var { job_id, guard_id, longitude, latitude, my_time_zone } =
+    var { job_id, guard_id, longitude, latitude, my_time_zone, comment } =
       await jobUtil.verifyPerformSecurityCheck.validateAsync(obj);
 
     const foundItemJob = await this.JobModel.findOne({ where: { id: job_id } });
@@ -3098,7 +3098,14 @@ class UserService {
         updated_at: dateStamp,
       };
 
-      await this.SecurityCheckLogModel.create(obj);
+    const Security_check  = await this.SecurityCheckLogModel.create(obj);
+    await this.SecurityCheckCommentsModel.create({
+      guard_id,
+      comment,
+      security_check_id: Security_check.id,
+      created_at: dateStamp,
+      updated_at: dateStamp, 
+    })
     } else {
       let obj = {
         job_id,
@@ -3108,9 +3115,13 @@ class UserService {
         created_at: dateStamp,
         updated_at: dateStamp,
       };
-      await this.SecurityCheckLogModel.create(obj);
+      const Security_check  = await this.SecurityCheckLogModel.create(obj);
       await this.SecurityCheckCommentsModel.create({
-        
+        guard_id,
+        comment,
+        security_check_id: Security_check.id,
+        created_at: dateStamp,
+        updated_at: dateStamp, 
       })
       throw new LocationError("You are not in location");
     }
@@ -4490,6 +4501,7 @@ class UserService {
         let a = {
           user_id: users[i]?.id,
           name: users[i]?.first_name + " " + users[i]?.last_name,
+          image: users[i]?.image,
           hours_assigned: 0,
           hours_worked: 0, 
           data: []
@@ -4498,7 +4510,6 @@ class UserService {
          if (( new Date(data[j].check_in_date) >= from && new Date (data[j].check_out_date) <= to) 
          || (data[j].check_in_date <= to && data[j].check_out_date >= to) || 
          (data[j].check_in_date <= from && data[j].check_out_date >= from) ) {
-          console.log(from, to)
           if (data[j]?.guard_id == users[i].id) {
             var check_in_date: any = new Date(data[j].check_in_date);
             var check_out_date: any = new Date(data[j].check_out_date);
@@ -4516,6 +4527,8 @@ class UserService {
 
             data[j].end_date = moment(data[j].check_out_date).format("YYYY-MM-DD");
             
+            data[j].status = await this.checkShiftStatus(data[j].job_id,data[j].check_in_date,data[j].check_out_date) 
+
             a.data.push(data[j])
           }
          }
@@ -5009,6 +5022,25 @@ class UserService {
         }
   }
 
+
+  async checkShiftStatus(job_id,check_in_date,check_out_date){
+    const foundJ =await this.JobModel.findOne(
+      {
+        where: {id:job_id}
+      })
+
+    const dateStamp = await this.getDateAndTimeForStamp(foundJ.time_zone);
+        if(moment(check_in_date).isAfter(dateStamp)){
+            return "NOT_STARTED"
+        }
+        else if (moment(check_in_date).isSameOrBefore(dateStamp) &&
+         moment(check_out_date).isSameOrAfter(dateStamp)){
+          return "STARTED"
+         }
+        else{
+            return "COMPLETED"
+        }
+  }
 
   async checkIfAllShiftHasStarted(obj){
    
