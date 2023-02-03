@@ -1462,13 +1462,15 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try{
-
+ 
 
     const {customer_id, guard_id, site_id, from_date, to_date, limit,
       offset} = req.query
+      
     if(!limit || !offset){
        return res.status(401).json("limit and offset are required")
-      }
+    }
+
     const obj = await jobService.calender(customer_id, guard_id, site_id, from_date, to_date,
       limit, offset
       );  

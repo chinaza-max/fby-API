@@ -1460,6 +1460,23 @@ class UserService {
     var { job_id, guard_id } =
       await jobUtil.verifyGetPerformSecurityCheckLog.validateAsync(obj);
 
+
+      const foundJ = await this.JobModel.findOne({
+        where: { id:job_id }
+        });
+      const foundF = await this.FacilityModel.findOne({
+        where: { id:foundJ.facility_id }
+      });
+      const foundFL = await this.FacilityLocationModel.findOne({
+        where: { id:foundF.facility_location_id }
+      });
+      const foundFLC = await this.CoordinatesModel.findOne({
+        where: { id:foundFL.coordinates_id }
+      });
+  
+
+
+
     const foundSCL = await this.SecurityCheckLogModel.findAll({
       where: {
         [Op.and]: [{ job_id }, { guard_id }],
@@ -1483,6 +1500,9 @@ class UserService {
         obj["message"] = "Security check";
         obj["lat"] = lat.toFixed(5);
         obj["log"] = lon.toFixed(5);
+        obj["site_lat"] = foundFLC.latitude;
+        obj["site_log"] = foundFLC.longitude;
+        obj["radius"] = foundFL.operations_area_constraint;
 
         myLog.push(obj);
 
@@ -1499,6 +1519,20 @@ class UserService {
     var { job_id, guard_id } = await jobUtil.verifyGetLogPerGuard.validateAsync(
       obj
     );
+
+    const foundJ = await this.JobModel.findOne({
+      where: { id:job_id }
+      });
+    const foundF = await this.FacilityModel.findOne({
+      where: { id:foundJ.facility_id }
+    });
+    const foundFL = await this.FacilityLocationModel.findOne({
+      where: { id:foundF.facility_location_id }
+    });
+    const foundFLC = await this.CoordinatesModel.findOne({
+      where: { id:foundFL.coordinates_id }
+    });
+
 
     const foundJL = await this.JobLogsModel.findAll({
       where: {
@@ -1541,6 +1575,10 @@ class UserService {
         obj["location_message"] = foundJL[i].message;
         obj["lat"] = latLon.latitude;
         obj["log"] = latLon.longitude;
+        obj["site_lat"] = foundFLC.latitude;
+        obj["site_log"] = foundFLC.longitude;
+        obj["radius"] = foundFL.operations_area_constraint;
+
 
         myLog.push(obj);
 
@@ -4375,7 +4413,8 @@ class UserService {
   async calender(customer_id, guard_id, site_id, from_date = null, to_date = null,
     limit, offset) {
     try {
-      const all = [];
+
+      const all = []
       if (!from_date && !to_date){
 
       from_date = new Date()
@@ -4387,7 +4426,8 @@ class UserService {
       var to = date.to
       // var twoWeeks = date.twoWeeks
       // var {date1, date2} = twoWeeks 
-      }}
+      }
+      }
       else if (from_date && to_date) {
         var from = from_date
         var to = to_date
