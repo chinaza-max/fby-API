@@ -4394,7 +4394,16 @@ class UserService {
         from.setUTCHours(0,0,0,0);
         to.setUTCHours(23,59,59,999);
       }
-
+      else {
+  
+        const date = this.getOneWeek(from_date,to_date)
+        if (date){
+        var from = date.from
+        var to = date.to
+        // var twoWeeks = date.twoWeeks
+        // var {date1, date2} = twoWeeks 
+        }}
+      
       var data1: any = await this.ScheduleModel.findAll(
         {
           order: [
@@ -4494,7 +4503,10 @@ class UserService {
     const users = await this.UserModel.findAll({ where: { [Op.and]: [
       { "id": { [Op.like]: guard_id ? guard_id : "%" } },
       { "role": "GUARD" }
-    ] }})
+    ] },
+      limit:Number(limit),
+      offset:Number(offset)
+    })
 
 
       for (let i = 0; i < users.length; i++) {
