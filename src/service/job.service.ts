@@ -5274,7 +5274,8 @@ class UserService {
     // if(difference == 20){}
   }
   getOneWeek(dDate1: Date | null, dDate2: Date | null) {
-
+      dDate1 = dDate1 ? new Date(dDate1) : dDate1
+      dDate2 = dDate2 ? new Date(dDate2) : dDate2
     var dates = {
       from: null,
       to: null
