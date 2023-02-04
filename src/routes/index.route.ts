@@ -7,6 +7,7 @@ import customerRoute from "./customer.route";
 import jobRoute from "./job.route";
 import utilRoute from "./util.route";
 import  geoip from 'geoip-lite';
+import serverConfig from "../config/server.config";
 
 class Routes {
   public router: Router;
@@ -33,9 +34,9 @@ class Routes {
 
       let ip = req.header('x-forwarded-for') || req.socket.remoteAddress;
       
-
-     ip="::ffff:190.2.138.12"
-  
+      if(serverConfig.NODE_ENV == "development"){
+        ip="::ffff:190.2.138.12"
+      }
 
             if (ip.substr(0, 7) == "::ffff:") {
               ip = ip.substr(7)
@@ -45,7 +46,7 @@ class Routes {
               req["objLatLon"]=geo.ll
             }
             
-      next()
+             next()
     });
 
 

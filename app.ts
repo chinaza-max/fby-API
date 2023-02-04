@@ -50,7 +50,12 @@ class Server {
     this.app.use(compression());
     if (serverConfig.NODE_ENV === "development") {
       this.app.use(cors());
-    } else {
+    }
+    else if(serverConfig.NODE_ENV === "production"){
+      this.app.use(cors());
+
+    }
+     else {
       this.app.use(cors(this.corsOptions));
     }
     this.app.use((req: Request, res: Response, next: NextFunction) => {

@@ -4255,7 +4255,7 @@ class UserService {
   }
 
   async getTimeOnly(val) {
-    return moment(val).format("hh:mm:ss a");
+    return moment(val).format("hh:mm a");
   }
 
   async getJobDetail(val) {
