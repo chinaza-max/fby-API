@@ -2286,7 +2286,14 @@ class UserService {
       include: 
         {
           model: this.Shift_commentsModel,
-          as: "Shift_comments"
+          as: "Shift_comments",
+          include: [
+            {
+              model: this.UserModel,
+              as: "Admin_details",
+              attributes: ["first_name","image", "last_name"],
+            }
+          ]
         },
       where: {
         [Op.and]: [{ job_id }, { guard_id }],
@@ -4512,25 +4519,26 @@ class UserService {
             ]
           }  
         ],
-          where:{
-            [Op.and]:[
-              { guard_id: { [Op.like]: guard_id ? guard_id : "%" }},
-              {[Op.or]:[
-                {[Op.and]:[
-                  {check_in_date:{[Op.gte]: from}},
-                {check_out_date:{[Op.lte]: to}}, 
-              ]},
-              {[Op.and]:[
-                {check_in_date:{[Op.lte]: to}},
-              {check_out_date:{[Op.lte]: to}}, 
-            ]},
-            {[Op.and]:[
-              {check_in_date:{[Op.lte]: from}},
-            {check_out_date:{[Op.gte]: from}}, 
-          ]}
-             ]}
-            ]
-          }
+        where: { guard_id: { [Op.like]: guard_id ? guard_id : "%" }},
+          // where:{
+          //   [Op.and]:[
+          //     { guard_id: { [Op.like]: guard_id ? guard_id : "%" }},
+          //     {[Op.or]:[
+          //       {[Op.and]:[
+          //         {check_in_date:{[Op.gte]: from}},
+          //       {check_out_date:{[Op.lte]: to}}, 
+          //     ]},
+          //     {[Op.and]:[
+          //       {check_in_date:{[Op.lte]: to}},
+          //     {check_out_date:{[Op.lte]: to}}, 
+          //   ]},
+          //   {[Op.and]:[
+          //     {check_in_date:{[Op.lte]: from}},
+          //   {check_out_date:{[Op.gte]: from}}, 
+          // ]}
+          //    ]}
+          //   ]
+          // }
 
 
 
@@ -4559,10 +4567,12 @@ class UserService {
           data: []
         }
         for (let j = 0; j < data.length; j++) {
-         if (( new Date(data[j].check_in_date) >= from && new Date (data[j].check_out_date) <= to) 
-         || (data[j].check_in_date <= to && data[j].check_out_date >= to) || 
-         (data[j].check_in_date <= from && data[j].check_out_date >= from) ) {
+          
+         if ( (moment(data[j].check_in_date).isSameOrAfter(from) && moment(data[j].check_out_date).isSameOrBefore(to)) ||
+         (moment(data[j].check_in_date).isSameOrBefore(to) && moment(data[j].check_out_date).isSameOrAfter(to)) ||
+         (moment(data[j].check_in_date).isSameOrBefore(from) && moment(data[j].check_out_date).isSameOrAfter(from) ) ) {
           if (data[j]?.guard_id == users[i].id) {
+            console.log(from,to)
             var check_in_date: any = new Date(data[j].check_in_date);
             var check_out_date: any = new Date(data[j].check_out_date);
 
@@ -5274,50 +5284,56 @@ class UserService {
     // if(difference == 20){}
   }
   getOneWeek(dDate1: Date | null, dDate2: Date | null) {
-      dDate1 = dDate1 ? new Date(dDate1) : dDate1
-      dDate2 = dDate2 ? new Date(dDate2) : dDate2
-    var dates = {
-      from: null,
-      to: null
-        };
-    if (dDate1 && dDate2) {
-      if (dDate1.getDay() === 0 && dDate2.getDay() === 6) {
-        dDate1.setUTCHours(0,0,0,0);
-        dDate2.setUTCHours(23,59,59,999);
-        dDate1.setTime(dDate1.getTime() -  (1*60 * 60 * 1000));
-        dDate2.setTime(dDate2.getTime() -  (1*60 * 60 * 1000));
-        dates.from = dDate1
-        dates.to = dDate2
-      } else {
-  
-        const a = 0 - dDate1.getDay();
-        const b = 6 - dDate2.getDay();
-        dDate1.setDate(dDate1.getDate() + a)
-        dDate2.setDate(dDate2.getDate() + b)
-        dDate1.setUTCHours(0,0,0,0);
-        dDate2.setUTCHours(23,59,59,999);
-        dDate1.setTime(dDate1.getTime() -  (1*60 * 60 * 1000));
-        dDate2.setTime(dDate2.getTime() -  (1*60 * 60 * 1000));
-        dates.from = dDate1
-        dates.to = dDate2
-    
-      }
-    } else if (!dDate2) {
-      dDate2 = dDate1
-      dDate2.setDate(dDate2.getDate() + 6)
-      dDate1.setTime(dDate1.getTime() -  (2*60 * 60 * 1000));
-      dDate2.setTime(dDate2.getTime() -  (2*60 * 60 * 1000));
-      dates.from = dDate1
-      dates.to = dDate2
-    }
-    else{
-      dDate1 = dDate2
-      dDate1.setDate(dDate1.getDate() - 6)
+    dDate1 = dDate1 ? new Date(dDate1) : dDate1
+    dDate2 = dDate2 ? new Date(dDate2) : dDate2
+  var dates = {
+    from: null,
+    to: null
+      };
+  if (dDate1 && dDate2) {
+    if (dDate1.getDay() === 0 && dDate2.getDay() === 6) {
       dDate1.setUTCHours(0,0,0,0);
       dDate2.setUTCHours(23,59,59,999);
+      dDate1.setTime(dDate1.getTime() -  (1*60 * 60 * 1000));
+      dDate2.setTime(dDate2.getTime() -  (1*60 * 60 * 1000));
       dates.from = dDate1
       dates.to = dDate2
+    } else {
+
+      const a = 0 - dDate1.getDay();
+      const b = 6 - dDate2.getDay();
+      dDate1.setDate(dDate1.getDate() + a)
+      dDate2.setDate(dDate2.getDate() + b)
+      dDate1.setUTCHours(0,0,0,0);
+      dDate2.setUTCHours(23,59,59,999);
+      dDate1.setTime(dDate1.getTime() -  (1*60 * 60 * 1000));
+      dDate2.setTime(dDate2.getTime() -  (1*60 * 60 * 1000));
+      dates.from = dDate1
+      dates.to = dDate2
+  
     }
+  } else if (!dDate2) {
+    dDate2 = new Date(dDate1)
+    dDate2.setDate(dDate2.getDate() + 6)
+    dDate1.setUTCHours(0,0,0,0);
+    dDate2.setUTCHours(23,59,59,999);
+    dDate1.setTime(dDate1.getTime() -  (1*60 * 60 * 1000));
+    dDate2.setTime(dDate2.getTime() -  (1*60 * 60 * 1000));
+    dates.from = dDate1
+    dates.to = dDate2
+    console.log(dDate1,dDate2)
+
+  }
+  else{
+    dDate1 =  new Date(dDate2)
+    dDate1.setDate(dDate1.getDate() - 6)
+    dDate1.setUTCHours(0,0,0,0);
+    dDate2.setUTCHours(23,59,59,999);
+    dDate1.setTime(dDate1.getTime() -  (1*60 * 60 * 1000));
+    dDate2.setTime(dDate2.getTime() -  (1*60 * 60 * 1000));
+    dates.from = dDate1
+    dates.to = dDate2
+  }
 
 return dates
 }
