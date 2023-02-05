@@ -161,6 +161,10 @@ class UserService {
         },
       });
     } else if (type == "read") {
+
+
+
+      let license=[]
       const foundL = await this.LicenseModel.findOne({
         where: { [Op.and]: [{ staff_id: id }, { approved: true }] },
       });
@@ -176,7 +180,9 @@ class UserService {
             status: "Expired",
             Posted: await this.getDateOnly(foundL.updated_at),
           };
-          return obj;
+
+          license.push(obj);
+          return    license
         } else {
           const obj = {
             expiry_date: await this.getDateOnly(foundL.expires_in),
@@ -185,7 +191,8 @@ class UserService {
             status: "Approved",
             Posted: await this.getDateOnly(foundL.updated_at),
           };
-          return obj;
+          license.push(obj);
+          return    license
         }
       } else {
         const foundL2 = await this.LicenseModel.findOne({
@@ -201,12 +208,14 @@ class UserService {
             Posted: await this.getDateOnly(foundL2.updated_at),
           };
 
-          return obj;
+          license.push(obj);
+          return    license
         } else {
           const obj = {
             expiry_date: "",
           };
-          return obj;
+          license.push(obj)
+          return    license
         }
       }
     }

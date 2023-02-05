@@ -138,6 +138,8 @@ export default class UserController {
         my_time_zone:req["user_time_zone"]
       }
 
+      
+
       const { file } = req;
       const user = await userService.uploadLicense(id, data2, file);
 
