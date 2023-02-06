@@ -249,31 +249,46 @@ class CustomerService {
   }
 
   async deleteCustomer(data: object): Promise<any> {
-    const { address_id } =
+    const { id } =
       await customerUtil.verifyDeleteCustomer.validateAsync(data);
 
-    console.log(address_id);
-    try {
-      const record = await this.LocationModel.findOne({
+
+      const foundC = await this.UserModel.findOne({
         where: {
-          id: address_id,
+          id: id,
         },
       });
-      if (record) {
-        const deleted_Location = await this.LocationDeletedModel.create(
-          record.dataValues
-        );
+
+
+      if(foundC){
+
+        let address_id=foundC.location_id
+
+        try {
+     
+          const record = await this.LocationModel.findOne({
+            where: {
+              id: address_id,
+            },
+          });
+          if (record) {
+            const deleted_Location = await this.LocationDeletedModel.create(
+              record.dataValues
+            );
+          }
+        } catch (error) {
+          {
+            throw new NotFoundError(error);
+          }
+        }
+        await this.LocationModel.destroy({
+          where: {
+            id: address_id,
+          },
+        });
       }
-    } catch (error) {
-      {
-        throw new NotFoundError(error);
-      }
-    }
-    await this.LocationModel.destroy({
-      where: {
-        id: address_id,
-      },
-    });
+     
+    
   }
 
   async handleCustomerCreation(data: object): Promise<any> {
@@ -467,9 +482,10 @@ class CustomerService {
 
   async handleCustomerGetAll(data: any): Promise<any> {
     if (data == "all") {
+
       try {
         var allCustomers = await Customer.findAll({
-          
+          where: {suspended: false},
           include: [
             {
               model: Location,
@@ -501,9 +517,9 @@ class CustomerService {
             image: customer.image,
             company_name: customer.company_name,
             address: customer.location.address,
-            address_id: customer.location.id,
             email: customer.email,
             gender: customer.gender,
+            phone_number: customer.phone_number
           };
           let sites = [];
           customer.facilities?.forEach((facility) => {
@@ -517,7 +533,7 @@ class CustomerService {
               operations_area_constraint:
               facility.facility_location.operations_area_constraint,
               operations_area_constraint_active:
-                facility.facility_location.operations_area_constraint_active,
+              facility.facility_location.operations_area_constraint_active,
             });
           });
           tempCustomer["sites"] = sites;

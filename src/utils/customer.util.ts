@@ -43,7 +43,7 @@ class CustomerUtil {
 
 
   public  verifyDeleteCustomer = Joi.object().keys({  
-    address_id:Joi.number().required(),
+    id:Joi.number().required(),
 
   });
 

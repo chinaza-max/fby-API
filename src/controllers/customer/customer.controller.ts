@@ -224,9 +224,9 @@ export default class CustomerController {
       const data = req.body;
       let myData;
 
-      if(Object.keys(req.query).length === 0){
+      if(!req.query.limit){
         myData="all" 
-
+      
       }else{
         myData={
           limit:Number(req.query.limit),

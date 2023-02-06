@@ -213,7 +213,7 @@ class UserService {
             expiry_date: "",
           };
           license.push(obj)
-          
+
           return    license
         }
       }
@@ -366,13 +366,17 @@ class UserService {
     }
   }
 
-  async deleteStaff(address_id: any) {
+  async deleteStaff(id: any) {
     try {
+
       let foundU = await this.UserModel.findOne({
         where: {
-          location_id: address_id,
+          id
         },
       });
+
+      let address_id=foundU.location_id
+
 
       let foundP = await this.PasswordResetModel.findOne({
         where: {
@@ -568,7 +572,47 @@ class UserService {
         staffRes.push(staffData);
       }
       return staffRes;
-    } else if (data.role == "ALL_GUARD_AVAILABLE") {
+    } 
+    else if (data.role == "ALL_ADMINISTRATORS_AVAILABLE_NO_PAGINATION") {
+      var staffs = await this.UserModel.findAll({
+        where: {
+          [Op.and]: [
+            { suspended: false },
+            {
+              role: {
+                [Op.ne]: "GUARD",
+              },
+            },
+          ],
+        },
+
+        include: {
+          model: Location,
+          as: "location",
+        },
+        order: [["created_at", "DESC"]],
+      });
+      if (staffs == null) return [];
+      var staffRes = [];
+      for (let index = 0; index < staffs.length; index++) {
+        const staff = staffs[index];
+        const staffData = {
+          id: staff.id,
+          guard_id_for_action: staff.id,
+          image: staff.image,
+          full_name: `${staff.first_name} ${staff.last_name}`,
+          email: staff.email,
+          gender: staff.gender,
+          phone_number: staff.phone_number,
+          address: (staff.location as any)?.address,
+          address_id: staff.location["id"],
+        };
+
+        staffRes.push(staffData);
+      }
+      return staffRes;
+    }
+    else if (data.role == "ALL_GUARD_AVAILABLE") {
       var staffs = await this.UserModel.findAll({
         limit: data.limit,
         offset: data.offset,
@@ -605,6 +649,43 @@ class UserService {
           phone_number: staff.phone_number,
           address: (staff.location as any)?.address,
           address_id: staff.location["id"],
+        };
+
+        staffRes.push(staffData);
+      }
+      return staffRes;
+    }else if (data.role == "ALL_GUARD_AVAILABLE_NO_PAGINATION") {
+      var staffs = await this.UserModel.findAll({
+        where: {
+          [Op.and]: [
+            { suspended: false },
+            {
+              role: {
+                [Op.eq]: "GUARD",
+              },
+            },
+          ],
+        },
+
+        include: {
+          model: Location,
+          as: "location",
+        },
+        order: [["created_at", "DESC"]],
+      });
+      if (staffs == null) return [];
+      var staffRes = [];
+      for (let index = 0; index < staffs.length; index++) {
+        const staff = staffs[index];
+        const staffData = {
+          id: staff.id,
+          guard_id_for_action: staff.id,
+          image: staff.image,
+          full_name: `${staff.first_name} ${staff.last_name}`,
+          email: staff.email,
+          gender: staff.gender,
+          phone_number: staff.phone_number,
+          address: (staff.location as any)?.address,
         };
 
         staffRes.push(staffData);
