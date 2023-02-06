@@ -162,8 +162,6 @@ class UserService {
       });
     } else if (type == "read") {
 
-
-
       let license=[]
       const foundL = await this.LicenseModel.findOne({
         where: { [Op.and]: [{ staff_id: id }, { approved: true }] },
@@ -179,7 +177,7 @@ class UserService {
             url: foundL.license,
             status: "Expired",
             Posted: await this.getDateOnly(foundL.updated_at),
-          };
+          }
 
           license.push(obj);
           return    license
@@ -215,6 +213,7 @@ class UserService {
             expiry_date: "",
           };
           license.push(obj)
+          
           return    license
         }
       }

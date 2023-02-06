@@ -53,8 +53,7 @@ import IAdmin from "../../interfaces/admin.interface";
         image: {
           type: DataTypes.STRING,
           allowNull: true,
-          defaultValue:
-            `${serverConfig.DOMAIN}/images/avatars/fbyDefaultIMG.png`,
+          defaultValue:serverConfig.NODE_ENV =="production"? `${serverConfig.DOMAIN}/fby-security-api/public/images/avatars/fbyDefaultIMG.png`:`${serverConfig.DOMAIN}/images/avatars/fbyDefaultIMG.png`
         },
         first_name: {
           type: DataTypes.STRING,

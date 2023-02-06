@@ -2636,7 +2636,8 @@ class UserService {
                     {guard_id:old_guard_id}
                     ]}
 
-              }).then(existingRecord => {
+              })
+              .then(existingRecord => {
                 if(existingRecord.length!==0){
 
 
@@ -2668,8 +2669,9 @@ class UserService {
                   { job_id},
                   {guard_id:old_guard_id}
                   ]}
-              }).then(existingRecord => {
-              if(existingRecord.length!==0){
+              })
+              .then(existingRecord => {
+                if(existingRecord.length!==0){
              
                 existingRecord.map(existingId => {
                   this.AgendasModel.findOne({where: {id:existingId.id } ,
@@ -2699,8 +2701,9 @@ class UserService {
                 { job_id},
                 {guard_id:old_guard_id}
                 ]}
-            }).then(existingRecord => {
-            if(existingRecord.length!==0){
+            })
+            .then(existingRecord => {
+              if(existingRecord.length!==0){
 
               existingRecord.map(existingId => {
                 this.JobSecurityCodeModel.findOne({where: {id:existingId.id }
@@ -2721,8 +2724,6 @@ class UserService {
             }
             })
             if(i==array_guard_id.length-1){
-
-
               await  this.ScheduleModel.destroy({
                 where: {[Op.and]:[ 
                   { job_id},
@@ -2730,21 +2731,21 @@ class UserService {
                   ]}
               })
              
-            await  this.AgendasModel.destroy({
-              where: {[Op.and]:[ 
-                { job_id},
-                {guard_id:old_guard_id}
-                ]}
-            })
+              await  this.AgendasModel.destroy({
+                where: {[Op.and]:[ 
+                  { job_id},
+                  {guard_id:old_guard_id}
+                  ]}
+              })
 
-            await  this.JobSecurityCodeModel.destroy({
-              where: {[Op.and]:[ 
-                { job_id},
-                {guard_id:old_guard_id}
-                ]}
-            })
+              await  this.JobSecurityCodeModel.destroy({
+                where: {[Op.and]:[ 
+                  { job_id},
+                  {guard_id:old_guard_id}
+                  ]}
+              })
 
-          }
+            }
       }
 
       
