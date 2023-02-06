@@ -21,9 +21,20 @@ class MailService {
   })
 
   async sendMail(options: MailOptionsI) {
-    const filePath = `/home/fbyteamschedule/public_html/fby-security-api/src/resources/mailTemplates/${options.templateName}.html`;
 
-    //const filePath = `./src/resources/mailTemplates/${options.templateName}.html`;
+
+    let filePath=''
+    if(serverConfig.NODE_ENV == "production"){
+       filePath = `/home/fbyteamschedule/public_html/fby-security-api/src/resources/mailTemplates/${options.templateName}.html`;
+
+    }
+    else if(serverConfig.NODE_ENV == "development"){
+        filePath = `./src/resources/mailTemplates/${options.templateName}.html`;
+
+    }
+
+
+
     const source = fs.readFileSync(filePath, "utf-8").toString();
     const template = Handlebars.compile(source);
     const html = template(options.variables);

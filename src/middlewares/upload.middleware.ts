@@ -1,13 +1,21 @@
 import { v2 as Cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import multer from "multer";
+import serverConfig from "../config/server.config";
 
 
 
 const storageB = multer.diskStorage({
   destination: function (req, file, cb) {
 
-    cb(null, 'public/images/files')
+
+    if(serverConfig.NODE_ENV == "production"){
+      cb(null, '/home/fbyteamschedule/public_html/fby-security-api/public/images/files');
+
+    }
+    else if(serverConfig.NODE_ENV == "development"){
+      cb(null, 'public/images/files')
+    }
 
   },
   filename: function (req, file, cb) {
@@ -22,7 +30,15 @@ const storageB = multer.diskStorage({
 const storageA = multer.diskStorage({
   destination: function (req, file, cb) {
     
-    cb(null, 'public/images/avatars')
+
+    if(serverConfig.NODE_ENV == "production"){
+      cb(null, '/home/fbyteamschedule/public_html/fby-security-api/public/images/avatars');
+
+    }
+    else if(serverConfig.NODE_ENV == "development"){
+      cb(null, 'public/images/avatars')
+    }
+
   },
   filename: function (req, file, cb) {
 
@@ -30,7 +46,6 @@ const storageA = multer.diskStorage({
     cb(null, file.fieldname + '-' + uniqueSuffix+'-'+file.originalname)
   }
 })
-
 
 
 const uploads = multer({ storage: storageB });
