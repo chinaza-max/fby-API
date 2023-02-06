@@ -141,7 +141,6 @@ class UserService {
   async LicenseRUD(data: any) {
     const { id, my_time_zone, type } =
       await userUtil.verifyLicenseRUD.validateAsync(data);
-
     let dateStamp = await this.getDateAndTimeForStamp(my_time_zone);
 
     if (type == "approved") {
@@ -161,62 +160,62 @@ class UserService {
         },
       });
     } else if (type == "read") {
-
-      let license=[]
-      const foundL = await this.LicenseModel.findOne({
+      const foundL = await this.LicenseModel.findAll({
         where: { [Op.and]: [{ staff_id: id }, { approved: true }] },
       });
-
-      if (foundL) {
-        let dateStamp = await this.getDateAndTimeForStamp(data.my_time_zone);
-
-        if (moment(dateStamp).isAfter(foundL.expires_in)) {
-          const obj = {
-            expiry_date: await this.getDateOnly(foundL.expires_in),
-            license_id: foundL.id,
-            url: foundL.license,
-            status: "Expired",
-            Posted: await this.getDateOnly(foundL.updated_at),
+      var all = []
+      if (foundL.length > 0) {
+        for (let i = 0; i < foundL.length; i++) {
+          let dateStamp = await this.getDateAndTimeForStamp(data.my_time_zone);
+          if (moment(dateStamp).isAfter(foundL[i].expires_in)) {
+            const obj = {
+              expiry_date: await this.getDateOnly(foundL[i].expires_in),
+              license_id: foundL[i].id,
+              url: foundL[i].license,
+              status: "Expired",
+              Posted: await this.getDateOnly(foundL[i].updated_at),
+            };
+          all.push(obj);
+          } else {
+            const obj = {
+              expiry_date: await this.getDateOnly(foundL[i].expires_in),
+              license_id: foundL[i].id,
+              url: foundL[i].license,
+              status: "Approved",
+              Posted: await this.getDateOnly(foundL[i].updated_at),
+            };
+            all.push(obj);
           }
-
-          license.push(obj);
-          return    license
-        } else {
-          const obj = {
-            expiry_date: await this.getDateOnly(foundL.expires_in),
-            license_id: foundL.id,
-            url: foundL.license,
-            status: "Approved",
-            Posted: await this.getDateOnly(foundL.updated_at),
-          };
-          license.push(obj);
-          return    license
         }
-      } else {
-        const foundL2 = await this.LicenseModel.findOne({
+        console.log(all) 
+        }
+           
+      else {
+        const foundL2 = await this.LicenseModel.findAll({
           where: { [Op.and]: [{ staff_id: id }, { approved: false }] },
         });
 
-        if (foundL2) {
-          const obj = {
-            expiry_date: await this.getDateOnly(foundL2.expires_in),
-            license_id: foundL2.id,
-            url: foundL2.license,
-            status: "Pending",
-            Posted: await this.getDateOnly(foundL2.updated_at),
-          };
+        if (foundL2.length > 0) {
+          for (let i = 0; i < foundL2.length; i++) {
+    
+            const obj = {
+              expiry_date: await this.getDateOnly(foundL2[i].expires_in),
+              license_id: foundL2[i].id,
+              url: foundL2[i].license,
+              status: "Pending",
+              Posted: await this.getDateOnly(foundL2[i].updated_at),
+            };
 
-          license.push(obj);
-          return    license
+            all.push(obj);
+          }
         } else {
           const obj = {
             expiry_date: "",
           };
-          license.push(obj)
-
-          return    license
+          all.push(obj);
         }
       }
+      return all 
     }
   }
 
