@@ -17,6 +17,7 @@ import IShift_comments from "../../interfaces/shift_comments.interface";
     declare schedule_id:number;
     declare comment: string;
     declare time_zone:string;
+    declare reference_date:Date;
     declare created_at: Date;
     declare updated_at: Date;
     declare is_archived: CreationOptional<boolean>;
@@ -45,6 +46,11 @@ import IShift_comments from "../../interfaces/shift_comments.interface";
         time_zone: {
             type: DataTypes.STRING,
             allowNull: false,
+        },
+        reference_date: {
+          type: DataTypes.DATE,
+          allowNull: true,
+          defaultValue: new Date()
         },
         created_at: {
           type: DataTypes.DATE,
