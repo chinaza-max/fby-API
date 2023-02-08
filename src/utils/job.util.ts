@@ -339,6 +339,9 @@ class JobUtil {
     my_time_zone: Joi.string().required(),
     comment: Joi.string().required(),
     created_by_id: Joi.number().required(),
+    reference_date:Joi.date()
+      .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
+      .required(),
     schedule_id: Joi.number().required()
   })
 

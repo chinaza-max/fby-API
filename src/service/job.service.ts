@@ -81,6 +81,7 @@ class UserService {
   private MemoReceiverModel = MemoReceiver;
   private Shift_commentsModel = Shift_comments;
   private SecurityCheckCommentsModel = SecurityCheckComments
+
   private JobDeletedModel = JobDeleted;
   private ScheduleDeletedModel = ScheduleDeleted;
   private JobLogsDeletedModel = JobLogsDeleted;
@@ -1477,7 +1478,11 @@ class UserService {
 
 
 
-    const foundSCL = await this.SecurityCheckLogModel.findAll({
+    const foundSCL : any = await this.SecurityCheckLogModel.findAll({
+      include: {
+        model: this.SecurityCheckCommentsModel,
+        as:"Security_check"
+      },
       where: {
         [Op.and]: [{ job_id }, { guard_id }],
       },
@@ -1503,6 +1508,7 @@ class UserService {
         obj["site_lat"] = foundFLC.latitude;
         obj["site_log"] = foundFLC.longitude;
         obj["radius"] = foundFL.operations_area_constraint;
+        obj["comment"] = foundSCL[i]?.Security_check
 
         myLog.push(obj);
 
@@ -4613,7 +4619,7 @@ class UserService {
   async addShiftComment(data){
 
     try {
-      let { comment, schedule_id, created_by_id, my_time_zone } =
+      let { comment, schedule_id, created_by_id, reference_date, my_time_zone } =
         await jobUtil.verifyCreateShiftComment.validateAsync(data);
 
       let dateStamp = await this.getDateAndTimeForStamp(my_time_zone);
@@ -4623,6 +4629,7 @@ class UserService {
         created_by_id,
         schedule_id,
         time_zone: my_time_zone,
+        reference_date: reference_date,
         created_at: dateStamp,
         updated_at: dateStamp,
       };
