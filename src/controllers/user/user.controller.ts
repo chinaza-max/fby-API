@@ -132,14 +132,14 @@ export default class UserController {
   ): Promise<Response> {
     try {
       const { id } = req.user;
+
       const data = req.body;
       const data2={
         ...data,
         my_time_zone:req["user_time_zone"]
       }
 
-      
-
+    
       const { file } = req;
       const user = await userService.uploadLicense(id, data2, file);
 

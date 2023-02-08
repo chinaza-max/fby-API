@@ -5,6 +5,8 @@ import {
   License,
   Suspension_comments,
   Customer,
+  Schedule,
+
 } from "../db/models";
 import {
   Admin as AdminDeleted,
@@ -26,7 +28,7 @@ class UserService {
   private LicenseModel = License;
   private Suspension_commentsModel = Suspension_comments;
   private CustomerModel = Customer;
-
+  private ScheduleModel = Schedule;
   private UserDeletedModel = AdminDeleted;
   private LocationDeletedModel = LocationDeleted;
   private PasswordResetDeletedModel = PasswordResetDeleted;
@@ -120,7 +122,7 @@ class UserService {
 
     if (foundL.length < 5) {
       const obj = {
-        ...data,
+        expires_in:data.expires_in,
         staff_id: id,
         time_zone: data.my_time_zone,
         license: accessPath,
@@ -161,35 +163,50 @@ class UserService {
       });
     } else if (type == "read") {
       const foundL = await this.LicenseModel.findAll({
-        where: { [Op.and]: [{ staff_id: id }, { approved: true }] },
+        where: { staff_id: id },
       });
       var all = []
       if (foundL.length > 0) {
         for (let i = 0; i < foundL.length; i++) {
           let dateStamp = await this.getDateAndTimeForStamp(data.my_time_zone);
-          if (moment(dateStamp).isAfter(foundL[i].expires_in)) {
+
+          if(foundL[i].approved==true){
+
+            if (moment(dateStamp).isAfter(foundL[i].expires_in)) {
+              const obj = {
+                expiry_date: await this.getDateOnly(foundL[i].expires_in),
+                license_id: foundL[i].id,
+                url: foundL[i].license,
+                status: "Expired",
+                Posted: await this.getDateOnly(foundL[i].updated_at),
+              };
+            all.push(obj);
+            } else {
+              const obj = {
+                expiry_date: await this.getDateOnly(foundL[i].expires_in),
+                license_id: foundL[i].id,
+                url: foundL[i].license,
+                status: "Approved",
+                Posted: await this.getDateOnly(foundL[i].updated_at),
+              };
+              all.push(obj);
+            }
+          }
+          else{
             const obj = {
               expiry_date: await this.getDateOnly(foundL[i].expires_in),
               license_id: foundL[i].id,
               url: foundL[i].license,
-              status: "Expired",
-              Posted: await this.getDateOnly(foundL[i].updated_at),
-            };
-          all.push(obj);
-          } else {
-            const obj = {
-              expiry_date: await this.getDateOnly(foundL[i].expires_in),
-              license_id: foundL[i].id,
-              url: foundL[i].license,
-              status: "Approved",
+              status: "Pending",
               Posted: await this.getDateOnly(foundL[i].updated_at),
             };
             all.push(obj);
           }
+
         }
-        console.log(all) 
-        }
-           
+      }
+          
+      /*
       else {
         const foundL2 = await this.LicenseModel.findAll({
           where: { [Op.and]: [{ staff_id: id }, { approved: false }] },
@@ -208,13 +225,9 @@ class UserService {
 
             all.push(obj);
           }
-        } else {
-          const obj = {
-            expiry_date: "",
-          };
-          all.push(obj);
-        }
+        } 
       }
+      */
       return all 
     }
   }
@@ -368,42 +381,56 @@ class UserService {
   async deleteStaff(id: any) {
     try {
 
-      let foundU = await this.UserModel.findOne({
+
+      let foundS = await this.ScheduleModel.findOne({
         where: {
           id
         },
       });
 
-      let address_id=foundU.location_id
-
-
-      let foundP = await this.PasswordResetModel.findOne({
-        where: {
-          user_id: foundU.id,
-        },
-      });
-
-      if (foundP) {
-        await this.PasswordResetDeletedModel.create(foundP.dataValues);
-        await this.PasswordResetModel.destroy({
-          where: { user_id: foundU.id },
+      if(foundS){
+        throw new ConflictError("Cant perform operation")
+      }
+      else{
+        let foundU = await this.UserModel.findOne({
+          where: {
+            id
+          },
+        });
+  
+        let address_id=foundU.location_id
+  
+        let foundP = await this.PasswordResetModel.findOne({
+          where: {
+            user_id: foundU.id,
+          },
+        });
+  
+        if (foundP) {
+          await this.PasswordResetDeletedModel.create(foundP.dataValues);
+          await this.PasswordResetModel.destroy({
+            where: { user_id: foundU.id },
+          });
+        }
+  
+        const record = await this.LocationModel.findOne({
+          where: {
+            id: address_id,
+          },
+        });
+        if (record) {
+          await this.LocationDeletedModel.create(record.dataValues);
+        }
+  
+        await this.LocationModel.destroy({
+          where: {
+            id: address_id,
+          },
         });
       }
 
-      const record = await this.LocationModel.findOne({
-        where: {
-          id: address_id,
-        },
-      });
-      if (record) {
-        await this.LocationDeletedModel.create(record.dataValues);
-      }
+  
 
-      await this.LocationModel.destroy({
-        where: {
-          id: address_id,
-        },
-      });
     } catch (error) {
       throw new SystemError(error.toString());
     }
