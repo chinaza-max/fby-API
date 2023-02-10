@@ -1458,6 +1458,8 @@ class UserService {
   }
 
   async getPerformSecurityCheckLog(obj) {
+    try {
+      
     var { job_id, guard_id } =
       await jobUtil.verifyGetPerformSecurityCheckLog.validateAsync(obj);
 
@@ -1480,8 +1482,9 @@ class UserService {
 
     const foundSCL : any = await this.SecurityCheckLogModel.findAll({
       include: {
-        model: this.SecurityCheckCommentsModel,
-        as:"Security_check"
+        model: this.SecurityCheckCommentsModel
+        // ,
+        // as:"Security_check"
       },
       where: {
         [Op.and]: [{ job_id }, { guard_id }],
@@ -1508,7 +1511,7 @@ class UserService {
         obj["site_lat"] = foundFLC.latitude;
         obj["site_log"] = foundFLC.longitude;
         obj["radius"] = foundFL.operations_area_constraint;
-        obj["comment"] = foundSCL[i]?.Security_check
+        obj["comment"] = foundSCL[i].SecurityCheckComment
 
         myLog.push(obj);
 
@@ -1519,6 +1522,9 @@ class UserService {
     } else {
       return myLog;
     }
+  } catch (error) {
+    throw new SystemError(error)
+  }
   }
 
   async getLogPerGuard(obj) {
@@ -3154,7 +3160,7 @@ class UserService {
     await this.SecurityCheckCommentsModel.create({
       guard_id,
       comment,
-      security_check_id: Security_check.id,
+      security_check_log_id: Security_check.id,
       created_at: dateStamp,
       updated_at: dateStamp, 
     })
@@ -3171,7 +3177,7 @@ class UserService {
       await this.SecurityCheckCommentsModel.create({
         guard_id,
         comment,
-        security_check_id: Security_check.id,
+        security_check_log_id: Security_check.id,
         created_at: dateStamp,
         updated_at: dateStamp, 
       })

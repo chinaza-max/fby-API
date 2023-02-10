@@ -346,12 +346,14 @@ function associate() {
       
   Schedule.hasMany(Shift_comments) 
 
+  SecurityCheckLog.hasOne(SecurityCheckComments)
+
   SecurityCheckComments.belongsTo(SecurityCheckLog,
     {
       foreignKey: {
         // allowNull: false,
-        name: "security_check_id",
-        field: "security_check_id",
+        name: "security_check_log_id",
+        field: "security_check_log_id",
       },
       as:"Security_check"
     }
