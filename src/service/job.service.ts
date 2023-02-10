@@ -806,40 +806,90 @@ class UserService {
       let availableJobs;
 
       if (mytype == "ACTIVE") {
-        availableJobs = await this.JobModel.findAll({
-          limit: parseInt(data.query.limit),
-          offset: parseInt(data.query.offset),
-          where: {
-            is_deleted: false,
-            job_status: "ACTIVE",
-          } as any,
-          order: [["created_at", "DESC"]],
-        });
 
-        setTimeout(() => {
-          this.shiftJobToCompleted();
-        }, 1000 * 60 * 60);
+        if(data.query.limit){
+          availableJobs = await this.JobModel.findAll({
+            limit: parseInt(data.query.limit),
+            offset: parseInt(data.query.offset),
+            where: {
+              is_deleted: false,
+              job_status: "ACTIVE",
+            } as any,
+            order: [["created_at", "DESC"]],
+          });
+  
+          setTimeout(() => {
+            this.shiftJobToCompleted();
+          }, 1000 * 60 * 60)
+        }
+        else{
+          availableJobs = await this.JobModel.findAll({
+            where: {
+              is_deleted: false,
+              job_status: "ACTIVE",
+            } as any,
+            order: [["created_at", "DESC"]],  
+          });
+  
+          setTimeout(() => {
+            this.shiftJobToCompleted();
+          }, 1000 * 60 * 60)
+        }
+       
+
+
+
+
 
       } else if (mytype == "PENDING") {
-        availableJobs = await this.JobModel.findAll({
-          limit: parseInt(data.query.limit),
-          offset: parseInt(data.query.offset),
-          where: {
-            is_deleted: false,
-            job_status: "PENDING",
-          } as any,
-          order: [["created_at", "DESC"]],
-        });
+
+
+        if(data.query.limit){
+          availableJobs = await this.JobModel.findAll({
+            limit: parseInt(data.query.limit),
+            offset: parseInt(data.query.offset),
+            where: {
+              is_deleted: false,
+              job_status: "PENDING",
+            } as any,
+            order: [["created_at", "DESC"]],
+          })
+        }
+        else{
+          availableJobs = await this.JobModel.findAll({
+            where: {
+              is_deleted: false,
+              job_status: "PENDING",
+            } as any,
+            order: [["created_at", "DESC"]],
+          })
+        }
+   
       } else if (mytype == "COMPLETED") {
-        availableJobs = await this.JobModel.findAll({
-          limit: parseInt(data.query.limit),
-          offset: parseInt(data.query.offset),
-          where: {
-            is_deleted: false,
-            job_status: "COMPLETED",
-          } as any,
-          order: [["created_at", "DESC"]],
-        });
+
+
+        if(data.query.limit){
+          availableJobs = await this.JobModel.findAll({
+            limit: parseInt(data.query.limit),
+            offset: parseInt(data.query.offset),
+            where: {
+              is_deleted: false,
+              job_status: "COMPLETED",
+            } as any,
+            order: [["created_at", "DESC"]],
+          });
+        }
+        else{
+          availableJobs = await this.JobModel.findAll({
+           
+            where: {
+              is_deleted: false,
+              job_status: "COMPLETED",
+            } as any,
+            order: [["created_at", "DESC"]],
+          });
+        }
+        
       } else {
         availableJobs = await this.JobModel.findAll({
           where: {
@@ -880,7 +930,7 @@ class UserService {
           customer: foundC.company_name,
           site: foundF.name,
           create: await this.getDateAndTime(availableJob.created_at),
-          has_shift: foundS.length==0?true:false
+          has_shift: foundS.length!=0 ?true:false
         };
 
         jobs.push(jobRes);
@@ -1477,6 +1527,20 @@ class UserService {
   
 
 
+      
+
+     this.SecurityCheckLogModel.findAll({
+      include: {
+        model: this.SecurityCheckCommentsModel,
+        as:"Security_check"
+      },
+      where: {
+        [Op.and]: [{ job_id }, { guard_id }],
+      },
+    }).then((e)=>{console.log(e)})
+    .catch((e)=>{console.log(e)})
+
+    
 
     const foundSCL : any = await this.SecurityCheckLogModel.findAll({
       include: {
@@ -2166,15 +2230,25 @@ class UserService {
           is_emergency: data2.is_emergency,
           is_read: data2.is_read,
           who_has_it: data2.who_has_it,
+          reference_date:data2.reference_date,
           created_at: dateStamp,
           updated_at: dateStamp,
         });
         return createdRes;
       } else {
         //let accessPath=serverConfig.DOMAIN +file.path.replace("public", "")
-        let accessPath =
-          serverConfig.DOMAIN +
-          file.path.replace("/home/fbyteamschedule/public_html", "");
+    
+          let accessPath ='';
+
+          if(serverConfig.NODE_ENV == "production"){
+            accessPath =
+              serverConfig.DOMAIN +
+              file.path.replace("/home/fbyteamschedule/public_html", "");
+
+          }
+          else if(serverConfig.NODE_ENV == "development"){
+            accessPath =serverConfig.DOMAIN +file.path.replace("public", "");
+          }
 
         let createdRes = await this.JobReportsModel.create({
           job_id: data2.job_id,
@@ -2185,6 +2259,7 @@ class UserService {
           is_read: data2.is_read,
           message: data2.message,
           who_has_it: data2.who_has_it,
+          reference_date:data2.reference_date,
           mime_type: file.mimetype,
           created_at: dateStamp,
           updated_at: dateStamp,
@@ -2288,6 +2363,7 @@ class UserService {
     var { job_id, guard_id } =
       await jobUtil.verifyGetOneShedulePerGuard.validateAsync(obj);
 
+
     const foundS = await this.ScheduleModel.findAll({
       include: 
         {
@@ -2309,6 +2385,7 @@ class UserService {
         ["check_out_date", "ASC"],
       ],
     });
+
 
     let all_shedule = [];
     if (foundS.length != 0) {
@@ -2357,7 +2434,6 @@ class UserService {
       order: [["created_at", "DESC"]],
     });
 
-    console.log(foundJR);
     if (foundJR.length != 0) {
       for (let i = 0; i < foundJR.length; i++) {
         let obj = {};
@@ -2370,6 +2446,7 @@ class UserService {
         obj["who_has_it"] = foundJR[i].who_has_it;
         obj["mime_type"] = foundJR[i].mime_type;
         obj["created_at"] = await this.getDateAndTime(foundJR[i].created_at);
+        obj["reference_date"] = await this.getDateAndTime(foundJR[i].reference_date);
         obj["report_id"] = foundJR[i].id;
 
         myReport.push(obj);
@@ -3810,12 +3887,13 @@ class UserService {
 
     const foundItemCoor = await this.CoordinatesModel.findOne({
       where: { id: foundItemFacLo.coordinates_id },
-    });
+    })
 
     let my_time_zone = foundItemFac.time_zone;
     let dateStamp = await this.getDateAndTimeForStamp(my_time_zone);
 
     let con_fig_time_zone = momentTimeZone.tz(my_time_zone);
+
     let date = new Date(con_fig_time_zone.format("YYYY-MM-DD hh:mm:ss a"));
     let time = String(con_fig_time_zone.format("hh:mm:ss a"));
     let full_date = con_fig_time_zone.format("YYYY-MM-DD hh:mm:ss a");
@@ -3824,9 +3902,10 @@ class UserService {
       latitude: foundItemCoor.latitude,
       longitude: foundItemCoor.longitude,
       radius: foundItemFacLo.operations_area_constraint,
-    };
+    }
 
     if (check_in) {
+
       const foundItemS = await this.ScheduleModel.findOne({
         where: {
           [Op.and]: [
@@ -3836,19 +3915,15 @@ class UserService {
             { guard_id },
           ],
         },
-      });
+      })
 
-      if (foundItemS) {
+      if(foundItemS){
         //CHECK IF IT IS TIME TO START
 
         let storedDate = foundItemS.check_in_date;
         let retrivedate = full_date;
 
-        if (
-          moment(new Date(retrivedate), "YYYY-MM-DD  hh:mm:ss a").isSameOrAfter(
-            new Date(storedDate)
-          )
-        ) {
+      //  if (moment(new Date(retrivedate), "YYYY-MM-DD  hh:mm:ss a").isSameOrAfter(new Date(storedDate) ) ) {
           if (this.isInlocation(latitude, longitude, objLatLog)) {
             let foundItemJL = await this.JobLogsModel.findOne({
               where: {
@@ -3937,12 +4012,133 @@ class UserService {
               throw new LocationError("You are not in location");
             }
           }
-        } else {
+     /*   } else {
           throw new LocationError("not yet time to check");
         }
+        */
       } else {
-        throw new LocationError("no shift available for check in");
+
+        //check for ealy checkins
+        date=new Date(con_fig_time_zone.add(15, "minutes").format("YYYY-MM-DD hh:mm:ss a"))
+
+        const foundItemS = await this.ScheduleModel.findOne({
+          where: {
+            [Op.and]: [
+              { check_in_date: { [Op.lte]: date } },
+              { check_out_date: { [Op.gte]: date } },
+              { job_id },
+              { guard_id },
+            ],
+          },
+        })
+
+        if(foundItemS){
+          let storedDate = foundItemS.check_in_date;
+          let retrivedate = full_date;
+  
+        //  if (moment(new Date(retrivedate), "YYYY-MM-DD  hh:mm:ss a").isSameOrAfter(new Date(storedDate) ) ) {
+            if (this.isInlocation(latitude, longitude, objLatLog)) {
+              let foundItemJL = await this.JobLogsModel.findOne({
+                where: {
+                  [Op.and]: [
+                    { job_id },
+                    { guard_id },
+                    { check_in_status: true },
+                    { project_check_in_date: foundItemS.check_in_date },
+                  ],
+                },
+              });
+  
+              if (!foundItemJL) {
+                if (
+                  this.checkIfGuardIsLate(
+                    storedDate,
+                    retrivedate,
+                    foundItemS.max_check_in_time
+                  )
+                ) {
+                  let coordinates_res = await this.CoordinatesModel.create({
+                    longitude,
+                    latitude,
+                    created_at: dateStamp,
+                    updated_at: dateStamp,
+                  });
+  
+                  let obj = {
+                    message: "In location",
+                    check_in_time: foundItemS.start_time ,
+                    check_in_status: true,
+                    job_id,
+                    guard_id,
+                    coordinates_id: coordinates_res.id,
+                    check_in_date: foundItemS.check_in_date ,
+                    schedule_id: foundItemS.id,
+                    project_check_in_date: foundItemS.check_in_date,
+                    created_at: dateStamp,
+                    updated_at: dateStamp,
+                  };
+  
+                  this.JobLogsModel.create(obj);
+                } else {
+                  throw new LocationError("you are late cant check in");
+                }
+              } else {
+                throw new LocationError("you have check in already");
+              }
+              } else {
+              let coordinates_res = await this.CoordinatesModel.create({
+                longitude,
+                latitude,
+                created_at: dateStamp,
+                updated_at: dateStamp,
+              });
+  
+              if (check_in) {
+                let obj = {
+                  message: "Not in location",
+                  check_in_time: foundItemS.start_time,
+                  check_in_status: false,
+                  job_id,
+                  guard_id,
+                  coordinates_id: coordinates_res.id,
+                  check_in_date: date,
+                  project_check_in_date: foundItemS.check_in_date,
+                  created_at: dateStamp,
+                  updated_at: dateStamp,
+                };
+                await this.JobLogsModel.create(obj);
+                throw new LocationError("You are not in location");
+              } else {
+                let obj = {
+                  message: "Not in location",
+                  check_out_time: foundItemS.start_time,
+                  check_out_status: false,
+                  job_id,
+                  guard_id,
+                  coordinates_id: coordinates_res.id,
+                  check_out_date: date,
+                  project_check_in_date: foundItemS.check_in_date,
+                  created_at: dateStamp,
+                  updated_at: dateStamp,
+                };
+                await this.JobLogsModel.create(obj);
+                throw new LocationError("You are not in location");
+              }
+            }
+        }
+        else{
+          throw new LocationError("No shift available for check in");
+        }
+
       }
+
+
+
+
+
+
+
+
     } else {
       if (this.isInlocation(latitude, longitude, objLatLog)) {
         //FOR ALLOWING LATE CHECK OUT 30
@@ -4290,6 +4486,7 @@ class UserService {
       customer_id: foundj.customer_id,
       facility_id: foundj.facility_id,
       guard_charge: foundj.staff_charge,
+      client_charge: foundj.client_charge,
       no_qr_code: foundJC.length,
       job_type: foundj.job_type,
       payment_status:foundj.payment_status
@@ -4352,10 +4549,16 @@ class UserService {
     const foundF = await this.FacilityModel.findOne({
       where: { id: val },
     });
+    const foundC = await this.CustomerModel.findOne({
+      where: { id: foundF.customer_id},
+    });
+
+
 
     let site = {
       name: foundF.name,
       time_zone: foundF.time_zone,
+      customer_name:foundC.company_name
     };
 
     return site;

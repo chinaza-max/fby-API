@@ -25,6 +25,7 @@ class JobReports
   declare file_url: string;
   declare mime_type:string;
   declare is_read: boolean;
+  declare reference_date:boolean;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
 }
@@ -65,6 +66,10 @@ export function init(connection: Sequelize) {
         type: DataTypes.STRING,
         allowNull: true,
         defaultValue: "no file",
+      },
+      reference_date:{
+        type: DataTypes.DATE(),
+        allowNull: true,
       },
       is_read: {
         type: DataTypes.BOOLEAN,

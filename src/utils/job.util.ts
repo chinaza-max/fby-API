@@ -54,6 +54,9 @@ class JobUtil {
   public verifySubmitReportAndAttachment = Joi.object().keys({
     job_id: Joi.number().required(),
     guard_id: Joi.number().required(),
+    reference_date:Joi.date()
+    .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
+    .required(),
     report_type: Joi.string().required(),
     who_has_it: Joi.string().required(),
     is_emergency: Joi.boolean().required(),
