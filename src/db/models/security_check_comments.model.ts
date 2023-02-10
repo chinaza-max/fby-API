@@ -14,7 +14,7 @@ import ISecurityCheckComments from "../../interfaces/security_check_comments.int
   {
     declare id: CreationOptional<number>;
     declare guard_id:number;
-    declare security_check_id:number;
+    declare security_check_log_id:number;
     declare comment: string;
     declare created_at: Date;
     declare updated_at: Date;
@@ -37,7 +37,7 @@ import ISecurityCheckComments from "../../interfaces/security_check_comments.int
             type: DataTypes.NUMBER,
             allowNull: false,
         },
-        security_check_id: {
+        security_check_log_id: {
           type: DataTypes.NUMBER,
           allowNull: false,
       },
