@@ -384,16 +384,11 @@ class UserService {
 
       let foundS = await this.ScheduleModel.findOne({
         where: {
-          job_id:id
-        },
-      });
-      let foundSu = await this.Suspension_commentsModel.findOne({
-        where: {
-          user_id:id
+          guard_id:id
         },
       });
 
-      if(foundS||foundSu){
+      if(foundS){
         throw new ConflictError("Cant perform operation")
       }
       else{
@@ -1019,6 +1014,125 @@ class UserService {
               staff["Suspension_comments"][
                 staff["Suspension_comments"].length - 1
               ],
+          };
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      }
+    } catch (error) {
+      throw new SystemError(error);
+    }
+  }
+
+  async handleGetDeletedStaffs(data: any) {
+    try {
+      if (data.role == "ADMIN") {
+        var staffs = await this.UserDeletedModel.findAll({
+          limit: data.limit,
+          offset: data.offset,
+          where: {
+                role: {
+                  [Op.ne]: "GUARD",
+                },
+              },
+              
+          include: 
+            {
+              model: LocationDeleted,
+              as: "location",
+            }
+          ,
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            date_of_birth: staff.date_of_birth,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: staff.location["id"]
+          };
+
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      } else if (data.role == "GUARD") {
+        var staffs = await this.UserDeletedModel.findAll({
+          limit: data.limit,
+          offset: data.offset,
+          where: {
+                role: {
+                  [Op.eq]: "GUARD",
+                },
+              
+          },
+          include:
+            {
+              model: LocationDeleted,
+              as: "location",
+            },
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            date_of_birth: staff.date_of_birth,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: (staff.location as any)?.id,
+          };
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      } else if (data.role == "ALL_GUARD") {
+        var staffs = await this.UserDeletedModel.findAll({
+          where: {
+  
+                role: {
+                  [Op.eq]: "GUARD",
+                },
+              },
+          include: 
+            {
+              model: LocationDeleted,
+              as: "location",
+            },
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            date_of_birth: staff.date_of_birth,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: (staff.location as any)?.id
           };
           staffRes.push(staffData);
         }

@@ -381,15 +381,41 @@ export default class CustomerController {
     try {
       let myData;
 
-      if(Object.keys(req.query).length === 0){
-        myData="all" 
-      }else{
+      if(!req.query.limit || !req.query.offset){
+        return res.status(400).json("limit and offset are required")
+     }  else{
         myData={
           limit:Number(req.query.limit),
           offset:Number(req.query.offset) 
         }
       }
       const obj = await customerService.handleGetSuspendedCustomers(myData);
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  protected async getDeletedCustomers(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      let myData;
+
+      if(!req.query.limit || !req.query.offset){
+        return res.status(400).json("limit and offset are required")
+     }  else{
+        myData={
+          limit:Number(req.query.limit),
+          offset:Number(req.query.offset) 
+        }
+      }
+      const obj = await customerService.handleGetDeletedCustomers(myData);
       return res.status(200).json({
         status: 200,
         data: obj,

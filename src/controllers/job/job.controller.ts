@@ -1573,12 +1573,16 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try{
-
-    // if (!req.query.comment_id) return res.status(200).json("comment_id query not provided")
-    // const data = {
-    //   comment_id : Number(req.query.comment_id)
-    // } 
-    const obj = await jobService.getDeletedJobs();  
+      var myData
+      if(!req.query.limit || !req.query.offset){
+        return res.status(400).json("limit and offset are required")
+     }  else{
+        myData={
+          limit:Number(req.query.limit),
+          offset:Number(req.query.offset) 
+        }
+      } 
+    const obj = await jobService.getDeletedJobs(myData);  
 
       return res.status(200).json({
         status: 200,

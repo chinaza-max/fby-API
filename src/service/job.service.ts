@@ -1007,25 +1007,38 @@ class UserService {
     const { job_id } = await jobUtil.verifyDeleteJob.validateAsync(data);
 
 
-    const foundS = await this.ScheduleModel.findOne({
+    const foundS = await this.ScheduleModel.findAll({
       where: {
         job_id,
       },
     });
 
-    if (foundS) {
-      throw new ConflictError("Cant perform action")
-    }
-    else {
+    const shedule = []
 
-      const record = await this.JobModel.findOne({
+    foundS.filter(found=>{
+      if(found.status_per_staff === "ACTIVE"){
+        throw new ConflictError("Cant perform action")
+      }
+      else{
+        shedule.push(found.dataValues)
+      }
+    });
+    if (shedule.length){
+      await this.ScheduleDeletedModel.bulkCreate(shedule)
+      await this.ScheduleModel.destroy({
+        where: {
+          job_id
+        }
+      })
+    }
+    const record = await this.JobModel.findOne({
         where: {
           id: job_id,
         },
       });
-      if (record) {
+    if (record) {
         const deleted_Job = await this.JobDeletedModel.create(record.dataValues);
-      }
+    }
 
       this.JobModel.destroy({
         where: {
@@ -1043,7 +1056,7 @@ class UserService {
         });
 
 
-    }
+    
 
 
 
@@ -4990,11 +5003,52 @@ class UserService {
     }
   }
 
-  async getDeletedJobs() {
+  async getDeletedJobs(data) {
     try {
-      const job = await this.JobDeletedModel.findAll({
-      })
-      return job
+        const jobs = [];
+        let availableJobs;
+
+        availableJobs = await this.JobDeletedModel.findAll({
+            limit: parseInt(data.limit),
+            offset: parseInt(data.offset),
+            order: [["created_at", "DESC"]],
+          });
+        
+  
+        for (const availableJob of availableJobs) {
+          let foundC = await this.CustomerModel.findOne({
+            where: {
+              id: availableJob.customer_id,
+            },
+          });
+          let foundF = await this.FacilityModel.findOne({
+            where: {
+              id: availableJob.facility_id,
+            },
+          });
+          let foundS = await this.ScheduleDeletedModel.findAll({
+            where: {
+              job_id: availableJob.id
+            }
+          })
+  
+  
+          const jobRes = {
+            id: availableJob.id,
+            description: availableJob.description,
+            client_charge: availableJob.client_charge,
+            staff_payment: availableJob.staff_charge,
+            status: availableJob.job_status,
+            customer: foundC.company_name,
+            site: foundF.name,
+            create: await this.getDateAndTime(availableJob.created_at),
+            has_shift: foundS.length != 0 ? true : false
+          };
+  
+          jobs.push(jobRes);
+        }
+  
+        return jobs;
     } catch (error) {
       throw new SystemError(error)
     }
