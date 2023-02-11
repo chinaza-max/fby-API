@@ -1620,7 +1620,6 @@ class UserService {
       where: { id: foundFL.coordinates_id }
     });
 
-
     const foundJL = await this.JobLogsModel.findAll({
       where: {
         [Op.and]: [{ job_id }, { guard_id }],
