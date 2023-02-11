@@ -1,6 +1,7 @@
 export interface IJobLogs {
   id: number;
   message: string;
+  action_name:string;
   job_id: number;
   guard_id: number;
   check_in_time: string;
@@ -14,5 +15,5 @@ export interface IJobLogs {
   check_in_date:Date;
   check_out_date:Date;
   project_check_in_date:Date;
-  schedule_id:number
+  schedule_id:number;
 }

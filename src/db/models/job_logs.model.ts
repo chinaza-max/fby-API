@@ -15,6 +15,7 @@ class JobLogs
   declare id: CreationOptional<number>;
   declare coordinates_id: number;
   declare message: string;
+  declare action_name: string;
   declare check_in_time: string;   
   declare check_out_time: string;
   declare check_out_status:boolean;
@@ -39,6 +40,10 @@ export function init(connection: Sequelize) {
         primaryKey: true,
       },
       message: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      action_name: {
         type: DataTypes.STRING,
         allowNull: false,
       },

@@ -469,9 +469,6 @@ export default class JobController {
       req.user = req.body.guard_id;
 
       const obj = await jobService.getLogPerGuard(data);
-
-
-      console.log(obj)
       
       return res.status(200).json({
         status: 200,
