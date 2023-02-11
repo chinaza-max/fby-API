@@ -4693,19 +4693,6 @@ class UserService {
             model: this.JobModel,
             as: "job",
             include: [
-              {
-              model: this.JobLogsModel,
-              // attributes: ["check_in_status",
-              //   "check_out_status", "hours_worked"]
-              where: {
-                guard_id: Sequelize.col('Schedule.guard_id')
-                // [Op.and]:
-                // [
-                // {check_in_status: true},
-                //   {check_out_status: true}
-                // ]
-              }
-            },
             {
               model: this.FacilityModel,
               as: "facility",
@@ -4772,17 +4759,10 @@ class UserService {
 
       },
         );
-    var data2 = data1.map(obj => {
-          return { ...obj.dataValues}
-          });
-    const data = [] 
-    data2.filter(pre =>{
-      data.push({...pre})
+
+    const data = data1.map(obj => {
+    return { ...obj.dataValues}
     });
-    
-    // const data = data1.map(obj => {
-    // return { ...obj.dataValues}
-    // });
     const users = await this.UserModel.findAll({ where: { [Op.and]: [
       { "id": { [Op.like]: guard_id ? guard_id : "%" } },
       { "role": "GUARD" }
@@ -4836,7 +4816,6 @@ class UserService {
          }
 
         }
-        console.log("-----------------------")
         all.push(a)
       }
 
