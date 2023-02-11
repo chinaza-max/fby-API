@@ -1473,7 +1473,7 @@ export default class JobController {
 
     const obj = await jobService.calender(customer_id, guard_id, site_id, from_date, to_date,
       limit, offset
-      );  
+      )
 
       return res.status(200).json({
         status: 200,

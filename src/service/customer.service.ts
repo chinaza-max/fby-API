@@ -6,6 +6,7 @@ import {
   FacilityLocation,
   Location,
   Customer_suspension_comments,
+  Job
 } from "../db/models";
 import {
   Facility as FacilityDeleted,
@@ -38,7 +39,7 @@ class CustomerService {
   private FacilityLocationModel = FacilityLocation;
   private Customer_suspension_commentsModel = Customer_suspension_comments;
   private AdminModel = Admin
-
+  private JobModel = Job
   private LocationDeletedModel = LocationDeleted;
   private FacilityDeletedModel = FacilityDeleted;
 
@@ -206,53 +207,85 @@ class CustomerService {
       data
     );
 
-    try {
-      const record = await this.FacilityModel.findOne({
-        where: {
-          id: site_id,
-        },
-      });
-      if (record) {
-        const deleted_faclilty = await this.FacilityDeletedModel.create(
-          record.dataValues
-        );
-      }
 
-      this.FacilityModel.destroy({
-        where: {
-          id: site_id,
-        },
-      })
-        .then(function (deletedRecord) {
-          console.log(deletedRecord)
-          if (deletedRecord === 1) {
-            console.log("llllllllllllllllllllllllllllllllllllll");
 
-            return "Deleted successfully";
-          } else {
-            throw new NotFoundError("record not found");
-          }
-        })
-        .catch(function (error) {
-          throw new NotFoundError(error);
-        });
-    } catch (error) {
-      this.FacilityDeletedModel.destroy({
-        where: {
-          id: site_id,
-        },
-      });
-      {
-        throw new SystemError(error.toString());
-      }
+    const foundJ = await this.JobModel.findOne({
+      where: {
+        facility_id: site_id
+      },
+    })
+
+    if(foundJ){
+        throw new ConflictError("Cant perform action")
     }
+    else{
+      try {
+        const record = await this.FacilityModel.findOne({
+          where: {
+            id: site_id,
+          },
+        })
+  
+       
+        if (record) {
+          const deleted_faclilty = await this.FacilityDeletedModel.create(
+            record.dataValues
+          );
+        }
+  
+        this.FacilityModel.destroy({
+          where: {
+            id: site_id,
+          },
+        })
+          .then(function (deletedRecord) {
+            if (deletedRecord === 1) {
+              return "Deleted successfully";
+            } else {
+              throw new NotFoundError("record not found");
+            }
+          })
+          .catch(function (error) {
+            throw new NotFoundError(error);
+          });
+  
+      } catch (error) {
+        this.FacilityDeletedModel.destroy({
+          where: {
+            id: site_id,
+          },
+        });
+        {
+          throw new SystemError(error.toString());
+        }
+      }
+  
+    }
+
+ 
+
   }
 
   async deleteCustomer(data: object): Promise<any> {
-    const { id } =
-      await customerUtil.verifyDeleteCustomer.validateAsync(data);
+    const { id } = await customerUtil.verifyDeleteCustomer.validateAsync(data);
 
 
+    const foundF = await this.FacilityModel.findOne({
+      where: {
+        customer_id: id,
+      }
+    });
+
+    let foundSu = await this.Customer_suspension_commentsModel.findOne({
+      where: {
+        customer_id:id
+      }
+    })
+
+    if(foundF||foundSu){
+        throw new ConflictError('Cant perform operation')
+    }
+    else{
       const foundC = await this.UserModel.findOne({
         where: {
           id: id,
@@ -287,8 +320,7 @@ class CustomerService {
           },
         });
       }
-     
-    
+    }
   }
 
   async handleCustomerCreation(data: object): Promise<any> {

@@ -379,16 +379,21 @@ class UserService {
   }
 
   async deleteStaff(id: any) {
-    try {
+  
 
 
       let foundS = await this.ScheduleModel.findOne({
         where: {
-          id
+          job_id:id
+        },
+      });
+      let foundSu = await this.Suspension_commentsModel.findOne({
+        where: {
+          user_id:id
         },
       });
 
-      if(foundS){
+      if(foundS||foundSu){
         throw new ConflictError("Cant perform operation")
       }
       else{
@@ -410,7 +415,7 @@ class UserService {
           await this.PasswordResetDeletedModel.create(foundP.dataValues);
           await this.PasswordResetModel.destroy({
             where: { user_id: foundU.id },
-          });
+          })
         }
   
         const record = await this.LocationModel.findOne({
@@ -420,6 +425,7 @@ class UserService {
         });
         if (record) {
           await this.LocationDeletedModel.create(record.dataValues);
+          await this.UserDeletedModel.create(foundU.dataValues);
         }
   
         await this.LocationModel.destroy({
@@ -429,11 +435,6 @@ class UserService {
         });
       }
 
-  
-
-    } catch (error) {
-      throw new SystemError(error.toString());
-    }
   }
 
   async toggleVisibilty(data: any) {
@@ -452,272 +453,282 @@ class UserService {
   }
 
   async getAllStaff(data: any) {
-    if (data.role == "ADMIN") {
-      var staffs = await this.UserModel.findAll({
-        limit: data.limit,
-        offset: data.offset,
-        where: {
-          role: {
-            [Op.eq]: "ADMIN",
-          },
-        },
-        include: {
-          model: Location,
-          as: "location",
-        },
-        order: [["created_at", "DESC"]],
-      });
-      if (staffs == null) return [];
-      var staffRes = [];
-      for (let index = 0; index < staffs.length; index++) {
-        const staff = staffs[index];
-        const staffData = {
-          id: staff.id,
-          image: staff.image,
-          full_name: `${staff.first_name} ${staff.last_name}`,
-          first_name: staff.first_name,
-          last_name: staff.last_name,
-          email: staff.email,
-          date_of_birth: staff.date_of_birth,
-          gender: staff.gender,
-          phone_number: staff.phone_number,
-          address: (staff.location as any)?.address,
-          address_id: staff.location["id"],
-        };
-
-        staffRes.push(staffData);
-      }
-      return staffRes;
-    } else if (data.role == "GUARD") {
-      var staffs = await this.UserModel.findAll({
-        limit: data.limit,
-        offset: data.offset,
-        where: {
-          role: {
-            [Op.eq]: "GUARD",
-          },
-        },
-        include: {
-          model: Location,
-          as: "location",
-        },
-        order: [["created_at", "DESC"]],
-      });
-      if (staffs == null) return [];
-      var staffRes = [];
-      for (let index = 0; index < staffs.length; index++) {
-        const staff = staffs[index];
-        const staffData = {
-          id: staff.id,
-          image: staff.image,
-          full_name: `${staff.first_name} ${staff.last_name}`,
-          first_name: staff.first_name,
-          last_name: staff.last_name,
-          email: staff.email,
-          date_of_birth: staff.date_of_birth,
-          gender: staff.gender,
-          phone_number: staff.phone_number,
-          address: (staff.location as any)?.address,
-          address_id: (staff.location as any)?.id,
-        };
-        staffRes.push(staffData);
-      }
-      return staffRes;
-    } else if (data.role == "ALL_GUARD") {
-      var staffs = await this.UserModel.findAll({
-        where: {
-          role: {
-            [Op.eq]: "GUARD",
-          },
-        },
-        include: {
-          model: Location,
-          as: "location",
-        },
-        order: [["created_at", "DESC"]],
-      });
-      if (staffs == null) return [];
-      var staffRes = [];
-      for (let index = 0; index < staffs.length; index++) {
-        const staff = staffs[index];
-        const staffData = {
-          id: staff.id,
-          image: staff.image,
-          full_name: `${staff.first_name} ${staff.last_name}`,
-          first_name: staff.first_name,
-          last_name: staff.last_name,
-          email: staff.email,
-          date_of_birth: staff.date_of_birth,
-          gender: staff.gender,
-          phone_number: staff.phone_number,
-          address: (staff.location as any)?.address,
-          address_id: (staff.location as any)?.id,
-        };
-        staffRes.push(staffData);
-      }
-      return staffRes;
-    } else if (data.role == "ALL_ADMINISTRATORS_AVAILABLE") {
-      var staffs = await this.UserModel.findAll({
-        limit: data.limit,
-        offset: data.offset,
-        where: {
-          [Op.and]: [
-            { suspended: false },
-            {
+      try {
+        if (data.role == "ADMIN") {
+          var staffs = await this.UserModel.findAll({
+            limit: data.limit,
+            offset: data.offset,
+            where: {
               role: {
-                [Op.ne]: "GUARD",
+                [Op.eq]: "ADMIN",
               },
             },
-          ],
-        },
-
-        include: {
-          model: Location,
-          as: "location",
-        },
-        order: [["created_at", "DESC"]],
-      });
-      if (staffs == null) return [];
-      var staffRes = [];
-      for (let index = 0; index < staffs.length; index++) {
-        const staff = staffs[index];
-        const staffData = {
-          id: staff.id,
-          image: staff.image,
-          full_name: `${staff.first_name} ${staff.last_name}`,
-          first_name: staff.first_name,
-          last_name: staff.last_name,
-          email: staff.email,
-          date_of_birth: staff.date_of_birth,
-          gender: staff.gender,
-          phone_number: staff.phone_number,
-          address: (staff.location as any)?.address,
-          address_id: staff.location["id"],
-        };
-
-        staffRes.push(staffData);
-      }
-      return staffRes;
-    } 
-    else if (data.role == "ALL_ADMINISTRATORS_AVAILABLE_NO_PAGINATION") {
-      var staffs = await this.UserModel.findAll({
-        where: {
-          [Op.and]: [
-            { suspended: false },
-            {
-              role: {
-                [Op.ne]: "GUARD",
-              },
+            include: {
+              model: Location,
+              as: "location",
             },
-          ],
-        },
-
-        include: {
-          model: Location,
-          as: "location",
-        },
-        order: [["created_at", "DESC"]],
-      });
-      if (staffs == null) return [];
-      var staffRes = [];
-      for (let index = 0; index < staffs.length; index++) {
-        const staff = staffs[index];
-        const staffData = {
-          id: staff.id,
-          guard_id_for_action: staff.id,
-          image: staff.image,
-          full_name: `${staff.first_name} ${staff.last_name}`,
-          email: staff.email,
-          gender: staff.gender,
-          phone_number: staff.phone_number,
-          address: (staff.location as any)?.address,
-          address_id: staff.location["id"],
-        };
-
-        staffRes.push(staffData);
-      }
-      return staffRes;
-    }
-    else if (data.role == "ALL_GUARD_AVAILABLE") {
-      var staffs = await this.UserModel.findAll({
-        limit: data.limit,
-        offset: data.offset,
-        where: {
-          [Op.and]: [
-            { suspended: false },
-            {
+            order: [["created_at", "DESC"]],
+          });
+          if (staffs == null) return [];
+          var staffRes = [];
+          for (let index = 0; index < staffs.length; index++) {
+            const staff = staffs[index];
+            const staffData = {
+              id: staff.id,
+              image: staff.image,
+              full_name: `${staff.first_name} ${staff.last_name}`,
+              first_name: staff.first_name,
+              last_name: staff.last_name,
+              email: staff.email,
+              date_of_birth: staff.date_of_birth,
+              gender: staff.gender,
+              phone_number: staff.phone_number,
+              address: (staff.location as any)?.address,
+              address_id: staff.location["id"],
+            };
+    
+            staffRes.push(staffData);
+          }
+          return staffRes;
+        } else if (data.role == "GUARD") {
+          var staffs = await this.UserModel.findAll({
+            limit: data.limit,
+            offset: data.offset,
+            where: {
               role: {
                 [Op.eq]: "GUARD",
               },
             },
-          ],
-        },
-
-        include: {
-          model: Location,
-          as: "location",
-        },
-        order: [["created_at", "DESC"]],
-      });
-      if (staffs == null) return [];
-      var staffRes = [];
-      for (let index = 0; index < staffs.length; index++) {
-        const staff = staffs[index];
-        const staffData = {
-          id: staff.id,
-          image: staff.image,
-          full_name: `${staff.first_name} ${staff.last_name}`,
-          first_name: staff.first_name,
-          last_name: staff.last_name,
-          email: staff.email,
-          date_of_birth: staff.date_of_birth,
-          gender: staff.gender,
-          phone_number: staff.phone_number,
-          address: (staff.location as any)?.address,
-          address_id: staff.location["id"],
-        };
-
-        staffRes.push(staffData);
-      }
-      return staffRes;
-    }else if (data.role == "ALL_GUARD_AVAILABLE_NO_PAGINATION") {
-      var staffs = await this.UserModel.findAll({
-        where: {
-          [Op.and]: [
-            { suspended: false },
-            {
+            include: {
+              model: Location,
+              as: "location",
+            },
+            order: [["created_at", "DESC"]],
+          });
+          if (staffs == null) return [];
+          var staffRes = [];
+          for (let index = 0; index < staffs.length; index++) {
+            const staff = staffs[index];
+            const staffData = {
+              id: staff.id,
+              image: staff.image,
+              full_name: `${staff.first_name} ${staff.last_name}`,
+              first_name: staff.first_name,
+              last_name: staff.last_name,
+              email: staff.email,
+              date_of_birth: staff.date_of_birth,
+              gender: staff.gender,
+              phone_number: staff.phone_number,
+              address: (staff.location as any)?.address,
+              address_id: (staff.location as any)?.id,
+            };
+            staffRes.push(staffData);
+          }
+          return staffRes;
+        } else if (data.role == "ALL_GUARD") {
+          var staffs = await this.UserModel.findAll({
+            where: {
               role: {
                 [Op.eq]: "GUARD",
               },
             },
-          ],
-        },
+            include: {
+              model: Location,
+              as: "location",
+            },
+            order: [["created_at", "DESC"]],
+          });
+          if (staffs == null) return [];
+          var staffRes = [];
+          for (let index = 0; index < staffs.length; index++) {
+            const staff = staffs[index];
+            const staffData = {
+              id: staff.id,
+              image: staff.image,
+              full_name: `${staff.first_name} ${staff.last_name}`,
+              first_name: staff.first_name,
+              last_name: staff.last_name,
+              email: staff.email,
+              date_of_birth: staff.date_of_birth,
+              gender: staff.gender,
+              phone_number: staff.phone_number,
+              address: (staff.location as any)?.address,
+              address_id: (staff.location as any)?.id,
+            };
+            staffRes.push(staffData);
+          }
+          return staffRes;
+        } else if (data.role == "ALL_ADMINISTRATORS_AVAILABLE") {
+          var staffs = await this.UserModel.findAll({
+            limit: data.limit,
+            offset: data.offset,
+            where: {
+              [Op.and]: [
+                { suspended: false },
+                {
+                  role: {
+                    [Op.ne]: "GUARD",
+                  },
+                },
+              ],
+            },
+    
+            include: {
+              model: Location,
+              as: "location",
+            },
+            order: [["created_at", "DESC"]],
+          });
+          if (staffs == null) return [];
+          var staffRes = [];
+          for (let index = 0; index < staffs.length; index++) {
+            const staff = staffs[index];
+            const staffData = {
+              id: staff.id,
+              image: staff.image,
+              full_name: `${staff.first_name} ${staff.last_name}`,
+              first_name: staff.first_name,
+              last_name: staff.last_name,
+              email: staff.email,
+              date_of_birth: staff.date_of_birth,
+              gender: staff.gender,
+              phone_number: staff.phone_number,
+              address: (staff.location as any)?.address,
+              address_id: staff.location["id"],
+            };
+    
+            staffRes.push(staffData);
+          }
+          return staffRes;
+        } 
+        else if (data.role == "ALL_ADMINISTRATORS_AVAILABLE_NO_PAGINATION") {
 
-        include: {
-          model: Location,
-          as: "location",
-        },
-        order: [["created_at", "DESC"]],
-      });
-      if (staffs == null) return [];
-      var staffRes = [];
-      for (let index = 0; index < staffs.length; index++) {
-        const staff = staffs[index];
-        const staffData = {
-          id: staff.id,
-          guard_id_for_action: staff.id,
-          image: staff.image,
-          full_name: `${staff.first_name} ${staff.last_name}`,
-          email: staff.email,
-          gender: staff.gender,
-          phone_number: staff.phone_number,
-          address: (staff.location as any)?.address,
-        };
 
-        staffRes.push(staffData);
+          var staffs = await this.UserModel.findAll({
+            where: {
+              [Op.and]: [
+                { suspended: false },
+                {
+                  role: {
+                    [Op.ne]: "GUARD",
+                  },
+                },
+              ],
+            },
+            include: {
+              model: Location,
+              as: "location",
+            },
+            order: [["created_at", "DESC"]],
+          })
+
+          
+          if (staffs == null) return [];
+          var staffRes = [];
+          for (let index = 0; index < staffs.length; index++) {
+            const staff = staffs[index];
+
+      
+            const staffData = {
+              id: staff.id,
+              guard_id_for_action: staff.id,
+              image: staff.image,
+              full_name: `${staff.first_name} ${staff.last_name}`,
+              email: staff.email,
+              gender: staff.gender,
+              phone_number: staff.phone_number,
+              address: (staff.location as any)?.address,
+              address_id: staff.location["id"],
+            };
+    
+            staffRes.push(staffData);
+          }
+          return staffRes;
+        }
+        else if (data.role == "ALL_GUARD_AVAILABLE") {
+          var staffs = await this.UserModel.findAll({
+            limit: data.limit,
+            offset: data.offset,
+            where: {
+              [Op.and]: [
+                { suspended: false },
+                {
+                  role: {
+                    [Op.eq]: "GUARD",
+                  },
+                },
+              ],
+            },
+    
+            include: {
+              model: Location,
+              as: "location",
+            },
+            order: [["created_at", "DESC"]],
+          });
+          if (staffs == null) return [];
+          var staffRes = [];
+          for (let index = 0; index < staffs.length; index++) {
+            const staff = staffs[index];
+            const staffData = {
+              id: staff.id,
+              image: staff.image,
+              full_name: `${staff.first_name} ${staff.last_name}`,
+              first_name: staff.first_name,
+              last_name: staff.last_name,
+              email: staff.email,
+              date_of_birth: staff.date_of_birth,
+              gender: staff.gender,
+              phone_number: staff.phone_number,
+              address: (staff.location as any)?.address,
+              address_id: staff.location["id"],
+            };
+    
+            staffRes.push(staffData);
+          }
+          return staffRes;
+        }else if (data.role == "ALL_GUARD_AVAILABLE_NO_PAGINATION") {
+          var staffs = await this.UserModel.findAll({
+            where: {
+              [Op.and]: [
+                { suspended: false },
+                {
+                  role: {
+                    [Op.eq]: "GUARD",
+                  },
+                },
+              ],
+            },
+    
+            include: {
+              model: Location,
+              as: "location",
+            },
+            order: [["created_at", "DESC"]],
+          });
+          if (staffs == null) return [];
+          var staffRes = [];
+          for (let index = 0; index < staffs.length; index++) {
+            const staff = staffs[index];
+            const staffData = {
+              id: staff.id,
+              guard_id_for_action: staff.id,
+              image: staff.image,
+              full_name: `${staff.first_name} ${staff.last_name}`,
+              email: staff.email,
+              gender: staff.gender,
+              phone_number: staff.phone_number,
+              address: (staff.location as any)?.address,
+            };
+    
+            staffRes.push(staffData);
+          }
+          return staffRes;
+        }
+      } catch (error) {
+        console.log(error)
+        throw new SystemError(error.toString());
       }
-      return staffRes;
-    }
   }
 
   async handleSuspension(data: any) {

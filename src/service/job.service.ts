@@ -1003,38 +1003,58 @@ class UserService {
   }
 
   async deleteJob(data: any): Promise<any> {
-    try {
+    //try {
       const { job_id } = await jobUtil.verifyDeleteJob.validateAsync(data);
 
-      const record = await this.JobModel.findOne({
+
+      const foundS = await this.ScheduleModel.findOne({
         where: {
-          id: job_id,
+          job_id,
         },
       });
-      if (record) {
-        const deleted_Job = await this.JobDeletedModel.create(record.dataValues);
+
+      if(foundS){
+        throw new ConflictError("Cant perform action")
+      }
+      else{
+
+        const record = await this.JobModel.findOne({
+          where: {
+            id: job_id,
+          },
+        });
+        if (record) {
+          const deleted_Job = await this.JobDeletedModel.create(record.dataValues);
+        }
+  
+        this.JobModel.destroy({
+          where: {
+            id: job_id,
+          },
+        })
+          .then(function (deletedRecord) {
+            if (deletedRecord === 1) {
+              return "Deleted successfully";
+            } else {
+              // throw new NotFoundError("record not found");
+            }
+          }).catch(function (error) {
+            //throw new NotFoundError(error);
+        });
+  
+
       }
 
-      this.JobModel.destroy({
-        where: {
-          id: job_id,
-        },
-      })
-        .then(function (deletedRecord) {
-          if (deletedRecord === 1) {
-            return "Deleted successfully";
-          } else {
-            // throw new NotFoundError("record not found");
-          }
-        })
 
-        .catch(function (error) {
-          //throw new NotFoundError(error);
-        });
-    } catch (error) {
+
+
+    //}
+    /*
+    catch (error) {
       console.log(error);
       throw new SystemError(error.toString());
     }
+    */
   }
 
   async createMemo(data: any): Promise<any> {
@@ -1531,16 +1551,7 @@ class UserService {
 
       
 
-     this.SecurityCheckLogModel.findAll({
-      include: {
-        model: this.SecurityCheckCommentsModel,
-        as:"Security_check"
-      },
-      where: {
-        [Op.and]: [{ job_id }, { guard_id }],
-      },
-    }).then((e)=>{console.log(e)})
-    .catch((e)=>{console.log(e)})
+    
 
     
 
@@ -1569,7 +1580,7 @@ class UserService {
 
         obj["date"] = await this.getDateAndTime(foundSCL[i].created_at);
         obj["status"] = foundSCL[i].status;
-        obj["message"] = "Security check";
+        obj["message"] = "Safety check";
         obj["lat"] = lat.toFixed(5);
         obj["log"] = lon.toFixed(5);
         obj["site_lat"] = foundFLC.latitude;
