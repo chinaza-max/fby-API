@@ -4695,15 +4695,16 @@ class UserService {
             include: [
               {
               model: this.JobLogsModel,
-              attributes: ["check_in_status",
-                "check_out_status", "hours_worked"]
-              // where: {
-              //   [Op.and]:
-              //   [
-              //   {check_in_status: true},
-              //     {check_out_status: true}
-              //   ]
-              // }
+              // attributes: ["check_in_status",
+              //   "check_out_status", "hours_worked"]
+              where: {
+                guard_id: Sequelize.col('Schedule.guard_id')
+                // [Op.and]:
+                // [
+                // {check_in_status: true},
+                //   {check_out_status: true}
+                // ]
+              }
             },
             {
               model: this.FacilityModel,
@@ -4771,10 +4772,17 @@ class UserService {
 
       },
         );
+    var data2 = data1.map(obj => {
+          return { ...obj.dataValues}
+          });
     const data = [] 
-    data1.filter(pre =>{
-      data.push(pre.dataValues)
+    data2.filter(pre =>{
+      data.push({...pre})
     });
+    
+    // const data = data1.map(obj => {
+    // return { ...obj.dataValues}
+    // });
     const users = await this.UserModel.findAll({ where: { [Op.and]: [
       { "id": { [Op.like]: guard_id ? guard_id : "%" } },
       { "role": "GUARD" }
@@ -4799,15 +4807,19 @@ class UserService {
          (moment(data[j].check_in_date).isSameOrBefore(to) && moment(data[j].check_out_date).isSameOrAfter(to)) ||
          (moment(data[j].check_in_date).isSameOrBefore(from) && moment(data[j].check_out_date).isSameOrAfter(from) ) ) {
           if (data[j]?.guard_id == users[i].id) {
-            console.log(from,to)
             var check_in_date: any = new Date(data[j].check_in_date);
             var check_out_date: any = new Date(data[j].check_out_date);
 
-            data[j]?.job?.JobLogs.filter(prev=>{
-              if (prev.check_in_status == true && prev.check_out_status == true) {
-                a.hours_worked = Number(((prev.hours_worked) + a.hours_worked).toFixed(2))
-              }
-            })  
+            var hours = (await this.JobLogsModel.findOne({
+              where: {[Op.and]:[
+              {job_id: data[j].job_id},
+              {check_in_status: true},
+              {check_out_status: true},
+              {guard_id: data[j].guard_id}
+              ]}
+            }))?.hours_worked;
+
+            a.hours_worked = hours ? Number((hours + a.hours_worked).toFixed(2)) : a.hours_worked
 
             a.hours_assigned = Number(((check_out_date - check_in_date) / 3600000 + a.hours_assigned).toFixed(2));
 
@@ -4817,13 +4829,14 @@ class UserService {
             data[j].end_date = moment(data[j].check_out_date).format("YYYY-MM-DD");
             
             data[j].status = await this.checkShiftStatus(data[j].job_id,data[j].check_in_date,data[j].check_out_date) 
-
+            
             a.data.push(data[j])
+
           }
          }
 
         }
-        
+        console.log("-----------------------")
         all.push(a)
       }
 
