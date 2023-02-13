@@ -348,5 +348,32 @@ export default class UserController {
     }
   }
 
+  protected async getDeletedStaffs(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      let myData;
+
+      if(Object.keys(req.query).length === 0){
+        myData="all" 
+      }else{
+        myData={
+          limit:Number(req.query.limit),
+          offset:Number(req.query.offset),
+          role: req.query.role 
+        }
+      }
+      const obj = await userService.handleGetDeletedStaffs(myData);
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
 
 }

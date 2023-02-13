@@ -11,6 +11,7 @@ import {
 import {
   Facility as FacilityDeleted,
   Location as LocationDeleted,
+  Customer as CustomerDeleted
 } from "../db/modelsDeleted";
 import axios from "axios";
 import serverConfig from "../config/server.config";
@@ -41,6 +42,7 @@ class CustomerService {
   private AdminModel = Admin
   private JobModel = Job
   private LocationDeletedModel = LocationDeleted;
+  private CustomerDeletedModel = CustomerDeleted;
   private FacilityDeletedModel = FacilityDeleted;
 
   async handleCreateFacility(data: object): Promise<any> {
@@ -308,6 +310,10 @@ class CustomerService {
             const deleted_Location = await this.LocationDeletedModel.create(
               record.dataValues
             );
+            await this.CustomerDeletedModel.create(
+              foundC.dataValues
+            )
+            
           }
         } catch (error) {
           {
@@ -319,6 +325,10 @@ class CustomerService {
             id: address_id,
           },
         });
+
+        await this.UserModel.destroy({
+          where: {id}
+        })
       }
     }
   }
@@ -980,6 +990,41 @@ class CustomerService {
           });
         });
         tempCustomer["sites"] = sites;
+        tempCustomers.push(tempCustomer);
+      });
+      return tempCustomers;
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+  }
+
+  async handleGetDeletedCustomers(data) {
+    try {
+      var allCustomers = await this.CustomerDeletedModel.findAll({
+        limit: data.limit,
+        offset: data.offset,
+        include: [
+          {
+            model: this.LocationDeletedModel,
+            as: "location",
+        }
+        ],
+        order: [["created_at", "DESC"]],
+      });
+      let tempCustomers = [];
+      allCustomers?.forEach((customer: any) => {
+        let tempCustomer = {
+          id: customer.id,
+          image: customer.image,
+          company_name: customer.company_name,
+          address: customer.location.address,
+          address_id: customer.location.id,
+          email: customer.email,
+          gender: customer.gender,
+          phone_number: customer.phone_number,
+        };
+        
         tempCustomers.push(tempCustomer);
       });
       return tempCustomers;
