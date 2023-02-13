@@ -201,7 +201,7 @@ export default class UserController {
     try {
       const { id } = req.user;  
 
-      const users = await userService.toggleVisibilty(id);
+      const users = await userService.toggleVisibilty(id,req);
 
       return res.status(200).json({
         status: 200,

@@ -24,6 +24,7 @@ import IAdmin from "../../interfaces/admin.interface";
     declare first_name: string;
     declare last_name: string;
     declare availability:boolean;
+    declare notification:boolean;
     declare suspended:boolean;
     declare phone_number: number;
     declare created_by_id: number;
@@ -105,15 +106,19 @@ import IAdmin from "../../interfaces/admin.interface";
               'USER',
               'ACCOUNT_MANGER'
           ),
-          allowNull: true,
+          allowNull: false,
         },
         location_id: {
           type: DataTypes.STRING,
-          allowNull: true,
+          allowNull: false,
         },
         can_suspend: {
           type: DataTypes.BOOLEAN,
           defaultValue: false,
+        },
+        notification: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: true,
         },
         created_by_id: {
           type: DataTypes.NUMBER,

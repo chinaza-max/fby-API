@@ -24,6 +24,7 @@ import IAdmin from "../../interfaces/admin.interface";
     declare first_name: string;
     declare last_name: string;
     declare availability:boolean;
+    declare notification:boolean;
     declare suspended:boolean;
     declare phone_number: number;
     declare created_by_id: number;
@@ -76,6 +77,10 @@ import IAdmin from "../../interfaces/admin.interface";
         suspended: {
           type: DataTypes.BOOLEAN,
           defaultValue: false,
+        },
+        notification: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: true,
         },
         password: {
           type: DataTypes.STRING,

@@ -16,6 +16,8 @@ import AssignedStaffs, {
   init as initAssignedStaffs,
 } from "./assigned_staffs.model";
 import Schedule, { init as initSchedule } from "./schedule.model";
+import Subscriptions, { init as initSubscriptions } from "./subscription.model";
+
 import Statistics, { init as initStatistics } from "./statistics.model";
 import PasswordReset, {
   init as initPasswordReset,
@@ -187,6 +189,18 @@ function associate() {
     as:"job",
   });
   Job.hasMany(Schedule);
+
+  Subscriptions.belongsTo(Admin, {
+    onDelete: 'cascade',
+    foreignKey: {
+      allowNull: false,
+      name: "guard_id",
+      field: "guard_id",
+    },
+    as:"Admin",
+  });
+
+
   JobReports.belongsTo(Job, {
     onDelete: 'cascade',
     foreignKey: {
@@ -383,6 +397,7 @@ export {
   JobOperations,
   AssignedStaffs,
   Schedule,
+  Subscriptions,
   Statistics,
   PasswordReset,
   ScanOperations,
@@ -413,6 +428,7 @@ export function init(connection: Sequelize) {
   initJob(connection);
   initStatistics(connection);
   initSchedule(connection);
+  initSubscriptions(connection)
   initJobOperations(connection);
   initAssignedStaffs(connection);
   initPasswordReset(connection);

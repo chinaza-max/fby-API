@@ -28,7 +28,7 @@ class UserUtil {
       }),
   });
 
-  
+
   
   public verifyUpdateProfileOtherAdmin = Joi.object().keys({
     first_name: Joi.string().required(),
@@ -83,6 +83,16 @@ class UserUtil {
   public verifyDeleteStaffLicense = Joi.object().keys({
     id : Joi.number().required(),
   })
+
+
+    
+  public verifySubscription = Joi.object().keys({
+    subscription: Joi.object().required(),
+    guard_id: Joi.number().required(),
+    my_time_zone: Joi.string().required(),
+  });
+
+
 }
 
 export default new UserUtil();

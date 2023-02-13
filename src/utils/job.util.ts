@@ -283,6 +283,8 @@ class JobUtil {
     })
   });
 
+
+
   public verifyJobCreationData = Joi.object().keys({
     description: Joi.string().trim().min(1),
     customer_id: Joi.number().required(),

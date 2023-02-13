@@ -15,7 +15,8 @@ import {
   SecurityCheckLog,
   Memo,
   MemoReceiver,
-  SecurityCheckComments
+  SecurityCheckComments,
+  Subscriptions
 } from "../db/models";
 import {
   Admin as AdminDeleted,
@@ -49,6 +50,8 @@ import {
 } from "../errors";
 import { fn, col, Op, QueryError, where, FLOAT, Sequelize } from "sequelize";
 import moment from "moment";
+//import webpush from "web-push";
+
 import axios from "axios";
 import momentTimeZone from "moment-timezone";
 import Schedule from "../db/models/schedule.model";
@@ -60,6 +63,10 @@ import { IJobSecurityCode } from "../interfaces/job_security_code.interface";
 import authService from "./auth.service";
 import { func, number } from "joi";
 import Shift_comments from "../db/models/shift_comments.model";
+import userUtil from "../utils/user.util";
+
+
+
 
 class UserService {
   private UserModel = Admin;
@@ -81,6 +88,7 @@ class UserService {
   private MemoReceiverModel = MemoReceiver;
   private Shift_commentsModel = Shift_comments;
   private SecurityCheckCommentsModel = SecurityCheckComments
+  private SubscriptionsModel = Subscriptions
 
   private JobDeletedModel = JobDeleted;
   private ScheduleDeletedModel = ScheduleDeleted;
@@ -1373,8 +1381,12 @@ class UserService {
             }
 
             if (j == myShedule.length - 1) {
-              date_time_staff_shedule[i].status_per_staff =
-                myShedule[0].status_per_staff;
+
+              let lastStatus=await this.ScheduleModel.findOne({
+                where: { [Op.and]: [{ guard_id:obj.guard_id }, { job_id:obj.job_id }] },
+              })
+
+              date_time_staff_shedule[i].status_per_staff=lastStatus.status_per_staff;
               cleanShedule.push(date_time_staff_shedule[i]);
             }
           }
@@ -1415,6 +1427,7 @@ class UserService {
       }
     }
   }
+
 
   async createJob(data: any): Promise<any> {
     try {
@@ -2878,6 +2891,43 @@ class UserService {
     }
   }
   async getDashBoardInfoGuard(req) {
+
+
+    /*
+    let foundSu = await this.SubscriptionsModel.findOne({
+      where: { guard_id: req.user.id }
+    });
+    let subscriptionObj=foundSu.subscription
+
+
+    
+
+
+    const payload=JSON.stringify({"title":"push notification am done"})
+    
+
+    webpush.setVapidDetails("mailto:test@test.com",serverConfig.PUBLIC_KEY_PUSH_NOTIFICATION,serverConfig.PRIVATE_KEY_PUSH_NOTIFICATION)
+
+    webpush.sendNotification(subscriptionObj,payload).catch(err=>{
+        
+      
+      console.log("sssssssssssssssssssssssssssss")
+      console.log("sssssssssssssssssssssssssssss")
+      console.log("sssssssssssssssssssssssssssss")
+      console.log("sssssssssssssssssssssssssssss")
+      console.log(subscriptionObj)
+
+      console.log(err)
+      console.log("sssssssssssssssssssssssssssss")
+      console.log("sssssssssssssssssssssssssssss")
+      console.log("sssssssssssssssssssssssssssss")
+  
+    
+    })
+
+    */
+  
+
     let foundS = await this.ScheduleModel.findAll({
       where: { guard_id: req.user.id },
       attributes: ["job_id", "guard_id", "status_per_staff"],
@@ -2890,18 +2940,11 @@ class UserService {
 
     if (foundS.length != 0) {
       for (let i = 0; i < foundS.length; i++) {
-        console.log(foundS);
-        console.log(foundS.length);
-
-        console.log("my schedules my schedules");
+       
 
         let foundJ = await this.JobModel.findOne({
           where: { id: foundS[i].job_id },
         });
-
-        console.log(foundJ.job_status);
-        console.log(foundS[i].status_per_staff);
-        console.log("foundS[i].status_per_staff");
 
         if (
           foundJ.job_status == "ACTIVE" &&
@@ -4066,6 +4109,9 @@ class UserService {
            */
       } else {
 
+
+
+        
         //check for ealy checkins
         date = new Date(con_fig_time_zone.add(15, "minutes").format("YYYY-MM-DD hh:mm:ss a"))
 

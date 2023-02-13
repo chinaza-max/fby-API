@@ -1,5 +1,6 @@
 import { Router } from "express";
 import UtilController from "../controllers/util/util.controller";
+import authMiddleware from "../middlewares/auth.middleware";
 
 class UtilRoutes extends UtilController {
   public router: Router;
@@ -13,6 +14,8 @@ class UtilRoutes extends UtilController {
   private routes(): void {
     this.router.post("/googleMapsAutoComplete", this.googleMapsAutoComplete);
     this.router.post("/googleMapsLocationSearch", this.googleMapsLocationSearch);
+    this.router.post("/store_or_update_subscription",authMiddleware.validateUserToken, this.subscription);
+
   }
 }
 

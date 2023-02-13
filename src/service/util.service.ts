@@ -1,10 +1,16 @@
-import { Statistics } from "../db/models";
+import { Statistics,Subscriptions,Admin} from "../db/models";
 import { StatTypes } from "../interfaces/types.interface";
 import axios from "axios";
-import { NotFoundError } from "../errors";
+import momentTimeZone from "moment-timezone";
+import { NotFoundError ,SystemError} from "../errors";
+import userUtil from "../utils/user.util";
 
 class UtilService {
   private StatisticsModel = Statistics;
+  private SubscriptionsModel = Subscriptions;
+  private AdminsModel = Admin;
+
+
 
   async updateStat(stat_type: StatTypes): Promise<any> {
     let now = new Date();
@@ -82,6 +88,75 @@ class UtilService {
       console.log(error);
       throw new NotFoundError("Failed to resolve query");
     }
+  }
+
+
+  async subscription(data){
+
+    try {
+      const {
+        subscription,
+        my_time_zone,
+        guard_id,
+      } = await userUtil.verifySubscription.validateAsync(data);
+
+      let dateStamp = await this.getDateAndTimeForStamp(my_time_zone);
+     
+
+      const foundA=await this.SubscriptionsModel.findOne({
+        where:{
+            guard_id
+        }
+      })
+
+      if(!foundA){
+
+        let obj={
+          guard_id,
+          subscription,
+          created_at: dateStamp,
+          updated_at: dateStamp
+        }
+
+        this.SubscriptionsModel.create(obj)
+      }
+      else{
+
+        let obj={
+          guard_id,
+          subscription,
+          updated_at: dateStamp,
+        }
+
+        console.log(guard_id)
+
+        this.SubscriptionsModel.update(obj,
+            {where:{guard_id}})
+           
+      }
+
+    } catch (error) {
+
+
+      console.log("succefull succefull succefull  succefull ")
+              console.log("succefull succefull succefull  succefull ")
+              console.log(error);
+
+              console.log("succefull succefull succefull  succefull ")
+              console.log("succefull succefull succefull  succefull ")  
+      throw new SystemError(error.toString());
+    }
+  }
+
+
+
+
+
+  async getDateAndTimeForStamp(my_time_zone) {
+    let con_fig_time_zone = momentTimeZone.tz(my_time_zone);
+    let date = new Date(con_fig_time_zone.format("YYYY-MM-DD hh:mm:ss a"));
+
+    return date;
   }
 }
 

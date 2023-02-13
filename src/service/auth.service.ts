@@ -324,6 +324,7 @@ class AuthenticationService {
         created_at, 
         updated_at,
         suspended,
+        notification,
         availability
       } = data;
 
@@ -340,6 +341,7 @@ class AuthenticationService {
         phone_number,
         role,
         suspended,
+        notification,
         // Added Location
         availability,
         address: locationObj.address,

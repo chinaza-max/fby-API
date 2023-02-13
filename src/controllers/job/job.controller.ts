@@ -66,10 +66,7 @@ export default class JobController {
   ): Promise<Response> {
     try {
 
-      console.log("kkkkkkkkkkkkkkkkkkk")
 
-
-      
       const obj = await jobService.getDashBoardInfoGuard(req);
       
       return res.status(200).json({
@@ -958,8 +955,6 @@ export default class JobController {
       //REMOVE THIS AFTER TEST
      
       const obj = await jobService.checkIn(myObj2);
-
-      console.log(obj)
       
       return res.status(200).json({
         status: 200,
@@ -1275,7 +1270,6 @@ export default class JobController {
   }
 
 
-
   protected async createJob(
     req: Request,
     res: Response,
@@ -1431,8 +1425,6 @@ export default class JobController {
   ): Promise<Response> {
     try {
       const data = req.body;
-
-   
 
       const obj = await jobService.getJobsForStaff(req);
 

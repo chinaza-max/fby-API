@@ -437,20 +437,47 @@ class UserService {
 
   }
 
-  async toggleVisibilty(data: any) {
+  async toggleVisibilty(data: any,req: any) {
     let id = data;
 
-    const user = await this.UserModel.findByPk(id);
 
-    await this.UserModel.update(
-      { availability: !user.availability },
-      {
-        where: {
-          id,
-        },
-      }
-    );
+    if(req.query.type=="license"){
+      const user = await this.UserModel.findByPk(id);
+
+      await this.UserModel.update(
+        { availability: !user.availability },
+        {
+          where: {
+            id,
+          },
+        }
+      );
+  
+  
+    }
+    else if(req.query.type=="notification"){
+
+      const user = await this.UserModel.findByPk(id);
+
+      await this.UserModel.update(
+        { notification: !user.notification },
+        {
+          where: {
+            id,
+          },
+        }
+      );
+  
+  
+
+    }
+
+
+
+
   }
+
+
 
   async getAllStaff(data: any) {
       try {

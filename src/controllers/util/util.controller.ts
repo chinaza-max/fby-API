@@ -21,6 +21,40 @@ export default class UtilController {
       next(error);
     }
   }
+
+
+
+
+
+  protected async subscription(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+
+      
+      let my_obj={
+        subscription:data,
+        guard_id:req.user.id,
+        my_time_zone:req["user_time_zone"]
+      }
+
+
+      const obj = await utilService.subscription(my_obj);
+
+      return res.status(200).json({
+        status: 200,
+        message: "push notification subscription successfull",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
   protected async googleMapsLocationSearch(
     req: Request,
     res: Response,
@@ -41,3 +75,5 @@ export default class UtilController {
     }
   }
 }
+
+

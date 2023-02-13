@@ -50,6 +50,9 @@ class ServerConfig {
   public STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
   public GOOGLE_KEY = process.env.GOOGLE_KEY;
   public DOMAIN = process.env.DOMAIN;
+  public PUBLIC_KEY_PUSH_NOTIFICATION = process.env.PUBLIC_KEY_PUSH_NOTIFICATION;
+  public PRIVATE_KEY_PUSH_NOTIFICATION = process.env.PRIVATE_KEY_PUSH_NOTIFICATION;
+
 
 }
 
