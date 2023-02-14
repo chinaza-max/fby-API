@@ -1039,13 +1039,24 @@ class UserService {
         }
       })
     }
+
+
+
+
     const record = await this.JobModel.findOne({
         where: {
           id: job_id,
         },
       });
+
+
     if (record) {
-        const deleted_Job = await this.JobDeletedModel.create(record.dataValues);
+      await this.JobDeletedModel.create(record.dataValues)
+ /*     .then((e)=>{
+        console.log(e)
+      }).catch((e)=>{
+        console.log(e)
+      });*/
     }
 
       this.JobModel.destroy({
@@ -1708,155 +1719,317 @@ class UserService {
     var { guard_id, settlement } =
       await jobUtil.verifyGetAllUnsettleShiftOneGuard.validateAsync(obj);
 
-    if (settlement) {
-      let foundS = await this.ScheduleModel.findAll({
-        limit: obj2.limit,
-        offset: obj2.offset,
-        where: { settlement_status: settlement },
-      });
-
-      let unSettledSucessfullShift = [];
-      if (foundS.length != 0) {
-        for (let i = 0; i < foundS.length; i++) {
-          let obj = {};
-          //JUST FOR GETTING THE CHARGE PER JOB
-          let foundJL = await this.JobLogsModel.findOne({
-            where: {
-              [Op.and]: [
-                { check_in_status: true },
-                { schedule_id: foundS[i].id },
-                { check_out_status: true },
-              ],
-            },
-          });
-
-          if (foundJL) {
-            let my_guard_info = await this.getSingleGuardDetail(
-              foundS[i].guard_id
-            );
-            let foundJ = await this.JobModel.findOne({
+    if(obj2.limit){
+      if (settlement) {
+        let foundS = await this.ScheduleModel.findAll({
+          limit: obj2.limit,
+          offset: obj2.offset,
+          where: { settlement_status: settlement },
+        });
+  
+        let unSettledSucessfullShift = [];
+        if (foundS.length != 0) {
+          for (let i = 0; i < foundS.length; i++) {
+            let obj = {};
+            //JUST FOR GETTING THE CHARGE PER JOB
+            let foundJL = await this.JobLogsModel.findOne({
               where: {
-                id: foundS[i].job_id,
+                [Op.and]: [
+                  { check_in_status: true },
+                  { schedule_id: foundS[i].id },
+                  { check_out_status: true },
+                ],
               },
             });
-
-            let foundF = await this.FacilityModel.findOne({
-              where: {
-                id: foundJ.facility_id,
-              },
-            });
-
-            obj["hours_worked"] = foundJL.hours_worked;
-            obj["amount"] = foundJL.hours_worked * foundJ.staff_charge;
-            obj["charge"] = foundJ.staff_charge;
-            obj["first_name"] = my_guard_info["first_name"];
-            obj["last_name"] = my_guard_info["last_name"];
-            obj["start_date"] = await this.getDateOnly(foundS[i].check_in_date);
-            obj["start_time"] = foundS[i].start_time;
-            obj["end_date"] = await this.getDateOnly(foundS[i].check_out_date);
-            obj["end_time"] = foundS[i].end_time;
-            obj["Job_hours"] = await this.calculateHoursSetToWork(
-              foundS[i].check_out_date,
-              foundS[i].check_in_date
-            );
-            obj["check_in_date"] = await this.getDateOnly(
-              foundJL.check_in_date
-            );
-            obj["check_in_time"] = foundJL.check_in_time;
-            obj["check_out_date"] = await this.getDateOnly(
-              foundJL.check_out_date
-            );
-            obj["check_out_time"] = foundJL.check_out_time;
-            obj["shedule_id"] = foundS[i].id;
-            obj["site_name"] = foundF.name;
-
-            unSettledSucessfullShift.push(obj);
+  
+            if (foundJL) {
+              let my_guard_info = await this.getSingleGuardDetail(
+                foundS[i].guard_id
+              );
+              let foundJ = await this.JobModel.findOne({
+                where: {
+                  id: foundS[i].job_id,
+                },
+              });
+  
+              let foundF = await this.FacilityModel.findOne({
+                where: {
+                  id: foundJ.facility_id,
+                },
+              });
+  
+              obj["hours_worked"] = foundJL.hours_worked;
+              obj["amount"] = foundJL.hours_worked * foundJ.staff_charge;
+              obj["charge"] = foundJ.staff_charge;
+              obj["first_name"] = my_guard_info["first_name"];
+              obj["last_name"] = my_guard_info["last_name"];
+              obj["start_date"] = await this.getDateOnly(foundS[i].check_in_date);
+              obj["start_time"] = foundS[i].start_time;
+              obj["end_date"] = await this.getDateOnly(foundS[i].check_out_date);
+              obj["end_time"] = foundS[i].end_time;
+              obj["Job_hours"] = await this.calculateHoursSetToWork(
+                foundS[i].check_out_date,
+                foundS[i].check_in_date
+              );
+              obj["check_in_date"] = await this.getDateOnly(
+                foundJL.check_in_date
+              );
+              obj["check_in_time"] = foundJL.check_in_time;
+              obj["check_out_date"] = await this.getDateOnly(
+                foundJL.check_out_date
+              );
+              obj["check_out_time"] = foundJL.check_out_time;
+              obj["shedule_id"] = foundS[i].id;
+              obj["site_name"] = foundF.name;
+  
+              unSettledSucessfullShift.push(obj);
+            }
+  
+            if (i == foundS.length - 1) {
+              return unSettledSucessfullShift;
+            }
           }
-
-          if (i == foundS.length - 1) {
-            return unSettledSucessfullShift;
-          }
+        } else {
+          return unSettledSucessfullShift;
         }
       } else {
-        return unSettledSucessfullShift;
-      }
-    } else {
-      let foundS = await this.ScheduleModel.findAll({
-        where: {
-          [Op.and]: [
-            { guard_id },
-            { settlement_status: settlement },
-            { schedule_accepted_by_admin: true },
-          ],
-        },
-      });
-
-      let unSettledSucessfullShift = [];
-      if (foundS.length != 0) {
-        for (let i = 0; i < foundS.length; i++) {
-          let obj = {};
-
-          let foundJL = await this.JobLogsModel.findOne({
-            where: {
-              [Op.and]: [
-                { check_in_status: true },
-                { schedule_id: foundS[i].id },
-                { check_out_status: true },
-              ],
-            },
-          });
-
-          if (foundJL) {
-            let my_guard_info = await this.getSingleGuardDetail(
-              foundS[i].guard_id
-            );
-            let foundJ = await this.JobModel.findOne({
+        let foundS = await this.ScheduleModel.findAll({
+          where: {
+            [Op.and]: [
+              { guard_id },
+              { settlement_status: settlement },
+              { schedule_accepted_by_admin: true },
+            ],
+          },
+        });
+  
+        let unSettledSucessfullShift = [];
+        if (foundS.length != 0) {
+          for (let i = 0; i < foundS.length; i++) {
+            let obj = {};
+  
+            let foundJL = await this.JobLogsModel.findOne({
               where: {
-                id: foundS[i].job_id,
+                [Op.and]: [
+                  { check_in_status: true },
+                  { schedule_id: foundS[i].id },
+                  { check_out_status: true },
+                ],
               },
             });
-
-            let foundF = await this.FacilityModel.findOne({
-              where: {
-                id: foundJ.facility_id,
-              },
-            });
-
-            obj["hours_worked"] = foundJL.hours_worked;
-            obj["amount"] = foundJL.hours_worked * foundJ.staff_charge;
-            obj["charge"] = foundJ.staff_charge;
-            obj["first_name"] = my_guard_info["first_name"];
-            obj["last_name"] = my_guard_info["last_name"];
-            obj["start_date"] = await this.getDateOnly(foundS[i].check_in_date);
-            obj["start_time"] = foundS[i].start_time;
-            obj["end_date"] = await this.getDateOnly(foundS[i].check_out_date);
-            obj["end_time"] = foundS[i].end_time;
-            obj["Job_hours"] = await this.calculateHoursSetToWork(
-              foundS[i].check_out_date,
-              foundS[i].check_in_date
-            );
-            obj["check_in_date"] = await this.getDateOnly(
-              foundJL.check_in_date
-            );
-            obj["check_in_time"] = foundJL.check_in_time;
-            obj["check_out_date"] = await this.getDateOnly(
-              foundJL.check_out_date
-            );
-            obj["check_out_time"] = foundJL.check_out_time;
-            obj["shedule_id"] = foundS[i].id;
-            obj["site_name"] = foundF.name;
-
-            unSettledSucessfullShift.push(obj);
+  
+            if (foundJL) {
+              let my_guard_info = await this.getSingleGuardDetail(
+                foundS[i].guard_id
+              );
+              let foundJ = await this.JobModel.findOne({
+                where: {
+                  id: foundS[i].job_id,
+                },
+              });
+  
+              let foundF = await this.FacilityModel.findOne({
+                where: {
+                  id: foundJ.facility_id,
+                },
+              });
+  
+              obj["hours_worked"] = foundJL.hours_worked;
+              obj["amount"] = foundJL.hours_worked * foundJ.staff_charge;
+              obj["charge"] = foundJ.staff_charge;
+              obj["first_name"] = my_guard_info["first_name"];
+              obj["last_name"] = my_guard_info["last_name"];
+              obj["start_date"] = await this.getDateOnly(foundS[i].check_in_date);
+              obj["start_time"] = foundS[i].start_time;
+              obj["end_date"] = await this.getDateOnly(foundS[i].check_out_date);
+              obj["end_time"] = foundS[i].end_time;
+              obj["Job_hours"] = await this.calculateHoursSetToWork(
+                foundS[i].check_out_date,
+                foundS[i].check_in_date
+              );
+              obj["check_in_date"] = await this.getDateOnly(
+                foundJL.check_in_date
+              );
+              obj["check_in_time"] = foundJL.check_in_time;
+              obj["check_out_date"] = await this.getDateOnly(
+                foundJL.check_out_date
+              );
+              obj["check_out_time"] = foundJL.check_out_time;
+              obj["shedule_id"] = foundS[i].id;
+              obj["site_name"] = foundF.name;
+  
+              unSettledSucessfullShift.push(obj);
+            }
+  
+            if (i == foundS.length - 1) {
+              return unSettledSucessfullShift;
+            }
           }
-
-          if (i == foundS.length - 1) {
-            return unSettledSucessfullShift;
-          }
+        } else {
+          return unSettledSucessfullShift;
         }
-      } else {
-        return unSettledSucessfullShift;
       }
     }
+    else{
+
+      if (settlement) {
+        let foundS = await this.ScheduleModel.findAll({
+          where: { settlement_status: settlement },
+        });
+  
+        let unSettledSucessfullShift = [];
+        if (foundS.length != 0) {
+          for (let i = 0; i < foundS.length; i++) {
+            let obj = {};
+            //JUST FOR GETTING THE CHARGE PER JOB
+            let foundJL = await this.JobLogsModel.findOne({
+              where: {
+                [Op.and]: [
+                  { check_in_status: true },
+                  { schedule_id: foundS[i].id },
+                  { check_out_status: true },
+                ],
+              },
+            });
+  
+            if (foundJL) {
+              let my_guard_info = await this.getSingleGuardDetail(
+                foundS[i].guard_id
+              );
+              let foundJ = await this.JobModel.findOne({
+                where: {
+                  id: foundS[i].job_id,
+                },
+              });
+  
+              let foundF = await this.FacilityModel.findOne({
+                where: {
+                  id: foundJ.facility_id,
+                },
+              });
+  
+              obj["hours_worked"] = foundJL.hours_worked;
+              obj["amount"] = foundJL.hours_worked * foundJ.staff_charge;
+              obj["charge"] = foundJ.staff_charge;
+              obj["first_name"] = my_guard_info["first_name"];
+              obj["last_name"] = my_guard_info["last_name"];
+              obj["start_date"] = await this.getDateOnly(foundS[i].check_in_date);
+              obj["start_time"] = foundS[i].start_time;
+              obj["end_date"] = await this.getDateOnly(foundS[i].check_out_date);
+              obj["end_time"] = foundS[i].end_time;
+              obj["Job_hours"] = await this.calculateHoursSetToWork(
+                foundS[i].check_out_date,
+                foundS[i].check_in_date
+              );
+              obj["check_in_date"] = await this.getDateOnly(
+                foundJL.check_in_date
+              );
+              obj["check_in_time"] = foundJL.check_in_time;
+              obj["check_out_date"] = await this.getDateOnly(
+                foundJL.check_out_date
+              );
+              obj["check_out_time"] = foundJL.check_out_time;
+              obj["shedule_id"] = foundS[i].id;
+              obj["site_name"] = foundF.name;
+  
+              unSettledSucessfullShift.push(obj);
+            }
+  
+            if (i == foundS.length - 1) {
+              return unSettledSucessfullShift;
+            }
+          }
+        } else {
+          return unSettledSucessfullShift;
+        }
+      } else {
+        let foundS = await this.ScheduleModel.findAll({
+          where: {
+            [Op.and]: [
+              { guard_id },
+              { settlement_status: settlement },
+              { schedule_accepted_by_admin: true },
+            ],
+          },
+        });
+  
+        let unSettledSucessfullShift = [];
+        if (foundS.length != 0) {
+          for (let i = 0; i < foundS.length; i++) {
+            let obj = {};
+  
+            let foundJL = await this.JobLogsModel.findOne({
+              where: {
+                [Op.and]: [
+                  { check_in_status: true },
+                  { schedule_id: foundS[i].id },
+                  { check_out_status: true },
+                ],
+              },
+            });
+  
+            if (foundJL) {
+              let my_guard_info = await this.getSingleGuardDetail(
+                foundS[i].guard_id
+              );
+              let foundJ = await this.JobModel.findOne({
+                where: {
+                  id: foundS[i].job_id,
+                },
+              });
+  
+              let foundF = await this.FacilityModel.findOne({
+                where: {
+                  id: foundJ.facility_id,
+                },
+              });
+  
+              obj["hours_worked"] = foundJL.hours_worked;
+              obj["amount"] = foundJL.hours_worked * foundJ.staff_charge;
+              obj["charge"] = foundJ.staff_charge;
+              obj["first_name"] = my_guard_info["first_name"];
+              obj["last_name"] = my_guard_info["last_name"];
+              obj["start_date"] = await this.getDateOnly(foundS[i].check_in_date);
+              obj["start_time"] = foundS[i].start_time;
+              obj["end_date"] = await this.getDateOnly(foundS[i].check_out_date);
+              obj["end_time"] = foundS[i].end_time;
+              obj["Job_hours"] = await this.calculateHoursSetToWork(
+                foundS[i].check_out_date,
+                foundS[i].check_in_date
+              );
+              obj["check_in_date"] = await this.getDateOnly(
+                foundJL.check_in_date
+              );
+              obj["check_in_time"] = foundJL.check_in_time;
+              obj["check_out_date"] = await this.getDateOnly(
+                foundJL.check_out_date
+              );
+              obj["check_out_time"] = foundJL.check_out_time;
+              obj["shedule_id"] = foundS[i].id;
+              obj["site_name"] = foundF.name;
+  
+              unSettledSucessfullShift.push(obj);
+            }
+  
+            if (i == foundS.length - 1) {
+              return unSettledSucessfullShift;
+            }
+          }
+        } else {
+          return unSettledSucessfullShift;
+        }
+      }
+    } 
+
+
+
+
+
+
+
+
+
+
   }
 
   async shiftPerGuardAllJob(obj) {
@@ -3218,66 +3391,133 @@ class UserService {
   }
 
   async getGeneralUnsettleShift(obj) {
-    let foundS = await this.ScheduleModel.findAll({
-      limit: obj.limit,
-      offset: obj.offset,
-      where: {
-        [Op.and]: [
-          { settlement_status: obj.settlement },
-          { schedule_accepted_by_admin: true },
-        ],
-      },
-    });
 
-    let unSettledSucessfullShift = [];
-    if (foundS.length != 0) {
-      for (let i = 0; i < foundS.length; i++) {
-        let obj = {};
-        //JUST FOR GETTING THE CHARGE PER JOB
-        let foundJ = await this.JobModel.findOne({
-          where: { id: foundS[i].job_id },
-        });
-
-        let foundJL = await this.JobLogsModel.findOne({
-          where: {
-            [Op.and]: [
-              { check_in_status: true },
-              { schedule_id: foundS[i].id },
-              { check_out_status: true },
-            ],
-          },
-        });
-
-        if (foundJL) {
-          let my_guard_info = await this.getSingleGuardDetail(
-            foundS[i].guard_id
-          );
-          let myAmount = foundJL.hours_worked * foundJ.staff_charge;
-
-          obj["hours_worked"] = foundJL.hours_worked;
-          obj["amount"] = myAmount;
-          obj["first_name"] = my_guard_info["first_name"];
-          obj["last_name"] = my_guard_info["last_name"];
-          obj["id"] = foundS[i].guard_id;
-          obj["foundJL_id"] = foundJL.id;
-          obj["shedule_id"] = foundS[i].id;
-
-          unSettledSucessfullShift.push(obj);
-        } else {
-          //continue;
-        }
-
-        if (i == foundS.length - 1) {
-          if (unSettledSucessfullShift.length == 0) {
-            return unSettledSucessfullShift;
+    if(obj.limit){
+      let foundS = await this.ScheduleModel.findAll({
+        limit: obj.limit,
+        offset: obj.offset,
+        where: {
+          [Op.and]: [
+            { settlement_status: obj.settlement },
+            { schedule_accepted_by_admin: true },
+          ],
+        },
+      });
+  
+      let unSettledSucessfullShift = [];
+      if (foundS.length != 0) {
+        for (let i = 0; i < foundS.length; i++) {
+          let obj = {};
+          //JUST FOR GETTING THE CHARGE PER JOB
+          let foundJ = await this.JobModel.findOne({
+            where: { id: foundS[i].job_id },
+          });
+  
+          let foundJL = await this.JobLogsModel.findOne({
+            where: {
+              [Op.and]: [
+                { check_in_status: true },
+                { schedule_id: foundS[i].id },
+                { check_out_status: true },
+              ],
+            },
+          });
+  
+          if (foundJL) {
+            let my_guard_info = await this.getSingleGuardDetail(
+              foundS[i].guard_id
+            );
+            let myAmount = foundJL.hours_worked * foundJ.staff_charge;
+  
+            obj["hours_worked"] = foundJL.hours_worked;
+            obj["amount"] = myAmount;
+            obj["first_name"] = my_guard_info["first_name"];
+            obj["last_name"] = my_guard_info["last_name"];
+            obj["id"] = foundS[i].guard_id;
+            obj["foundJL_id"] = foundJL.id;
+            obj["shedule_id"] = foundS[i].id;
+  
+            unSettledSucessfullShift.push(obj);
           } else {
-            return await this.combineUnsettleShift(unSettledSucessfullShift);
+            //continue;
+          }
+  
+          if (i == foundS.length - 1) {
+            if (unSettledSucessfullShift.length == 0) {
+              return unSettledSucessfullShift;
+            } else {
+              return await this.combineUnsettleShift(unSettledSucessfullShift);
+            }
           }
         }
+      } else {
+        return unSettledSucessfullShift;
       }
-    } else {
-      return unSettledSucessfullShift;
     }
+    else{
+      let foundS = await this.ScheduleModel.findAll({
+        where: {
+          [Op.and]: [
+            { settlement_status: obj.settlement },
+            { schedule_accepted_by_admin: true },
+          ],
+        },
+      });
+  
+      let unSettledSucessfullShift = [];
+      if (foundS.length != 0) {
+        for (let i = 0; i < foundS.length; i++) {
+          let obj = {};
+          //JUST FOR GETTING THE CHARGE PER JOB
+          let foundJ = await this.JobModel.findOne({
+            where: { id: foundS[i].job_id },
+          });
+  
+          let foundJL = await this.JobLogsModel.findOne({
+            where: {
+              [Op.and]: [
+                { check_in_status: true },
+                { schedule_id: foundS[i].id },
+                { check_out_status: true },
+              ],
+            },
+          });
+  
+          if (foundJL) {
+            let my_guard_info = await this.getSingleGuardDetail(
+              foundS[i].guard_id
+            );
+            let myAmount = foundJL.hours_worked * foundJ.staff_charge;
+  
+            obj["hours_worked"] = foundJL.hours_worked;
+            obj["amount"] = myAmount;
+            obj["first_name"] = my_guard_info["first_name"];
+            obj["last_name"] = my_guard_info["last_name"];
+            obj["id"] = foundS[i].guard_id;
+            obj["foundJL_id"] = foundJL.id;
+            obj["shedule_id"] = foundS[i].id;
+  
+            unSettledSucessfullShift.push(obj);
+          } else {
+            //continue;
+          }
+  
+          if (i == foundS.length - 1) {
+            if (unSettledSucessfullShift.length == 0) {
+              return unSettledSucessfullShift;
+            } else {
+              return await this.combineUnsettleShift(unSettledSucessfullShift);
+            }
+          }
+        }
+      } else {
+        return unSettledSucessfullShift;
+      }
+    }
+   
+
+
+
   }
 
   async performSecurityCheck(obj) {
@@ -3788,6 +4028,7 @@ class UserService {
         await this.AgendasDeletedModel.create(foundA.dataValues);
       }
 
+
       try {
         const record = await this.ScheduleModel.findOne({
           where: {
@@ -4051,7 +4292,7 @@ class UserService {
               });
 
               let obj = {
-                message: "in location",
+                message: "In location",
                 action_name: "check_in",
                 check_in_time: time,
                 check_in_status: true,
@@ -5048,14 +5289,13 @@ class UserService {
     }
   }
 
-  async getDeletedJobs(data) {
+  async getDeletedJobs() {
     try {
         const jobs = [];
         let availableJobs;
 
         availableJobs = await this.JobDeletedModel.findAll({
-            limit: parseInt(data.limit),
-            offset: parseInt(data.offset),
+            
             order: [["created_at", "DESC"]],
           });
         

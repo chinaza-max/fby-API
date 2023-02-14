@@ -307,7 +307,7 @@ class CustomerService {
             },
           });
           if (record) {
-            const deleted_Location = await this.LocationDeletedModel.create(
+            await this.LocationDeletedModel.create(
               record.dataValues
             );
             await this.CustomerDeletedModel.create(
@@ -999,11 +999,10 @@ class CustomerService {
     }
   }
 
-  async handleGetDeletedCustomers(data) {
+  async handleGetDeletedCustomers() {
     try {
       var allCustomers = await this.CustomerDeletedModel.findAll({
-        limit: data.limit,
-        offset: data.offset,
+      
         include: [
           {
             model: this.LocationDeletedModel,

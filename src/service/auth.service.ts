@@ -37,7 +37,7 @@ class AuthenticationService {
           [Op.eq]: "GUARD",
         },
       },
-    });
+    });   
    
     if(user.suspended == true) return "Account has been suspended"
 

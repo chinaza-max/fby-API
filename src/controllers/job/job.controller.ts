@@ -13,11 +13,14 @@ export default class JobController {
       
       const data = req.body;
 
-  
-      const myData={
-        limit:Number(req.query.limit),
-        offset:Number(req.query.offset),
+      let myData={}
+      if(req.query.limit){
+        myData={
+          limit:Number(req.query.limit),
+          offset:Number(req.query.offset),
+        }
       }
+    
       
       const obj = await jobService.getAllUnsettleShiftOneGuard(data,myData);
       
@@ -201,11 +204,22 @@ export default class JobController {
     try {
       const data = req.body;
 
-      const myData={
-        limit:Number(req.query.limit),
-        offset:Number(req.query.offset),
-        settlement:req.query.settlement
+
+
+      let  myData={}
+      if(req.query.limit){
+        myData={
+          limit:Number(req.query.limit),
+          offset:Number(req.query.offset),
+          settlement:req.query.settlement
+        }
       }
+      else{
+        myData={
+          settlement:req.query.settlement
+        }
+      }
+     
 
       const obj = await jobService.getGeneralUnsettleShift(myData);
       
@@ -835,9 +849,6 @@ export default class JobController {
       req.user = req.body.guard_id;
 
       const obj = await jobService.RemoveGuardShedule(data);
-
-
-      console.log(obj)
       
       return res.status(200).json({
         status: 200,
@@ -1565,16 +1576,8 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try{
-      var myData
-      if(!req.query.limit || !req.query.offset){
-        return res.status(400).json("limit and offset are required")
-     }  else{
-        myData={
-          limit:Number(req.query.limit),
-          offset:Number(req.query.offset) 
-        }
-      } 
-    const obj = await jobService.getDeletedJobs(myData);  
+      
+    const obj = await jobService.getDeletedJobs();  
 
       return res.status(200).json({
         status: 200,

@@ -388,7 +388,15 @@ class UserService {
         },
       });
 
-      if(foundS){
+
+      let foundC = await this.Suspension_commentsModel.findOne({
+        where: {
+          user_id:id
+        },
+      });
+
+
+      if(foundS||foundC){
         throw new ConflictError("Cant perform operation")
       }
       else{
@@ -397,6 +405,16 @@ class UserService {
             id
           },
         });
+
+
+        console.log("dddddddddddddddddddddddddddddddddddd")
+        console.log("dddddddddddddddddddddddddddddddddddd")
+        console.log("dddddddddddddddddddddddddddddddddddd")
+        console.log(foundU)
+        console.log("dddddddddddddddddddddddddddddddddddd")
+        console.log("dddddddddddddddddddddddddddddddddddd")
+        console.log("dddddddddddddddddddddddddddddddddddd")
+  
   
         let address_id=foundU.location_id
   
@@ -407,7 +425,12 @@ class UserService {
         });
   
         if (foundP) {
-          await this.PasswordResetDeletedModel.create(foundP.dataValues);
+          await this.PasswordResetDeletedModel.create(foundP.dataValues).then((e)=>{
+            console.log(e)
+          }).catch((e)=>{
+            console.log(e)
+          })
+
           await this.PasswordResetModel.destroy({
             where: { user_id: foundU.id },
           })
@@ -418,9 +441,21 @@ class UserService {
             id: address_id,
           },
         });
+
+
         if (record) {
-          await this.LocationDeletedModel.create(record.dataValues);
-          await this.UserDeletedModel.create(foundU.dataValues);
+          await this.LocationDeletedModel.create(record.dataValues).then((e)=>{
+            console.log(e)
+          }).catch((e)=>{
+            console.log(e)
+          })
+          await this.UserDeletedModel.create(foundU.dataValues)
+          
+          /*.then((e)=>{
+            console.log(e)
+          }).catch((e)=>{
+            console.log(e)
+          })*/
         }
   
         await this.LocationModel.destroy({
@@ -1055,8 +1090,7 @@ class UserService {
     try {
       if (data.role == "ADMIN") {
         var staffs = await this.UserDeletedModel.findAll({
-          limit: data.limit,
-          offset: data.offset,
+         
           where: {
                 role: {
                   [Op.ne]: "GUARD",
@@ -1094,8 +1128,7 @@ class UserService {
         return staffRes;
       } else if (data.role == "GUARD") {
         var staffs = await this.UserDeletedModel.findAll({
-          limit: data.limit,
-          offset: data.offset,
+         
           where: {
                 role: {
                   [Op.eq]: "GUARD",

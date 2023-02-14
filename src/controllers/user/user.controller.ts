@@ -354,16 +354,8 @@ export default class UserController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      let myData;
-
-      if(Object.keys(req.query).length === 0){
-        myData="all" 
-      }else{
-        myData={
-          limit:Number(req.query.limit),
-          offset:Number(req.query.offset),
-          role: req.query.role 
-        }
+      let  myData={
+        role: req.query.role 
       }
       const obj = await userService.handleGetDeletedStaffs(myData);
       return res.status(200).json({

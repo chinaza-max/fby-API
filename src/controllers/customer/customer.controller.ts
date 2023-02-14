@@ -405,17 +405,8 @@ export default class CustomerController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      let myData;
-
-      if(!req.query.limit || !req.query.offset){
-        return res.status(400).json("limit and offset are required")
-     }  else{
-        myData={
-          limit:Number(req.query.limit),
-          offset:Number(req.query.offset) 
-        }
-      }
-      const obj = await customerService.handleGetDeletedCustomers(myData);
+     
+      const obj = await customerService.handleGetDeletedCustomers();
       return res.status(200).json({
         status: 200,
         data: obj,
