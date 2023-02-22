@@ -154,7 +154,9 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const data = req.body;
+      const data = {...req.body,
+        my_time_zone:req["user_time_zone"],
+      };
 
 
       const obj = await jobService.getFreeGuard(data);
@@ -175,8 +177,9 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const data = req.body;
-
+      const data = {...req.body,
+        my_time_zone:req["user_time_zone"],
+      };
 
       const obj = await jobService.getGuard(data);
       

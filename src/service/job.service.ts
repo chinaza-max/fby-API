@@ -16,7 +16,8 @@ import {
   Memo,
   MemoReceiver,
   SecurityCheckComments,
-  Subscriptions
+  Subscriptions,
+  License
 } from "../db/models";
 
 /*
@@ -93,7 +94,7 @@ class UserService {
   private Shift_commentsModel = Shift_comments;
   private SecurityCheckCommentsModel = SecurityCheckComments
   private SubscriptionsModel = Subscriptions
-
+  private LicenseModel = License;
 
 /*
   private JobDeletedModel = JobDeleted;
@@ -2937,6 +2938,27 @@ class UserService {
     }
   }
   async getFreeGuard(obj) {
+    const foundL = await this.LicenseModel.findAll({
+      where: { 
+        is_deleted:false
+      }
+      
+    });
+    var all = []
+    if (foundL.length > 0) {
+      for (let i = 0; i < foundL.length; i++) {
+        let dateStamp = await this.getDateAndTimeForStamp(obj.my_time_zone);
+
+        if(foundL[i].approved==true){
+
+          if (moment(dateStamp).isAfter(foundL[i].expires_in)) {
+          } else {
+            all.push(foundL[i].staff_id);
+          }
+        }
+      }
+    };
+    const ids = [...new Set(all)];
 
     let arrayId = []
     let detail = []
@@ -2945,14 +2967,16 @@ class UserService {
       {
         [Op.and]:
         [
+          { id: { [Op.in]: ids}},
           { availability: true },
           { suspended: false },
           { is_deleted: false },
           { role: 'GUARD' }
         ]
       }
-    })
+    });
 
+    
     if (foundG.length != 0) {
 
       for (let j = 0; j < foundG.length; j++) {
@@ -3365,11 +3389,34 @@ class UserService {
   }
 
   async getGuard(obj) {
+    const foundL = await this.LicenseModel.findAll({
+      where: { 
+        is_deleted:false
+      }
+      
+    });
+    var all = []
+    if (foundL.length > 0) {
+      for (let i = 0; i < foundL.length; i++) {
+        let dateStamp = await this.getDateAndTimeForStamp(obj.my_time_zone);
+
+        if(foundL[i].approved==true){
+
+          if (moment(dateStamp).isAfter(foundL[i].expires_in)) {
+          } else {
+            all.push(foundL[i].staff_id);
+          }
+        }
+      }
+    };
+    const ids = [...new Set(all)];
+
     let arrayId = [];
     let detail = [];
     let foundG = await this.UserModel.findAll({
       where: {
         [Op.and]: [
+          { id: { [Op.in]: ids}},
           { availability: true },
           { suspended: false },
           { role: "GUARD" },
