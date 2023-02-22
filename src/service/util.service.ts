@@ -4,6 +4,8 @@ import axios from "axios";
 import momentTimeZone from "moment-timezone";
 import { NotFoundError ,SystemError} from "../errors";
 import userUtil from "../utils/user.util";
+import webpush, { SendResult } from 'web-push';
+
 
 class UtilService {
   private StatisticsModel = Statistics;
@@ -108,6 +110,18 @@ class UtilService {
             guard_id
         }
       })
+    
+/*
+      const payload=JSON.stringify({"title":"push notification am done"})
+      webpush.sendNotification(subscription,payload).catch(err=>console.log(err))
+
+      console.log("gggggggggggggggggggggggggggggggg")
+      console.log("gggggggggggggggggggggggggggggggg")
+      console.log("gggggggggggggggggggggggggggggggg")
+      console.log("gggggggggggggggggggggggggggggggg")
+      console.log("gggggggggggggggggggggggggggggggg")
+      console.log(guard_id)
+*/
 
       if(!foundA){
 
@@ -128,22 +142,12 @@ class UtilService {
           updated_at: dateStamp,
         }
 
-        console.log(guard_id)
-
         this.SubscriptionsModel.update(obj,
             {where:{guard_id}})
-           
-      }
+        }
 
     } catch (error) {
-
-
-      console.log("succefull succefull succefull  succefull ")
-              console.log("succefull succefull succefull  succefull ")
-              console.log(error);
-
-              console.log("succefull succefull succefull  succefull ")
-              console.log("succefull succefull succefull  succefull ")  
+ 
       throw new SystemError(error.toString());
     }
   }

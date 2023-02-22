@@ -13,4 +13,6 @@ export interface IJobReports {
   who_has_it:string;
   report_type:string;
   mime_type: string;
+  is_deleted:boolean;
+
 }

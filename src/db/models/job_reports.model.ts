@@ -19,6 +19,7 @@ class JobReports
   declare job_id: number;
   declare guard_id: number;
   declare message: string;
+  declare is_deleted:boolean;
   declare report_type: string;
   declare who_has_it: string;
   declare is_emergency: boolean;
@@ -95,6 +96,10 @@ export function init(connection: Sequelize) {
         type: DataTypes.DATE,
         allowNull: false,
       },
+      is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      }
     },
     {
       tableName: "job_reports",

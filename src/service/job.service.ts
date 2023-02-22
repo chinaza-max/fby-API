@@ -18,6 +18,8 @@ import {
   SecurityCheckComments,
   Subscriptions
 } from "../db/models";
+
+/*
 import {
   Admin as AdminDeleted,
   AssignedStaffs as AssignedStaffsDeleted,
@@ -37,6 +39,8 @@ import {
   MemoReceiver as MemoReceiverDeleted,
   Shift_comments as Shift_commentsDeleted
 } from "../db/modelsDeleted";
+
+*/
 import {
   BadRequestError,
   ConflictError,
@@ -55,7 +59,7 @@ import moment from "moment";
 import axios from "axios";
 import momentTimeZone from "moment-timezone";
 import Schedule from "../db/models/schedule.model";
-import ScheduleDeleted from "../db/modelsDeleted/schedule.model";
+//import ScheduleDeleted from "../db/modelsDeleted/schedule.model";
 import jobUtil from "../utils/job.util";
 import serverConfig from "../config/server.config";
 import { JobStatus } from "../interfaces/types.interface";
@@ -90,6 +94,8 @@ class UserService {
   private SecurityCheckCommentsModel = SecurityCheckComments
   private SubscriptionsModel = Subscriptions
 
+
+/*
   private JobDeletedModel = JobDeleted;
   private ScheduleDeletedModel = ScheduleDeleted;
   private JobLogsDeletedModel = JobLogsDeleted;
@@ -98,7 +104,7 @@ class UserService {
   private MemoDeletedModel = MemoDeleted;
   private MemoReceiverDeletedModel = MemoReceiverDeleted;
   private Shift_commentsDeletedModel = Shift_commentsDeleted;
-
+*/
   async getSinglejob(myObj: any): Promise<any[]> {
     try {
       let jobDetail = [];
@@ -121,6 +127,13 @@ class UserService {
         }
       }
 
+      const foundJ = await this.JobModel.findByPk(
+        myObj.job_id  
+      )
+      let time_zone=foundJ.time_zone
+
+      let is_job_completed=await this.isJobCompletedbySomeMins( myObj.job_id,30  )
+
       const foundS = await this.ScheduleModel.findAll({
         where: {
           [Op.and]: [
@@ -130,10 +143,10 @@ class UserService {
           ],
         },
         order: [["check_in_date", "ASC"]],
-      });
+      })
 
       if (foundS.length != 0) {
-        let schedule = [];
+        let schedule = []
         for (let j = 0; j < foundS.length; j++) {
           let obj = {};
           let sheduleObj = foundS[j];
@@ -146,6 +159,8 @@ class UserService {
           );
           obj["start_time"] = await this.getTimeOnly(sheduleObj.check_in_date);
           obj["end_time"] = await this.getTimeOnly(sheduleObj.check_out_date);
+          obj["currently_active"] = await this.isShiftOpenForCheckInAndCheckOut( time_zone,  sheduleObj.check_in_date , sheduleObj.check_out_date,60,30);
+          obj["schedule_id"] = sheduleObj.id
 
           schedule.push(obj);
           if (j == foundS.length - 1) {
@@ -155,10 +170,9 @@ class UserService {
             const foundF = await this.FacilityModel.findOne({
               where: { id: foundJ2.facility_id },
             });
-
             const foundFL = await this.FacilityLocationModel.findOne({
               where: { id: foundF.facility_location_id },
-            });
+            })
 
             jobDetail.push({
               schedule,
@@ -173,6 +187,7 @@ class UserService {
               hours_worked: myHours_worked,
               earn: "$" + (myHours_worked * foundJ2.staff_charge).toFixed(2),
               guard_id: myObj.guard_id,
+              is_job_completed
             });
           }
 
@@ -820,9 +835,11 @@ class UserService {
             limit: parseInt(data.query.limit),
             offset: parseInt(data.query.offset),
             where: {
-              is_deleted: false,
-              job_status: "ACTIVE",
-            } as any,
+              [Op.and]: [
+                { is_deleted: false,},
+                { job_status: "ACTIVE"},
+              ],
+            },
             order: [["created_at", "DESC"]],
           });
 
@@ -833,9 +850,12 @@ class UserService {
         else {
           availableJobs = await this.JobModel.findAll({
             where: {
-              is_deleted: false,
-              job_status: "ACTIVE",
-            } as any,
+              [Op.and]: [
+                { is_deleted: false },
+                { job_status: "ACTIVE"  }
+              ],
+            },
+           
             order: [["created_at", "DESC"]],
           });
 
@@ -857,9 +877,11 @@ class UserService {
             limit: parseInt(data.query.limit),
             offset: parseInt(data.query.offset),
             where: {
-              is_deleted: false,
-              job_status: "PENDING",
-            } as any,
+              [Op.and]: [
+                { is_deleted: false,},
+                { job_status: "PENDING",},
+              ],
+            },
             order: [["created_at", "DESC"]],
           })
         }
@@ -881,9 +903,11 @@ class UserService {
             limit: parseInt(data.query.limit),
             offset: parseInt(data.query.offset),
             where: {
-              is_deleted: false,
-              job_status: "COMPLETED",
-            } as any,
+              [Op.and]: [
+                { is_deleted: false},
+                { job_status: "COMPLETED"},
+              ],
+            },
             order: [["created_at", "DESC"]],
           });
         }
@@ -897,7 +921,6 @@ class UserService {
             order: [["created_at", "DESC"]],
           });
         }
-
       } else {
         availableJobs = await this.JobModel.findAll({
           where: {
@@ -973,6 +996,8 @@ class UserService {
   }
 
   async deleteMemo(data: any): Promise<any> {
+
+    /*
     try {
       const { memo_id } = await jobUtil.verifyDeleteMemo.validateAsync(data);
 
@@ -1008,13 +1033,37 @@ class UserService {
     } catch (error) {
       throw new SystemError(error.toString());
     }
+
+    */
   }
 
   async deleteJob(data: any): Promise<any> {
+
     //try {
+
     const { job_id } = await jobUtil.verifyDeleteJob.validateAsync(data);
 
+    const foundS = await this.ScheduleModel.findOne({
+      where: {
+        job_id,
+      },
+    });
 
+    if(foundS){
+      throw new ConflictError("Cant perform action")
+    }
+    else{
+      let myUpdate={
+        is_deleted:true
+      }
+      await this.JobModel.update(myUpdate,{
+        where: {
+          id:job_id,
+        }
+      })
+    }
+
+/*
     const foundS = await this.ScheduleModel.findAll({
       where: {
         job_id,
@@ -1057,6 +1106,7 @@ class UserService {
       }).catch((e)=>{
         console.log(e)
       });*/
+      /*
     }
 
       this.JobModel.destroy({
@@ -1075,11 +1125,7 @@ class UserService {
         });
 
 
-    
-
-
-
-
+  
     //}
     /*
     catch (error) {
@@ -1208,10 +1254,7 @@ class UserService {
             createdA[0].title == "scan-QR-code"
           ) {
             for (let k = 0; k < createdA.length; k++) {
-              let security_code = ("" + createdA[k].operation_date).replace(
-                /\s+/g,
-                ""
-              );
+              let security_code = ("" + createdA[k].operation_date).replace(/\s+/g,"");
               let myObj = {
                 agenda_id: createdA[k].id,
                 guard_id: createdA[k].guard_id,
@@ -1219,7 +1262,8 @@ class UserService {
                 security_code,
                 created_at: dateStamp,
                 updated_at: dateStamp,
-              };
+              }
+
               await this.JobSecurityCodeModel.create(myObj);
             }
           }
@@ -1257,7 +1301,7 @@ class UserService {
 
   async updateMaxCheckInTime(data: any): Promise<any> {
     try {
-      const { guard_id, shedule_id, max_check_in_time } =
+      const { guard_id, shedule_id, max_check_in_time }=
         await jobUtil.verifyUpdateMaxCheckInTime.validateAsync(data);
 
       let schedule = await this.ScheduleModel.update(
@@ -1289,36 +1333,44 @@ class UserService {
 
     let dateStamp = await this.getDateAndTimeForStamp(my_time_zone);
 
-    let createdJ = await this.JobModel.create({
-      description,
-      customer_id,
-      facility_id: site_id,
-      client_charge,
-      staff_charge,
-      payment_status: "Awaiting Payment",
-      job_status: "ACTIVE",
-      job_type: "INSTANT",
-      created_by_id,
-      time_zone: my_time_zone,
-      created_at: dateStamp,
-      updated_at: dateStamp,
-    });
+    let objF=await this.checkIfGuardIsInAnyActiveJob2(created_by_id)
+    if(objF.status){
+        throw new ConflictError("You already have an active job")
+    }
+    else{
+      let createdJ = await this.JobModel.create({
+        description,
+        customer_id,
+        facility_id: site_id,
+        client_charge,
+        staff_charge,
+        payment_status:"Awaiting Payment",
+        job_status: "ACTIVE",
+        job_type: "INSTANT",
+        created_by_id,
+        time_zone: my_time_zone,
+        created_at: dateStamp,
+        updated_at: dateStamp,
+      });
+  
+      let obj = {
+        start_time: moment(check_in_date).format("hh:mm:ss a"),
+        end_time: moment(check_out_date).format("hh:mm:ss a"),
+        status_per_staff: "ACTIVE",
+        check_in_date: check_in_date,
+        check_out_date: check_out_date,
+        job_id: createdJ.id,
+        created_by_id,
+        guard_id: created_by_id,
+        schedule_accepted_by_admin: false,
+        created_at: dateStamp,
+        updated_at: dateStamp,
+      };
+  
+      await this.ScheduleModel.create(obj);
 
-    let obj = {
-      start_time: moment(check_in_date).format("hh:mm:ss a"),
-      end_time: moment(check_out_date).format("hh:mm:ss a"),
-      status_per_staff: "ACTIVE",
-      check_in_date: check_in_date,
-      check_out_date: check_out_date,
-      job_id: createdJ.id,
-      created_by_id,
-      guard_id: created_by_id,
-      schedule_accepted_by_admin: false,
-      created_at: dateStamp,
-      updated_at: dateStamp,
-    };
+    }
 
-    await this.ScheduleModel.create(obj);
   }
 
   async sheduleDate(data: any): Promise<any> {
@@ -1406,11 +1458,21 @@ class UserService {
 
             if (j == myShedule.length - 1) {
 
+
+
+
+ 
+
+
+
               let lastStatus=await this.ScheduleModel.findOne({
                 where: { [Op.and]: [{ guard_id:obj.guard_id }, { job_id:obj.job_id }] },
               })
+              
+              if(lastStatus){
+                date_time_staff_shedule[i].status_per_staff=lastStatus.status_per_staff;
 
-              date_time_staff_shedule[i].status_per_staff=lastStatus.status_per_staff;
+              }
               cleanShedule.push(date_time_staff_shedule[i]);
             }
           }
@@ -1724,7 +1786,12 @@ class UserService {
         let foundS = await this.ScheduleModel.findAll({
           limit: obj2.limit,
           offset: obj2.offset,
-          where: { settlement_status: settlement },
+          where: {
+            [Op.and]: [
+              {  settlement_status: settlement },
+              { is_deleted: false},
+            ],
+          },
         });
   
         let unSettledSucessfullShift = [];
@@ -1747,15 +1814,23 @@ class UserService {
                 foundS[i].guard_id
               );
               let foundJ = await this.JobModel.findOne({
+              
                 where: {
-                  id: foundS[i].job_id,
+                  [Op.and]: [
+                    { id: foundS[i].job_id, },
+                    { is_deleted: false},
+                  ],
                 },
               });
   
               let foundF = await this.FacilityModel.findOne({
                 where: {
-                  id: foundJ.facility_id,
+                  [Op.and]: [
+                    {id: foundJ.facility_id },
+                    { is_deleted: false},
+                  ],
                 },
+
               });
   
               obj["hours_worked"] = foundJL.hours_worked;
@@ -1799,6 +1874,7 @@ class UserService {
               { guard_id },
               { settlement_status: settlement },
               { schedule_accepted_by_admin: true },
+              { is_deleted: false },
             ],
           },
         });
@@ -1874,7 +1950,12 @@ class UserService {
 
       if (settlement) {
         let foundS = await this.ScheduleModel.findAll({
-          where: { settlement_status: settlement },
+          where: {
+            [Op.and]: [
+              { settlement_status: settlement },
+              { is_deleted:false },
+            ],
+          },
         });
   
         let unSettledSucessfullShift = [];
@@ -1904,7 +1985,10 @@ class UserService {
   
               let foundF = await this.FacilityModel.findOne({
                 where: {
-                  id: foundJ.facility_id,
+                  [Op.and]: [
+                    {  id: foundJ.facility_id },
+                    { is_deleted: false },
+                  ],
                 },
               });
   
@@ -1949,6 +2033,7 @@ class UserService {
               { guard_id },
               { settlement_status: settlement },
               { schedule_accepted_by_admin: true },
+              { is_deleted: false},
             ],
           },
         });
@@ -2061,10 +2146,13 @@ class UserService {
           where: { id: foundJ.customer_id },
         });
 
+
+
+      //  this.JobLogsModel.sequelize.query("select* from users")
         const foundJL = await this.JobLogsModel.findOne({
           where: {
             [Op.and]: [
-              { project_check_in_date: foundS[i].check_in_date },
+              { schedule_id: foundS[i].id },
               { job_id: foundS[i].job_id },
               { guard_id: foundS[i].guard_id },
               { check_in_status: true },
@@ -2160,7 +2248,7 @@ class UserService {
         const foundJL = await this.JobLogsModel.findOne({
           where: {
             [Op.and]: [
-              { project_check_in_date: foundS[i].check_in_date },
+              { schedule_id: foundS[i].id },
               { job_id: foundS[i].job_id },
               { guard_id: foundS[i].guard_id },
               { check_in_status: true },
@@ -2247,10 +2335,7 @@ class UserService {
           if (
             moment(dateAndTime).isSame(foundS[i].check_in_date) ||
             moment(dateAndTime).isSame(foundS[i].check_out_date) ||
-            moment(dateAndTime).isBetween(
-              moment(foundS[i].check_in_date),
-              moment(foundS[i].check_out_date)
-            )
+            moment(dateAndTime).isBetween(moment(foundS[i].check_in_date), moment(foundS[i].check_out_date))
           ) {
             const foundF = await this.FacilityModel.findOne({
               where: { id: foundJ.facility_id },
@@ -2335,7 +2420,12 @@ class UserService {
 
   async getGeneralShift(obj) {
     const foundS = await this.ScheduleModel.findAll({
-      where: { status_per_staff: { [Op.ne]: "DECLINE" } },
+      where: {
+        [Op.and]: [
+          { status_per_staff: { [Op.ne]: "DECLINE" }},
+          { is_deleted: false},
+        ],
+      },
       order: [["created_at", "DESC"]],
     });
 
@@ -2344,7 +2434,12 @@ class UserService {
       for (let i = 0; i < foundS.length; i++) {
         let obj = {};
         const foundJ = await this.JobModel.findOne({
-          where: { id: foundS[i].job_id },
+          where: {
+            [Op.and]: [
+              { id: foundS[i].job_id },
+              { is_deleted: false },
+            ],
+          },
         });
 
         const foundF = await this.FacilityModel.findOne({
@@ -2365,7 +2460,6 @@ class UserService {
             ],
           },
         });
-
         let name = await this.getSingleGuardDetail(foundS[i].guard_id);
         let guard_charge = Number(foundJ.staff_charge).toFixed(2);
         let client_charge = Number(foundJ.client_charge).toFixed(2);
@@ -2827,8 +2921,7 @@ class UserService {
         obj["date"] = await this.getDateOnly(foundJ.created_at);
         obj["Name"] = guardName["first_name"] + " " + guardName["last_name"];
         obj["Phone_number"] = guardName["phone_number"];
-        obj["customer_name"] =
-          customerF["first_name"] + " " + customerF["last_name"];
+        obj["customer_name"] =customerF["company_name"] 
         obj["facility_name"] = facilityF["name"];
         obj["job_id"] = foundS[i].job_id;
         obj["guard_id"] = foundS[i].guard_id;
@@ -2854,6 +2947,7 @@ class UserService {
         [
           { availability: true },
           { suspended: false },
+          { is_deleted: false },
           { role: 'GUARD' }
         ]
       }
@@ -3168,22 +3262,32 @@ class UserService {
 
   async getDashBoardInfo(obj) {
     try {
-      let foundC = await this.CustomerModel.findAll();
+      let foundC = await this.CustomerModel.findAll({where: {
+        is_deleted:false}});
       let foundG = await this.UserModel.findAll({
         where: {
-          role: "GUARD",
-        },
+          [Op.and]: [
+            { role: "GUARD" },
+            {is_deleted:false}
+            ],
+          }
       });
 
       let foundA = await this.UserModel.findAll({
         where: {
-          role: "ADMIN",
-        },
+          [Op.and]: [
+            { role: "ADMIN" },
+            {is_deleted:false}
+            ],
+          }
       });
       let foundJ = await this.JobModel.findAll({
         where: {
-          job_status: "ACTIVE",
-        },
+          [Op.and]: [
+            {job_status: "ACTIVE"},
+            {is_deleted:false}
+            ],
+          }
       });
 
       obj = {
@@ -3269,6 +3373,7 @@ class UserService {
           { availability: true },
           { suspended: false },
           { role: "GUARD" },
+          { is_deleted: false },
         ],
       },
     });
@@ -3400,6 +3505,7 @@ class UserService {
           [Op.and]: [
             { settlement_status: obj.settlement },
             { schedule_accepted_by_admin: true },
+            { is_deleted: false },
           ],
         },
       });
@@ -3623,10 +3729,25 @@ class UserService {
   }
 
   async deleteAgenda(obj) {
+
+
+    
     try {
       var { agenda_id, longitude, latitude, my_time_zone } =
         await jobUtil.verifyDeleteAgenda.validateAsync(obj);
 
+    
+    let myUpdate={
+      is_deleted:true
+    }
+
+    await this.AgendasModel.update(myUpdate,{
+      where: {
+        id:agenda_id,
+      }
+    })
+
+      /*
       const foundA = await this.AgendasModel.findOne({
         where: { id: agenda_id },
       });
@@ -3658,10 +3779,12 @@ class UserService {
         throw new SecurityCodeVerificationError(
           "No Instruction or Task was found"
         );
-      }
+      }*/
     } catch (error) {
       throw new SystemError(error.toString());
     }
+
+  
   }
 
   async checkTaskGuard(obj) {
@@ -3894,8 +4017,6 @@ class UserService {
     else {
       throw new ConflictError("JOB HAS NO SHIFT")
     }
-
-
   }
 
   async updateJobStatus(obj) {
@@ -3947,6 +4068,8 @@ class UserService {
   }
 
   async RemoveGuardSheduleLog(obj) {
+
+  /*
     try {
       var { log_id } = await jobUtil.verifyRemoveGuardSheduleLog.validateAsync(
         obj
@@ -3966,13 +4089,28 @@ class UserService {
     } catch (error) {
       throw new SystemError(error.toString());
     }
+
+    */
   }
 
   async RemoveGuardSingleShedule(obj) {
+
+
+  
     try {
       var { schedule_id, guard_id } =
         await jobUtil.verifyRemoveGuardSingleShedule.validateAsync(obj);
+        let myUpdate={
+          is_deleted:true
+        }
+        await this.AgendasModel.update(myUpdate,{
+          where: {
+            date_schedule_id: schedule_id 
+          }
+        })
 
+
+/*
       let foundA = await this.AgendasModel.findOne({
         where: {
           [Op.and]: [{ guard_id }, { date_schedule_id: schedule_id }],
@@ -4002,13 +4140,17 @@ class UserService {
           [Op.and]: [{ guard_id }, { id: schedule_id }],
         },
       });
+    */
     } catch (error) {
       {
         throw new SystemError(error.toString());
       }
     }
+    
   }
   async RemoveGuardShedule(obj) {
+
+/*
     try {
       var { job_id, guard_id } =
         await jobUtil.verifyRemoveGuardShedule.validateAsync(obj);
@@ -4051,9 +4193,14 @@ class UserService {
     } catch (err) {
       throw new NotFoundError(err);
     }
+    */
   }
 
   async checkInCheckOutAdmin(obj) {
+
+
+ 
+
     var {
       schedule_id,
       check_in,
@@ -4064,6 +4211,8 @@ class UserService {
       my_time_zone,
       guard_id,
     } = await jobUtil.verifyCheckInCheckOutAdmin.validateAsync(obj);
+      
+
 
     latitude = latitude.toFixed(5);
     longitude = longitude.toFixed(5);
@@ -4078,7 +4227,7 @@ class UserService {
       const foundItemJL = await this.JobLogsModel.findOne({
         where: {
           [Op.and]: [
-            { project_check_in_date: { [Op.eq]: foundItemS.check_in_date } },
+            { schedule_id:foundItemS.id  },
             { job_id },
             { guard_id },
             { check_in_status: true },
@@ -4190,7 +4339,6 @@ class UserService {
               guard_id,
               coordinates_id: coordinates_res.id,
               check_in_date: date,
-              project_check_in_date: foundItemS2.check_in_date,
               created_at: dateStamp,
               updated_at: dateStamp,
               schedule_id,
@@ -4209,9 +4357,316 @@ class UserService {
   }
 
   async checkIn(obj) {
-    var { job_id, guard_id, check_in, latitude, longitude } =
+    var { job_id, guard_id, check_in, latitude, longitude, schedule_id} =
       await jobUtil.verifyCheckinData.validateAsync(obj);
 
+  
+    const foundJ = await this.JobModel.findByPk(job_id);
+
+
+    const foundS= await this.ScheduleModel.findByPk(schedule_id);
+    const foundItemF = await this.FacilityModel.findByPk(foundJ.facility_id   );
+    const foundItemFL = await this.FacilityLocationModel.findByPk( foundItemF.facility_location_id);
+    const foundItemC = await this.CoordinatesModel.findByPk( foundItemFL.coordinates_id)
+
+    let my_time_zone1 = foundItemF.time_zone;
+    let dateStamp1 = await this.getDateAndTimeForStamp(my_time_zone1);
+    let con_fig_time_zone1 = momentTimeZone.tz(my_time_zone1);
+    let date1 = new Date(con_fig_time_zone1.format("YYYY-MM-DD hh:mm:ss a"));
+    let time1 = String(con_fig_time_zone1.format("hh:mm:ss a"));
+
+    let currentDateTime=date1
+    let objLatLog1 = {
+      latitude: foundItemC.latitude,
+      longitude: foundItemC.longitude,
+      radius: foundItemFL.operations_area_constraint,
+    }
+    latitude = latitude.toFixed(5);
+    longitude = longitude.toFixed(5);
+    
+    //
+    if(this.isInlocation(latitude, longitude, objLatLog1)){
+
+      if(check_in){
+        let foundItemJL = await this.JobLogsModel.findOne({
+          where: {
+            [Op.and]: [
+              { check_in_status: true },
+              { schedule_id},
+            ],
+          },
+        });
+        if(!foundItemJL){
+              
+          if(moment(currentDateTime).isSame(foundS.check_in_date)){
+
+            let coordinates_res = await this.CoordinatesModel.create({
+              longitude,
+              latitude,
+              created_at: dateStamp1,
+              updated_at: dateStamp1,
+            })
+
+            let obj = {
+              message: "In location",
+              action_name: "check_in",
+              check_in_time: time1,
+              check_in_status: true,
+              job_id,
+              guard_id,
+              coordinates_id: coordinates_res.id,
+              check_in_date: date1,
+              schedule_id,
+              created_at: dateStamp1,
+              updated_at: dateStamp1,
+            };
+            this.JobLogsModel.create(obj);
+          }
+          else{
+            if(moment(foundS.check_in_date).isAfter(currentDateTime)){
+
+              const dateS = moment(foundS.check_in_date)
+              const dateC = moment(currentDateTime)
+                //3600000=60minute
+                if(Math.abs(dateC.diff(dateS)) <= 3600000){
+                  let coordinates_res = await this.CoordinatesModel.create({
+                    longitude,
+                    latitude,
+                    created_at: dateStamp1,
+                    updated_at: dateStamp1,
+                  })
+      
+                  let obj = {
+                    message: "In location",
+                    action_name: "check_in",
+                    check_in_time: foundS.start_time,
+                    check_in_status: true,
+                    job_id,
+                    guard_id,
+                    coordinates_id: coordinates_res.id,
+                    check_in_date:foundS.check_in_date,
+                    schedule_id,
+                    created_at: dateStamp1,
+                    updated_at: dateStamp1,
+                  };
+                  this.JobLogsModel.create(obj);
+                }
+                else{
+                  throw new LocationError("Cant check in you are too early");
+                } 
+
+            }else{
+
+              const dateS = moment(foundS.check_in_date)
+              const dateC = moment(currentDateTime)
+
+              //1200000=20minute
+              if(Math.abs(dateC.diff(dateS)) <= 1200000){
+
+                let coordinates_res = await this.CoordinatesModel.create({
+                  longitude,
+                  latitude,
+                  created_at: dateStamp1,
+                  updated_at: dateStamp1,
+                })
+    
+                let obj = {
+                  message: "In location",
+                  action_name: "check_in",
+                  check_in_time: time1,
+                  check_in_status: true,
+                  job_id,
+                  guard_id,
+                  coordinates_id: coordinates_res.id,
+                  check_in_date:currentDateTime,
+                  schedule_id,
+                  created_at: dateStamp1,
+                  updated_at: dateStamp1,
+                };
+                this.JobLogsModel.create(obj);
+              }
+              else{
+                throw new LocationError("Cant check in you are too late");
+              } 
+
+              
+            }
+          }
+
+        }
+        else{
+          throw new LocationError("you have check in already");
+        }
+
+
+      }
+      else{
+        let foundItemJL = await this.JobLogsModel.findOne({
+          where: {
+            [Op.and]: [
+              { check_in_status: true },
+              { schedule_id},
+            ],
+          },
+        });
+
+        if(foundItemJL){
+
+          let foundItemJL2 = await this.JobLogsModel.findOne({
+            where: {
+              [Op.and]: [
+                { check_out_status: false },
+                { schedule_id},
+                { check_in_status: true },
+              ],
+            },
+          });
+
+
+          if(foundItemJL2){
+
+            let my_log_date_check_in = foundItemJL.check_in_date;
+            let my_date_now_check_out = currentDateTime;
+            let my_shedule_date_check_in = foundS.check_in_date;
+            let my_shedule_date_check_out = foundS.check_out_date;
+
+            let my_job_H_worked = await this.calculateHoursSetToWork(
+              my_date_now_check_out,
+              my_log_date_check_in
+            );
+            
+            if(moment(currentDateTime).isSameOrBefore(foundS.check_out_date)){
+              my_job_H_worked = await this.calculateHoursSetToWork(
+                my_date_now_check_out,
+                my_log_date_check_in
+              );
+
+              let obj = {
+                check_out_time: time1,
+                action_name: "check_out",
+                hours_worked: my_job_H_worked,
+                check_out_status: true,
+                check_out_date:currentDateTime,
+                updated_at: dateStamp1,
+              }
+
+              let whereOptions = {
+                [Op.and]: [
+                  { job_id },
+                  { guard_id },
+                  { check_in_status: true },
+                  { schedule_id },
+                ],
+              };
+
+              this.JobLogsModel.update(obj, {
+                where: whereOptions,
+              })
+            }
+            else{
+
+              my_job_H_worked = await this.calculateHoursSetToWork(
+                my_shedule_date_check_out,
+                my_log_date_check_in
+              );
+
+              let obj = {
+                check_out_time: foundS.end_time,
+                action_name: "check_out",
+                hours_worked: my_job_H_worked,
+                check_out_status: true,
+                check_out_date: foundS.check_out_date,
+                updated_at: dateStamp1,
+              };
+
+              let whereOptions = {
+                [Op.and]: [
+                  { check_in_status: true },
+                  { schedule_id }
+                ],
+              };
+
+/*
+              this.JobLogsModel.findOne({
+                where: {whereOptions},
+              }).then((e)=>{
+                console.log(e)
+              }).catch((e)=>{
+                console.log(e)
+              })
+              */
+
+              this.JobLogsModel.update(obj, {
+                where: whereOptions,
+              }).then((e)=>{
+                console.log(e)
+              }).catch((e)=>{
+                console.log(e)
+              })
+            }
+
+          }
+          else{
+            throw new LocationError("You have checked out already");
+
+          }
+        }
+        else{
+          throw new LocationError("Cant check out you have not check in");
+
+        }
+
+      }
+
+    }
+    else{
+      let coordinates_res = await this.CoordinatesModel.create({
+        longitude,
+        latitude,
+        created_at: dateStamp1,
+        updated_at: dateStamp1,
+      });
+
+      let obj ={}
+      if(check_in){
+          
+        obj = {
+          message:"not in location",
+          action_name:"check_in",
+          check_in_status: false,
+          schedule_id,
+          job_id,
+          guard_id,
+          coordinates_id: coordinates_res.id,
+          check_in_date: date1,
+          created_at: dateStamp1,
+          updated_at: dateStamp1,
+        };
+
+      }
+      else{
+          
+        obj = {
+          message:"not in location",
+          action_name:"check_out",
+          check_out_status: false,
+          schedule_id,
+          job_id,
+          guard_id,
+          coordinates_id: coordinates_res.id,
+          check_in_date: date1,
+          created_at: dateStamp1,
+          updated_at: dateStamp1,
+        };
+
+      }
+
+      await this.JobLogsModel.create(obj);
+      throw new LocationError("You are not in location");
+    }
+
+
+      /*
     latitude = latitude.toFixed(5);
     longitude = longitude.toFixed(5);
 
@@ -4356,11 +4811,11 @@ class UserService {
             await this.JobLogsModel.create(obj);
             throw new LocationError("You are not in location");
           }*/
-        }
+       // }
         /*   } else {
              throw new LocationError("not yet time to check");
            }
-           */
+           *//*
       } else {
 
 
@@ -4395,7 +4850,7 @@ class UserService {
                   { project_check_in_date: foundItemS.check_in_date },
                 ],
               },
-            });
+            })
 
             if (!foundItemJL) {
               if (
@@ -4458,7 +4913,7 @@ class UserService {
                 updated_at: dateStamp,
               };
               await this.JobLogsModel.create(obj);
-              throw new LocationError("You are not in location");
+              throw new LocationError("You are not in location");*/
           /*  }
             else {
               let obj = {
@@ -4477,7 +4932,7 @@ class UserService {
               await this.JobLogsModel.create(obj);
               throw new LocationError("You are not in location");
             }
-            */
+            *//*
           }
         }
         else {
@@ -4554,7 +5009,7 @@ class UserService {
                   check_out_status: true,
                   check_out_date: new Date(full_date),
                   updated_at: dateStamp,
-                };
+                }
 
                 let whereOptions = {
                   [Op.and]: [
@@ -4609,7 +5064,7 @@ class UserService {
           latitude,
           created_at: dateStamp,
           updated_at: dateStamp,
-        });
+        });*/
         /*
                 if (check_in) {
                   let obj = {
@@ -4629,7 +5084,7 @@ class UserService {
                   throw new LocationError("You are not in location");
                 } else {*/
 
-
+/*
         let obj = {
           message: "not in location",
           action_name: "check_out",
@@ -4651,6 +5106,8 @@ class UserService {
         // }
       }
     }
+*/
+
   }
 
   checkIfGuardIsLate(val1, val2, added_time) {
@@ -4802,7 +5259,7 @@ class UserService {
   }
 
   async getDateOnly(val) {
-    return moment(val).format("YYYY-MM-DD");
+    return moment(val).format("DD-MM-YYYY");
   }
 
   async compareDateOnlySame(val1, val2) {
@@ -4832,7 +5289,8 @@ class UserService {
       },
       attributes: ["job_id", "security_code"],
       group: ["job_id", "security_code"],
-    });
+    })
+
 
     let job = {
       description: foundj.description,
@@ -5032,6 +5490,7 @@ class UserService {
             {
             model: this.JobModel,
             as: "job",
+           
             include: [
             {
               model: this.FacilityModel,
@@ -5057,8 +5516,8 @@ class UserService {
               [Op.and]: [
                 { "customer_id": { [Op.like]: customer_id ? customer_id : "%" } },
                 { "facility_id": { [Op.like]: site_id ? site_id : "%" } },
-                { job_status: { [Op.ne]: 'PENDING' } }
-
+                { job_status: { [Op.ne]: 'PENDING' } },
+                {is_deleted:false}
                 ],
               }
             },
@@ -5074,7 +5533,12 @@ class UserService {
               ]
             }
           ],
-          where: { guard_id: { [Op.like]: guard_id ? guard_id : "%" } },
+          where: {
+            [Op.and]: [
+              { guard_id: { [Op.like]: guard_id ? guard_id : "%" } },
+              { is_deleted: false },
+            ],
+          },
           // where:{
           //   [Op.and]:[
           //     { guard_id: { [Op.like]: guard_id ? guard_id : "%" }},
@@ -5194,6 +5658,7 @@ class UserService {
   }
 
   async deleteShiftComment(data) {
+    /*
     try {
       const { comment_id } = await jobUtil.verifyDeleteShiftComment.validateAsync(data);
 
@@ -5210,6 +5675,7 @@ class UserService {
     } catch (error) {
       throw new SystemError(error.toString());
     }
+    */
   }
 
   async getShiftComment(data) {
@@ -5289,7 +5755,89 @@ class UserService {
     }
   }
 
+  
+  async checkIfJobCanBeReassigned(req) {
+    let job_id=req.query.job_id
+
+    let foundJ = await this.JobModel.findByPk(job_id)
+    let foundS = await this.ScheduleModel.min(
+      "check_in_date",
+      {
+        where: { job_id }
+      }
+    )
+    const dateStamp = await this.getDateAndTimeForStamp(
+      foundJ.time_zone
+    );
+      
+    if (foundS) {
+
+      if (moment(dateStamp).isAfter(foundS)) {
+        return false
+      } else {
+        return true
+      }
+    }
+    else {
+      return false
+    }
+
+  }
+
+
   async getDeletedJobs() {
+
+    try {
+      const jobs = [];
+      let availableJobs = await this.JobModel.findAll({
+            where: {
+              is_deleted: true,
+              job_status: "ACTIVE",
+            } as any,
+            order: [["created_at", "DESC"]],
+          })
+
+      for (const availableJob of availableJobs) {
+        let foundC = await this.CustomerModel.findOne({
+          where: {
+            id: availableJob.customer_id,
+          },
+        });
+        let foundF = await this.FacilityModel.findOne({
+          where: {
+            id: availableJob.facility_id,
+          },
+        });
+        let job_progress = await this.returnJobPercentage(availableJob.id);
+        let foundS = await this.ScheduleModel.findAll({
+          where: {
+            job_id: availableJob.id
+          }
+        })
+
+
+        const jobRes = {
+          id: availableJob.id,
+          job_progress: job_progress,
+          description: availableJob.description,
+          client_charge: availableJob.client_charge,
+          staff_payment: availableJob.staff_charge,
+          status: availableJob.job_status,
+          customer: foundC.company_name,
+          site: foundF.name,
+          create: await this.getDateAndTime(availableJob.created_at),
+          has_shift: foundS.length != 0 ? true : false
+        };
+
+        jobs.push(jobRes);
+      }
+
+      return jobs;
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+    /*
     try {
         const jobs = [];
         let availableJobs;
@@ -5337,6 +5885,11 @@ class UserService {
     } catch (error) {
       throw new SystemError(error)
     }
+
+    */
+
+
+
 
   }
 
@@ -5541,7 +6094,7 @@ class UserService {
       where: {
         [Op.and]: [{ job_status: "ACTIVE" }, { id: { [Op.ne]: job_id } }],
       },
-    });
+    })
 
     if (foundJ.length != 0) {
       for (let i = 0; i < foundJ.length; i++) {
@@ -5563,6 +6116,8 @@ class UserService {
       return false;
     }
   }
+
+ 
 
   async calculateHoursSetToWork(to, from) {
     let init2 = moment(from).format("YYYY-MM-DD hh:mm:ss a");
@@ -5668,6 +6223,7 @@ class UserService {
       }
     }
   }
+
   async checkIfShiftHasStarted(job_id, startDate) {
 
     const foundJ = await this.JobModel.findOne(
@@ -5684,6 +6240,49 @@ class UserService {
     }
   }
 
+
+  async isJobCompletedbySomeMins(job_id,timeInMin) {
+    let foundJ = await this.JobModel.findByPk( job_id )
+    let foundS = await this.ScheduleModel.max(
+      "check_out_date",
+      {
+        where: { job_id: job_id },
+      }
+    )
+    const dateStamp = await this.getDateAndTimeForStamp(
+      foundJ.time_zone
+    );
+      
+    if (foundS) {
+      const future = moment(foundS).add(timeInMin, 'minutes');
+
+      if (future.isAfter(dateStamp)) {
+        return false
+      } else {
+        return true
+      }
+    }
+    else {
+      throw new ConflictError("JOB HAS NO SHIFT")
+    }
+  }
+
+
+
+
+  async isShiftOpenForCheckInAndCheckOut(time_zone,startDate,endDate,earlyTime,lateTime) {
+
+    const dateStamp = await this.getDateAndTimeForStamp(time_zone)
+    const startDatePast = moment(startDate).subtract(earlyTime, 'minutes');
+    const endDateFuture = moment(endDate).add(lateTime, 'minutes');
+      
+    if(moment(dateStamp).isBetween(startDatePast, endDateFuture, null,'[]')){
+        return true
+    }
+    else{
+         return false
+    }
+  }
 
   async checkShiftStatus(job_id, check_in_date, check_out_date) {
     const foundJ = await this.JobModel.findOne(

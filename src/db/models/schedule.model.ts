@@ -20,9 +20,12 @@ class Schedule
   declare check_in_date: Date;
   declare check_out_date:Date;
   declare job_id: number;
+  declare is_check_in_notification_sent:boolean;
+  declare is_check_out_notification_sent:boolean;
   declare guard_id: number;
   declare max_check_in_time:number;
   declare settlement_status:boolean;
+  declare is_deleted:boolean;
   declare schedule_accepted_by_admin:boolean;
   declare schedule_length: ScheduleLengthTypes;
   declare created_at: Date;
@@ -67,6 +70,14 @@ export function init(connection: Sequelize) {
         type: DataTypes.DATE,
         allowNull: false,
       },
+      is_check_in_notification_sent: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      is_check_out_notification_sent: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
       job_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
@@ -105,6 +116,10 @@ export function init(connection: Sequelize) {
         allowNull: false,
         defaultValue: false,
       },
+      is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      }
     },
     {
       tableName: "schedule",

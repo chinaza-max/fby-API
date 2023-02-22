@@ -10,6 +10,7 @@ import FacilityLocation from "./facility_location.model";
     declare id: CreationOptional<number>;
     declare user_id: number;
     declare reset_key: string;
+    declare is_deleted:boolean;
     declare expires_in: Date;
     declare created_at: CreationOptional<Date>;
   }
@@ -39,6 +40,10 @@ import FacilityLocation from "./facility_location.model";
           defaultValue: new Date(),
           allowNull: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "password_reset",

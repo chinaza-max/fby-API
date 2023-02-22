@@ -18,6 +18,7 @@ import ICustomer from "../../interfaces/customer.interface";
     declare id: CreationOptional<number>;
     declare image?: CreationOptional<string>;
     declare company_name: string;
+    declare is_deleted:boolean;
     declare email: string;
     declare password: CreationOptional<string>;
     declare gender: GenderTypes;
@@ -100,6 +101,10 @@ import ICustomer from "../../interfaces/customer.interface";
           type: DataTypes.DATE,
           allowNull: true,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "customers",

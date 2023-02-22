@@ -17,6 +17,7 @@ class Agendas
   declare title: string;
   declare description: string;
   declare status_per_staff: string;
+  declare is_deleted:boolean;
   declare job_id: number;
   declare guard_id: number;
   declare created_by_id:number;
@@ -91,6 +92,10 @@ export function init(connection: Sequelize) {
         type: DataTypes.DATE,
         allowNull: false,
       },
+      is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      }
     },
     {
       tableName: "agendas",

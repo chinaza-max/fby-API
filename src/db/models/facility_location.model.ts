@@ -15,6 +15,7 @@ class FacilityLocation
 {
   declare id: CreationOptional<number>;
   declare google_address: string;
+  declare is_deleted:boolean;
   declare address: string;
   declare coordinates_id: number;
   declare operations_area_constraint: number;
@@ -65,6 +66,10 @@ export function init(connection: Sequelize) {
         allowNull: false,
         defaultValue: false,
       },
+      is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      }
     },
     {
       tableName: "facility_locations",

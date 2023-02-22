@@ -17,6 +17,7 @@ import { ICustomer_suspension_comments } from "../../interfaces/customer_suspens
     declare id: CreationOptional<number>;
     declare comment: string;
     declare admin_id: number;
+    declare is_deleted:boolean;
     declare customer_id: number;
     declare created_at: CreationOptional<Date>;
     declare updated_at: CreationOptional<Date>;
@@ -58,6 +59,10 @@ import { ICustomer_suspension_comments } from "../../interfaces/customer_suspens
           allowNull: false,
           defaultValue: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "customer_suspension_comments",

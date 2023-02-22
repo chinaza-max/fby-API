@@ -19,6 +19,7 @@ class JobOperations
   declare checked_in?: CreationOptional<Date>;
   declare checked_out?: CreationOptional<Date>;
   declare staff_id: number;
+  declare is_deleted:boolean;
   declare check_in_coordinates_id: CreationOptional<number>;
   declare check_out_coordinates_id: CreationOptional<number>;
   declare schedule_id: number;
@@ -74,6 +75,10 @@ export function init(connection: Sequelize) {
         allowNull: false,
         defaultValue: false,
       },
+      is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      }
     },
     {
       tableName: "job_operations",

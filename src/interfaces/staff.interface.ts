@@ -11,6 +11,7 @@ export interface IStaff {
     availability:string;
     date_of_birth: Date;
     gender: GenderTypes;
+    is_deleted:boolean;
     location_id?: number;
     created_at?: Date;
     updated_at?: Date;

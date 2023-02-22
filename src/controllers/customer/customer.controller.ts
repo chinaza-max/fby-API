@@ -398,6 +398,26 @@ export default class CustomerController {
       next(error);
     }
   }
+  
+
+  
+  protected async getDeletedFacility(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+
+      const userId=req.query.id
+      const obj = await customerService.handleGetDeletedFacility(userId);
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 
   protected async getDeletedCustomers(
     req: Request,

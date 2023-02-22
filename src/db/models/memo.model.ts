@@ -16,6 +16,7 @@ import IMemo from "../../interfaces/memo.interface";
     declare created_by_id:number;
     declare memo_message: string;
     declare time_zone:string;
+    declare is_deleted:boolean;
     declare send_date: Date;
     declare is_delivered:boolean;
     declare created_at: Date;
@@ -65,6 +66,10 @@ import IMemo from "../../interfaces/memo.interface";
           allowNull: false,
           defaultValue: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "memo",

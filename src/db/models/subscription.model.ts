@@ -16,6 +16,7 @@ class Subscriptions
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
   declare guard_id: number;
+  declare is_deleted:boolean;
   declare subscription: JSON;
 }
 
@@ -43,6 +44,10 @@ export function init(connection: Sequelize) {
         type: DataTypes.DATE,
         allowNull: false,
       },
+      is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      }
     },
     {
       tableName: "subscriptions",

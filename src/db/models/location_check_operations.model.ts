@@ -9,6 +9,7 @@ import { ILocationCheckOperations } from "../../interfaces/location_check_operat
     declare timestamp: CreationOptional<Date>;
     declare job_operations_id: number;
     declare coordinates_id: number;
+    declare is_deleted:boolean;
     declare created_at: CreationOptional<Date>;
     declare updated_at: CreationOptional<Date>;
   }
@@ -44,6 +45,10 @@ import { ILocationCheckOperations } from "../../interfaces/location_check_operat
           defaultValue: new Date(),
           allowNull: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "location_check_operations",

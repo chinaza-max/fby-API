@@ -16,6 +16,7 @@ import IShift_comments from "../../interfaces/shift_comments.interface";
     declare created_by_id:number;
     declare schedule_id:number;
     declare comment: string;
+    declare is_deleted:boolean;
     declare time_zone:string;
     declare reference_date:Date;
     declare created_at: Date;
@@ -65,6 +66,10 @@ import IShift_comments from "../../interfaces/shift_comments.interface";
           allowNull: false,
           defaultValue: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "shift_comments",

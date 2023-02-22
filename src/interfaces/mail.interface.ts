@@ -4,4 +4,5 @@ export interface MailOptionsI {
   subject: string;
   templateName: string;
   variables?: object;
+  
 }

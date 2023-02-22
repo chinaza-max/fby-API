@@ -19,6 +19,7 @@ import IAdmin from "../../interfaces/admin.interface";
   {
     declare id: CreationOptional<number>;
     declare created_at: Date;
+    declare is_deleted:boolean;
     declare updated_at: Date;
     declare image?: CreationOptional<string>;
     declare first_name: string;
@@ -26,6 +27,7 @@ import IAdmin from "../../interfaces/admin.interface";
     declare availability:boolean;
     declare notification:boolean;
     declare suspended:boolean;
+    declare is_license_valid:boolean;
     declare phone_number: number;
     declare created_by_id: number;
     declare email: string;
@@ -141,6 +143,14 @@ import IAdmin from "../../interfaces/admin.interface";
           type: DataTypes.DATE,
           allowNull: true,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        },
+        is_license_valid: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "users",

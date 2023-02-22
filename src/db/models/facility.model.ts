@@ -22,6 +22,7 @@ import IJob from "../../interfaces/job.interface";
     declare client_charge: number;
     declare guard_charge: number;
     declare customer_id: number;
+    declare is_deleted:boolean;
     declare created_by_id:number;
     declare created_at: Date;
     declare updated_at: Date;
@@ -79,6 +80,10 @@ import IJob from "../../interfaces/job.interface";
           allowNull: false,
           defaultValue: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "facility",

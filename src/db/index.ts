@@ -28,6 +28,8 @@ class DB {
         serverConfig.DB_PASSWORD,
         options
       );
+
+      
       initModels(this.sequelize);
       // if (serverConfig.NODE_ENV === "development") {
       //  await this.sequelize.sync({ alter: true });

@@ -6,5 +6,5 @@ export interface ISubscription {
     location_id?: number;
     created_at?: Date;
     updated_at?: Date;
-
+    is_deleted:boolean;
 }

@@ -10,6 +10,7 @@ import FacilityLocation from "./facility_location.model";
     declare id: CreationOptional<number>;
     declare job_operations_id: number;
     declare coordinates_id: number;
+    declare is_deleted:boolean;
     declare scanned_code: string;
     declare created_at: CreationOptional<Date>;
     declare updated_at: CreationOptional<Date>;
@@ -45,6 +46,10 @@ import FacilityLocation from "./facility_location.model";
           defaultValue: new Date(),
           allowNull: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "scan_operations",

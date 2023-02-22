@@ -101,6 +101,8 @@ class JobRoutes extends JobController {
     this.router.post("/delete_shift_comment", this.deleteShiftComment);
     this.router.get("/shift_comment", this.getShiftComment);
     this.router.get("/deleted_job", this.getDeletedJobs);
+    this.router.get("/check_if_job_can_be_re-assigned", this.checkIfJobCanBeReassigned);
+
     
   }
 }

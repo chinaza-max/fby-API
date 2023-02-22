@@ -15,5 +15,8 @@ export default interface ISchedule {
     created_at?: Date;
     updated_at?: Date;
     is_archived?: boolean;
+    is_deleted:boolean;
     schedule_accepted_by_admin: boolean;
+    is_check_in_notification_sent:boolean;
+    is_check_out_notification_sent:boolean;
 }

@@ -19,6 +19,7 @@ import { ISuspension_comments } from "../../interfaces/uspension_comments.interf
     declare comment: string;
     declare admin_id: number;
     declare user_id: number;
+    declare is_deleted:boolean;
     declare created_at: CreationOptional<Date>;
     declare updated_at: CreationOptional<Date>;
     declare is_archived: CreationOptional<boolean>;
@@ -59,6 +60,10 @@ import { ISuspension_comments } from "../../interfaces/uspension_comments.interf
           allowNull: false,
           defaultValue: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "suspension_comments",

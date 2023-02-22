@@ -5,11 +5,14 @@ import cors from "cors";
 import path from 'path';
 import morgan from "morgan";
 import debug from "debug";
+import cron from "node-cron"
 import DB from "./src/db";
-import DB_DELETED from "./src/db/indexDeleted"
+import webpush from './src/controllers/util/web_push';
 import serverConfig from "./src/config/server.config";
 import routes from "./src/routes/index.route";
 import systemMiddleware from "./src/middlewares/system.middleware";
+import notification_scheduler from "./src/controllers/util/notification_scheduler";
+
 
 const DEBUG = debug("dev");
 
@@ -41,7 +44,16 @@ class Server {
   private async initializeDbAndFirebase(): Promise<void> {
     await DB.connectDB();
     await DB.connectFirebase();
-    await DB_DELETED.connectDB();
+    
+    webpush()
+    const job = cron.schedule('*/30 * * * *', () => {
+      notification_scheduler.sendNotificationToGuardForShiftCheckAndOut()
+    });  
+    
+    job.start();
+    notification_scheduler.sendNotificationToGuardForShiftCheckAndOut()
+
+    
   }
   
 

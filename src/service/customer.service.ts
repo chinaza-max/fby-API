@@ -8,11 +8,15 @@ import {
   Customer_suspension_comments,
   Job
 } from "../db/models";
+
+/*
 import {
   Facility as FacilityDeleted,
   Location as LocationDeleted,
   Customer as CustomerDeleted
 } from "../db/modelsDeleted";
+
+*/
 import axios from "axios";
 import serverConfig from "../config/server.config";
 import customerUtil from "../utils/customer.util";
@@ -41,10 +45,11 @@ class CustomerService {
   private Customer_suspension_commentsModel = Customer_suspension_comments;
   private AdminModel = Admin
   private JobModel = Job
+  /*
   private LocationDeletedModel = LocationDeleted;
   private CustomerDeletedModel = CustomerDeleted;
   private FacilityDeletedModel = FacilityDeleted;
-
+*/
   async handleCreateFacility(data: object): Promise<any> {
     const {
       longitude,
@@ -210,6 +215,32 @@ class CustomerService {
     );
 
 
+    let foundJ=await this.JobModel.findOne({
+      where: {
+        [Op.and]: [
+          { facility_id:site_id },
+          { is_deleted:false }
+        ],
+      },
+    })
+
+    if(foundJ){
+      throw new ConflictError("Cant perform action")
+    }
+    else{
+      let myUpdate={  
+        is_deleted:true
+      }
+      await this.FacilityModel.update(myUpdate,{
+        where: {
+          id:site_id,
+        }
+      })    
+    }
+   
+    
+
+    /*
 
     const foundJ = await this.JobModel.findOne({
       where: {
@@ -263,13 +294,14 @@ class CustomerService {
       }
   
     }
-
+*/
  
 
   }
 
   async deleteCustomer(data: object): Promise<any> {
     const { id } = await customerUtil.verifyDeleteCustomer.validateAsync(data);
+
 
 
     const foundF = await this.FacilityModel.findOne({
@@ -288,49 +320,18 @@ class CustomerService {
         throw new ConflictError('Cant perform operation')
     }
     else{
-      const foundC = await this.UserModel.findOne({
-        where: {
-          id: id,
-        },
-      });
-
-
-      if(foundC){
-
-        let address_id=foundC.location_id
-
-        try {
-     
-          const record = await this.LocationModel.findOne({
-            where: {
-              id: address_id,
-            },
-          });
-          if (record) {
-            await this.LocationDeletedModel.create(
-              record.dataValues
-            );
-            await this.CustomerDeletedModel.create(
-              foundC.dataValues
-            )
-            
-          }
-        } catch (error) {
-          {
-            throw new NotFoundError(error);
-          }
-        }
-        await this.LocationModel.destroy({
-          where: {
-            id: address_id,
-          },
-        });
-
-        await this.UserModel.destroy({
-          where: {id}
-        })
+      
+      let myUpdate={
+        is_deleted:true
       }
+      await this.UserModel.update(myUpdate,{
+        where: {
+          id,
+        }
+      })
+    
     }
+
   }
 
   async handleCustomerCreation(data: object): Promise<any> {
@@ -466,6 +467,10 @@ class CustomerService {
           {
             model: Facility,
             as: "facilities",
+            where: {
+              is_deleted:false
+            },
+            required: false,
             include: [
               {
                 model: FacilityLocation,
@@ -513,7 +518,7 @@ class CustomerService {
         });
         tempCustomer["sites"] = sites.reverse();
         tempCustomers.push(tempCustomer);
-      });
+      })
 
       return tempCustomers;
     } catch (error) {
@@ -524,10 +529,16 @@ class CustomerService {
 
   async handleCustomerGetAll(data: any): Promise<any> {
     if (data == "all") {
-
+   
+  
       try {
         var allCustomers = await Customer.findAll({
-          where: {suspended: false},
+          where: {
+            [Op.and]: [
+              {suspended: false},
+              {is_deleted:false },
+            ],
+          },
           include: [
             {
               model: Location,
@@ -548,11 +559,16 @@ class CustomerService {
                   ],
                 },
               ],
+              where: {
+                is_deleted: false,
+              },
+              required: false,
             },
+
           ],
           order: [["created_at", "DESC"]],
         });
-        let tempCustomers = [];
+        let tempCustomers = []
         allCustomers?.forEach((customer: any) => {
           let tempCustomer = {
             id: customer.id,
@@ -581,6 +597,8 @@ class CustomerService {
           tempCustomer["sites"] = sites;
           tempCustomers.push(tempCustomer);
         });
+
+
         return tempCustomers;
       } catch (error) {
         console.log(error);
@@ -925,7 +943,12 @@ class CustomerService {
   async handleGetSuspendedCustomers(data) {
     try {
       var allCustomers = await Customer.findAll({
-        where: {suspended: true},
+        where: {
+          [Op.and]: [
+            {suspended: true},
+            {is_deleted:false },
+          ],
+        },
         limit: data.limit,
         offset: data.offset,
         include: [
@@ -999,7 +1022,149 @@ class CustomerService {
     }
   }
 
+
+  
+  
+  async handleGetDeletedFacility(data) {
+
+    try {
+      var allCustomers = await Customer.findAll({
+        where: { id: data },
+        include: [
+          {
+            model: Location,
+            as: "location",
+          },
+          {
+            model: Facility,
+            as: "facilities",
+            where: {
+              is_deleted:true
+            },
+            include: [
+              {
+                model: FacilityLocation,
+                as: "facility_location",
+                include: [
+                  {
+                    model: Coordinates,
+                    as: "coordinates",
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      });
+
+      let tempCustomers = [];
+
+      allCustomers?.forEach((customer: any) => {
+        let tempCustomer = {
+          id: customer.id,
+          image: customer.image,
+          company_name: customer.company_name,
+          tel: customer.phone_number,
+          address: customer.location.address,
+          email: customer.email,
+          gender: customer.gender,
+        };
+        let sites = [];
+        customer.facilities?.forEach((facility) => {
+          sites.push({
+            id: facility.id,
+            site_name: facility.name,
+            facility_location_id: facility.facility_location_id,
+            client_charge: facility.client_charge,
+            guard_charge: facility.guard_charge,
+            address: facility.facility_location.address,
+            latitude: facility.facility_location.coordinates.latitude,
+            longitude: facility.facility_location.coordinates.longitude,
+            operations_area_constraint:
+              facility.facility_location.operations_area_constraint,
+            operations_area_constraint_active:
+              facility.facility_location.operations_area_constraint_active,
+          });
+        });
+        tempCustomer["sites"] = sites.reverse();
+        tempCustomers.push(tempCustomer);
+      })
+
+      return tempCustomers;
+    } catch (error) {
+      console.log(error);
+      return error;
+    }
+
+}
+
+
   async handleGetDeletedCustomers() {
+
+        try {
+          var allCustomers = await Customer.findAll({
+            where: {is_deleted: true},
+            include: [
+              {
+                model: Location,
+                as: "location",
+              },
+              {
+                model: Facility,
+                as: "facilities",
+                include: [
+                  {
+                    model: FacilityLocation,
+                    as: "facility_location",
+                    include: [
+                      {
+                        model: Coordinates,
+                        as: "coordinates",
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            order: [["created_at", "DESC"]],
+          });
+          let tempCustomers = [];
+          allCustomers?.forEach((customer: any) => {
+            let tempCustomer = {
+              id: customer.id,
+              image: customer.image,
+              company_name: customer.company_name,
+              address: customer.location.address,
+              email: customer.email,
+              gender: customer.gender,
+              phone_number: customer.phone_number
+            };
+            let sites = [];
+            customer.facilities?.forEach((facility) => {
+              sites.push({
+                id: facility.id,
+                site_name: facility.name,
+                amount: facility.client_charge,
+                address: facility.facility_location.address,
+                latitude: facility.facility_location.coordinates.latitude,
+                longitude: facility.facility_location.coordinates.longitude,
+                operations_area_constraint:
+                facility.facility_location.operations_area_constraint,
+                operations_area_constraint_active:
+                facility.facility_location.operations_area_constraint_active,
+              });
+            });
+            tempCustomer["sites"] = sites;
+            tempCustomers.push(tempCustomer);
+          });
+          return tempCustomers;
+        } catch (error) {
+          console.log(error);
+          return error;
+        }
+ 
+
+    /*
     try {
       var allCustomers = await this.CustomerDeletedModel.findAll({
       
@@ -1031,6 +1196,8 @@ class CustomerService {
       console.log(error);
       return error;
     }
+
+    */
   }
 
   async getLocationById(id: number): Promise<Location> {
@@ -1038,7 +1205,13 @@ class CustomerService {
   }
 
   async getUserByEmail(email: string): Promise<Customer> {
-    return await this.UserModel.findOne({ where: { email: email } });
+    return await this.UserModel.findOne({  where: {
+                                [Op.and]: [
+                                  { email: email },
+                                  {is_deleted:false}
+                                  ],
+                                } 
+    });
   }
 
   async getsitebyName(name: string, customer_id: number): Promise<Facility> {

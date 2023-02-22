@@ -958,6 +958,8 @@ export default class JobController {
 
 
       let guard_id = req.user.id;
+     // let guard_id = 29;
+
       let myObj2={
         guard_id,
         ...data
@@ -1571,6 +1573,24 @@ export default class JobController {
   }
   } 
 
+
+  
+  protected async checkIfJobCanBeReassigned(req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try{
+      
+    const obj = await jobService.checkIfJobCanBeReassigned(req);  
+
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+  } catch (error) {
+    next(error);
+  }
+  } 
   protected async getDeletedJobs(req: Request,
     res: Response,
     next: NextFunction

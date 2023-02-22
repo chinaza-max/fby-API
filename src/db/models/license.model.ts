@@ -18,6 +18,7 @@ import ILicense from "../../interfaces/license.interface";
     declare time_zone:string;
     declare expires_in: Date;
     declare approved:boolean;
+    declare is_deleted:boolean;
     declare created_at: Date;
     declare updated_at: Date;
     declare is_archived: CreationOptional<boolean>;
@@ -65,6 +66,10 @@ import ILicense from "../../interfaces/license.interface";
           allowNull: false,
           defaultValue: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "licenses",

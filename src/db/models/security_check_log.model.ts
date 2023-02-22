@@ -17,6 +17,7 @@ import {
     declare job_id: number;
     declare guard_id: number;
     declare status:boolean;
+    declare is_deleted:boolean;
     declare created_at: CreationOptional<Date>;
     declare updated_at: CreationOptional<Date>;
   }
@@ -53,6 +54,10 @@ import {
           type: DataTypes.DATE,
           allowNull: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "security_check_log",

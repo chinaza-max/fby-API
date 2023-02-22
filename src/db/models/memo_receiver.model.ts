@@ -15,6 +15,7 @@ import IMemoReceiver from "../../interfaces/memo_receiver.interface";
     declare id: CreationOptional<number>;
     declare staff_id: number;
     declare memo_id: number;
+    declare is_deleted:boolean;
     declare reply_message:string;
     declare created_at: Date;
     declare updated_at: Date;
@@ -55,6 +56,10 @@ import IMemoReceiver from "../../interfaces/memo_receiver.interface";
           allowNull: false,
           defaultValue: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "memo_receivers",

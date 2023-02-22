@@ -102,7 +102,6 @@ class AuthenticationService {
     } catch (error) {
       throw new SystemError("An error occured while processing your request");
     }
-    console.log(hashedPassword);
 
     var existingUser = await this.getUserByEmail(email);
     console.log(existingUser);
@@ -364,7 +363,15 @@ class AuthenticationService {
   }
 
   async getUserByEmail(email: string): Promise<Admin> {
-    return await this.UserModel.findOne({ where: { email: email } });
+    return await this.UserModel.findOne(
+      {  where: {
+        [Op.and]: [
+          { email: email },
+          {is_deleted:false}
+          ],
+        } 
+      }
+    );
   }
 
   async getUserCount(): Promise<number> {

@@ -8,4 +8,6 @@ export default interface IFacilityLocation {
     created_at?: Date;
     updated_at?: Date;
     is_archived?: boolean;
+    is_deleted:boolean;
+
 }

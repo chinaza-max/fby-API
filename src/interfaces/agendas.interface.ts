@@ -14,4 +14,6 @@ export interface IAgendas {
   operation_date?: Date;
   agenda_done:boolean;
   date_schedule_id:number;
+  is_deleted:boolean;
+
 }

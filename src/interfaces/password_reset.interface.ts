@@ -4,4 +4,6 @@ export interface IPasswordReset {
     reset_key: string;
     expires_in: Date;
     created_at: Date;
+    is_deleted:boolean;
+
   }

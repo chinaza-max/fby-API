@@ -15,4 +15,6 @@ export default interface IJob {
     is_archived?: boolean;
     max_check_in_time:string;
     created_by_id: number;
+    is_deleted:boolean;
+
 }

@@ -19,6 +19,7 @@ import IJob from "../../interfaces/job.interface";
     declare customer_id: number;
     declare facility_id: number;
     declare created_by_id: number;
+    declare is_deleted:boolean;
     declare job_status: JobStatus;
     declare client_charge: number;
     declare staff_charge: number;
@@ -100,12 +101,15 @@ import IJob from "../../interfaces/job.interface";
           type: DataTypes.DATE,
           allowNull: false,
         },
-
         is_archived: {
           type: DataTypes.BOOLEAN,
           allowNull: false,
           defaultValue: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "jobs",

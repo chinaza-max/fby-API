@@ -18,6 +18,7 @@ import ISecurityCheckComments from "../../interfaces/security_check_comments.int
     declare comment: string;
     declare created_at: Date;
     declare updated_at: Date;
+    declare is_deleted:boolean;
     declare is_archived: CreationOptional<boolean>;
   }
   
@@ -54,6 +55,10 @@ import ISecurityCheckComments from "../../interfaces/security_check_comments.int
           allowNull: false,
           defaultValue: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "security_check_comments",

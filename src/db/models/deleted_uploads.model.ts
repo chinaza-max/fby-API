@@ -34,10 +34,6 @@ export function init(connection: Sequelize) {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      is_deleted: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-      },
       created_at: {
         type: DataTypes.DATE,
         defaultValue: new Date(),
@@ -48,6 +44,10 @@ export function init(connection: Sequelize) {
         defaultValue: new Date(),
         allowNull: false,
       },
+      is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      }
     },
     {
       tableName: "deleted_uploads",

@@ -16,6 +16,7 @@ class Location
   declare address: string;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
+  declare is_deleted:boolean;
   declare is_archived: CreationOptional<boolean>;
 }
 
@@ -44,6 +45,10 @@ export function init(connection: Sequelize) {
         allowNull: false,
         defaultValue: false,
       },
+      is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      }
     },
     {
       tableName: "location",

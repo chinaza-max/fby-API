@@ -17,6 +17,7 @@ class Coordinates
 {
   declare id: CreationOptional<number>;
   declare longitude: number;
+  declare is_deleted:boolean;
   declare latitude: number;
   declare created_at?: CreationOptional<Date>;
   declare updated_at?: CreationOptional<Date>;
@@ -52,6 +53,10 @@ export function init(connection: Sequelize) {
         allowNull: false,
         defaultValue: false,
       },
+      is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      }
     },
     {
       tableName: "coordinates",

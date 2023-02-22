@@ -6,4 +6,6 @@ export interface IJobSecurityCode {
   security_code: string;
   created_at: Date;
   updated_at: Date;
+  is_deleted:boolean;
+
 }

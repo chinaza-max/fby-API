@@ -6,5 +6,7 @@ export interface IsecurityCheckLog{
     status:boolean;
     created_at: Date;
     updated_at: Date;
+    is_deleted:boolean;
+
   }
   

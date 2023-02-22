@@ -20,6 +20,7 @@ export default interface IAdmin {
     notification:boolean;
     suspended:boolean;
     can_suspend:boolean;
-    
+    is_deleted:boolean;  
+    is_license_valid:boolean;  
 }
   

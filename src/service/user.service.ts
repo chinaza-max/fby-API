@@ -8,11 +8,15 @@ import {
   Schedule,
 
 } from "../db/models";
+
+/*
 import {
   Admin as AdminDeleted,
   Location as LocationDeleted,
   PasswordReset as PasswordResetDeleted,
 } from "../db/modelsDeleted";
+
+*/
 import { ConflictError, NotFoundError, SystemError, UnAuthorizedError } from "../errors";
 import { fn, col, Op, and } from "sequelize";
 import momentTimeZone from "moment-timezone";
@@ -29,10 +33,12 @@ class UserService {
   private Suspension_commentsModel = Suspension_comments;
   private CustomerModel = Customer;
   private ScheduleModel = Schedule;
+
+  /*
   private UserDeletedModel = AdminDeleted;
   private LocationDeletedModel = LocationDeleted;
   private PasswordResetDeletedModel = PasswordResetDeleted;
-
+*/
   async getAllStaffLicense(data) {
     try {
       const { guard_id, my_time_zone } = await userUtil.verifyGetAllStaffLicense.validateAsync(data);
@@ -87,11 +93,16 @@ class UserService {
 
   async deleteStaffLicense(body) {
     const { id } = await userUtil.verifyDeleteStaffLicense.validateAsync(body);
-    await this.LicenseModel.destroy({
+
+    let myUpdate={
+      is_deleted:true
+    }
+    await this.LicenseModel.update(myUpdate,{
       where: {
         id: id,
       },
     });
+
   }
 
   async uploadLicense(id: number, data: any, file?: Express.Multer.File) {
@@ -116,8 +127,11 @@ class UserService {
 
     const foundL = await this.LicenseModel.findAll({
       where: {
-        staff_id: id,
-      },
+        [Op.and]: [
+          { staff_id: id },
+          { is_deleted:false},
+        ],
+      }
     });
 
     if (foundL.length < 5) {
@@ -163,7 +177,12 @@ class UserService {
       });
     } else if (type == "read") {
       const foundL = await this.LicenseModel.findAll({
-        where: { staff_id: id },
+        where: {
+          [Op.and]: [
+            { staff_id: id },
+            { is_deleted:false},
+          ],
+        }
       });
       var all = []
       if (foundL.length > 0) {
@@ -379,7 +398,7 @@ class UserService {
   }
 
   async deleteStaff(id: any) {
-  
+
 
 
       let foundS = await this.ScheduleModel.findOne({
@@ -400,69 +419,16 @@ class UserService {
         throw new ConflictError("Cant perform operation")
       }
       else{
-        let foundU = await this.UserModel.findOne({
-          where: {
-            id
-          },
-        });
-
-
-        console.log("dddddddddddddddddddddddddddddddddddd")
-        console.log("dddddddddddddddddddddddddddddddddddd")
-        console.log("dddddddddddddddddddddddddddddddddddd")
-        console.log(foundU)
-        console.log("dddddddddddddddddddddddddddddddddddd")
-        console.log("dddddddddddddddddddddddddddddddddddd")
-        console.log("dddddddddddddddddddddddddddddddddddd")
-  
-  
-        let address_id=foundU.location_id
-  
-        let foundP = await this.PasswordResetModel.findOne({
-          where: {
-            user_id: foundU.id,
-          },
-        });
-  
-        if (foundP) {
-          await this.PasswordResetDeletedModel.create(foundP.dataValues).then((e)=>{
-            console.log(e)
-          }).catch((e)=>{
-            console.log(e)
-          })
-
-          await this.PasswordResetModel.destroy({
-            where: { user_id: foundU.id },
-          })
+       
+        let myUpdate={
+          is_deleted:true
         }
-  
-        const record = await this.LocationModel.findOne({
+        await this.UserModel.update(myUpdate,{
           where: {
-            id: address_id,
-          },
-        });
-
-
-        if (record) {
-          await this.LocationDeletedModel.create(record.dataValues).then((e)=>{
-            console.log(e)
-          }).catch((e)=>{
-            console.log(e)
-          })
-          await this.UserDeletedModel.create(foundU.dataValues)
-          
-          /*.then((e)=>{
-            console.log(e)
-          }).catch((e)=>{
-            console.log(e)
-          })*/
-        }
-  
-        await this.LocationModel.destroy({
-          where: {
-            id: address_id,
-          },
-        });
+            id,
+          }
+        })
+       
       }
 
   }
@@ -585,9 +551,12 @@ class UserService {
         } else if (data.role == "ALL_GUARD") {
           var staffs = await this.UserModel.findAll({
             where: {
-              role: {
-                [Op.eq]: "GUARD",
-              },
+              [Op.and]: [
+                {role: {
+                  [Op.eq]: "GUARD",
+                }},
+                {is_deleted:false },
+              ],
             },
             include: {
               model: Location,
@@ -627,6 +596,7 @@ class UserService {
                     [Op.ne]: "GUARD",
                   },
                 },
+                {is_deleted:false },
               ],
             },
     
@@ -660,7 +630,6 @@ class UserService {
         } 
         else if (data.role == "ALL_ADMINISTRATORS_AVAILABLE_NO_PAGINATION") {
 
-
           var staffs = await this.UserModel.findAll({
             where: {
               [Op.and]: [
@@ -670,6 +639,7 @@ class UserService {
                     [Op.ne]: "GUARD",
                   },
                 },
+                {is_deleted:false },
               ],
             },
             include: {
@@ -714,6 +684,7 @@ class UserService {
                     [Op.eq]: "GUARD",
                   },
                 },
+                {is_deleted:false },
               ],
             },
     
@@ -754,6 +725,7 @@ class UserService {
                     [Op.eq]: "GUARD",
                   },
                 },
+                {is_deleted:false },
               ],
             },
     
@@ -1087,6 +1059,291 @@ class UserService {
   }
 
   async handleGetDeletedStaffs(data: any) {
+
+
+
+    try {
+      if (data.role == "ADMIN") {
+        var staffs = await this.UserModel.findAll({
+          limit: data.limit,
+          offset: data.offset,
+          where: {
+            role: {
+              [Op.eq]: "ADMIN",
+            },
+          },
+          include: {
+            model: Location,
+            as: "location",
+          },
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            date_of_birth: staff.date_of_birth,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: staff.location["id"],
+          };
+  
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      } else if (data.role == "GUARD") {
+        var staffs = await this.UserModel.findAll({
+          limit: data.limit,
+          offset: data.offset,
+          where: {
+            role: {
+              [Op.eq]: "GUARD",
+            },
+          },
+          include: {
+            model: Location,
+            as: "location",
+          },
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            date_of_birth: staff.date_of_birth,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: (staff.location as any)?.id,
+          };
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      } else if (data.role == "ALL_GUARD") {
+        var staffs = await this.UserModel.findAll({
+          where: {
+            [Op.and]: [
+              {role: {
+                [Op.eq]: "GUARD",
+              }},
+              {is_deleted:false },
+            ],
+          },
+          include: {
+            model: Location,
+            as: "location",
+          },
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            date_of_birth: staff.date_of_birth,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: (staff.location as any)?.id,
+          };
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      } else if (data.role == "ALL_ADMINISTRATORS_AVAILABLE") {
+        var staffs = await this.UserModel.findAll({
+          limit: data.limit,
+          offset: data.offset,
+          where: {
+            [Op.and]: [
+              { suspended: false },
+              {
+                role: {
+                  [Op.ne]: "GUARD",
+                },
+              },
+              {is_deleted:false },
+            ],
+          },
+  
+          include: {
+            model: Location,
+            as: "location",
+          },
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            date_of_birth: staff.date_of_birth,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: staff.location["id"],
+          };
+  
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      } 
+      else if (data.role == "ALL_ADMINISTRATORS_AVAILABLE_NO_PAGINATION") {
+
+        var staffs = await this.UserModel.findAll({
+          where: {
+            [Op.and]: [
+              {
+                role: {
+                  [Op.ne]: "GUARD",
+                },
+              },
+              {is_deleted:true },
+            ],
+          },
+          include: {
+            model: Location,
+            as: "location",
+          },
+          order: [["created_at", "DESC"]],
+        })
+
+        
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+
+    
+          const staffData = {
+            id: staff.id,
+            guard_id_for_action: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            email: staff.email,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: staff.location["id"],
+          };
+  
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      }
+      else if (data.role == "ALL_GUARD_AVAILABLE") {
+        var staffs = await this.UserModel.findAll({
+          limit: data.limit,
+          offset: data.offset,
+          where: {
+            [Op.and]: [
+              { suspended: false },
+              {
+                role: {
+                  [Op.eq]: "GUARD",
+                },
+              },
+              {is_deleted:false },
+            ],
+          },
+  
+          include: {
+            model: Location,
+            as: "location",
+          },
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            first_name: staff.first_name,
+            last_name: staff.last_name,
+            email: staff.email,
+            date_of_birth: staff.date_of_birth,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+            address_id: staff.location["id"],
+          };
+  
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      }else if (data.role == "ALL_GUARD_AVAILABLE_NO_PAGINATION") {
+        var staffs = await this.UserModel.findAll({
+          where: {
+            [Op.and]: [
+              {
+                role: {
+                  [Op.eq]: "GUARD",
+                },
+              },
+              {is_deleted:true},
+            ],
+          },
+  
+          include: {
+            model: Location,
+            as: "location",
+          },
+          order: [["created_at", "DESC"]],
+        });
+        if (staffs == null) return [];
+        var staffRes = [];
+        for (let index = 0; index < staffs.length; index++) {
+          const staff = staffs[index];
+          const staffData = {
+            id: staff.id,
+            guard_id_for_action: staff.id,
+            image: staff.image,
+            full_name: `${staff.first_name} ${staff.last_name}`,
+            email: staff.email,
+            gender: staff.gender,
+            phone_number: staff.phone_number,
+            address: (staff.location as any)?.address,
+          };
+  
+          staffRes.push(staffData);
+        }
+        return staffRes;
+      }
+    } catch (error) {
+      console.log(error)
+      throw new SystemError(error.toString());
+    }
+
+/*
     try {
       if (data.role == "ADMIN") {
         var staffs = await this.UserDeletedModel.findAll({
@@ -1099,7 +1356,7 @@ class UserService {
               
           include: 
             {
-              model: LocationDeleted,
+              model: this.LocationDeletedModel,
               as: "location",
             }
           ,
@@ -1201,6 +1458,8 @@ class UserService {
     } catch (error) {
       throw new SystemError(error);
     }
+
+    */
   }
 
   async getDateAndTimeForStamp(my_time_zone) {

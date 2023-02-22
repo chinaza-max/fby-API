@@ -17,6 +17,7 @@ class JobLogs
   declare message: string;
   declare action_name: string;
   declare check_in_time: string;   
+  declare is_deleted:boolean;
   declare check_out_time: string;
   declare check_out_status:boolean;
   declare job_id: number;
@@ -49,12 +50,13 @@ export function init(connection: Sequelize) {
       },
       check_in_time: {
         type: DataTypes.STRING,
+        defaultValue:'0',
         allowNull: false,
       },
       check_out_time: {
         type: DataTypes.STRING,
         defaultValue:'0',
-        allowNull: true,
+        allowNull: false,
       },  
       check_in_status: {
         type: DataTypes.BOOLEAN,
@@ -75,7 +77,6 @@ export function init(connection: Sequelize) {
       schedule_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
-        defaultValue:0,
       },
       coordinates_id: {
         type: DataTypes.NUMBER,
@@ -87,15 +88,17 @@ export function init(connection: Sequelize) {
       },
       check_in_date: {
         type: DataTypes.DATE(),
-        allowNull: true,
+        defaultValue:  Sequelize.fn('now'),
+        allowNull: false,
       },
       check_out_date: {
         type: DataTypes.DATE(),
         defaultValue:  Sequelize.fn('now'),
-        allowNull: true,
+        allowNull: false,
       },
       project_check_in_date: {
         type: DataTypes.DATE(),
+        defaultValue:  Sequelize.fn('now'),
         allowNull: true,
       },
       created_at: {
@@ -106,6 +109,10 @@ export function init(connection: Sequelize) {
         type: DataTypes.DATE,
         allowNull: false,
       },
+      is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      }
     },
     {
       tableName: "job_logs",

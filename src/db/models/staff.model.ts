@@ -20,6 +20,7 @@ class Staff
   declare first_name: string;
   declare last_name: string;
   declare availability:string;
+  declare is_deleted:boolean;
   declare email: string;
   declare phone_number: number;
   declare password: CreationOptional<string>;
@@ -105,6 +106,10 @@ export function init(connection: Sequelize) {
         type: DataTypes.DATE,
         allowNull: true,
       },
+      is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      }
     },
     {
       tableName: "staff",

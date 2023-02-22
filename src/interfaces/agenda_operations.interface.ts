@@ -4,4 +4,6 @@ export interface IAgendaOperations {
   created_at: Date;
   updated_at: Date;
   agenda_done: boolean;
+  is_deleted:boolean;
+
 }

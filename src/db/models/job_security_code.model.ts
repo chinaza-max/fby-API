@@ -19,6 +19,7 @@ class JobSecurityCode
   declare agenda_id: number;
   declare guard_id: number;
   declare job_id:number;
+  declare is_deleted:boolean;
   declare security_code: string;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
@@ -56,6 +57,10 @@ export function init(connection: Sequelize) {
         type: DataTypes.DATE,
         allowNull: false,
       },
+      is_deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      }
     },
     {
       tableName: "job_security_code",

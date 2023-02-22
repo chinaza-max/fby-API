@@ -19,6 +19,7 @@ import Staff from "./staff.model";
   {
     declare id: CreationOptional<number>;
     declare job_id: number;
+    declare is_deleted:boolean;
     declare staff_id: number;
     declare accept_assignment: boolean;
     declare created_at?: CreationOptional<Date>;
@@ -67,6 +68,10 @@ import Staff from "./staff.model";
           allowNull: false,
           defaultValue: false,
         },
+        is_deleted: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        }
       },
       {
         tableName: "assigned_staffs",

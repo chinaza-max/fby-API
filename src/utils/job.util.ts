@@ -306,6 +306,7 @@ class JobUtil {
   public verifyCheckinData = Joi.object().keys({
     job_id: Joi.number().min(1).required(),
     guard_id: Joi.number().min(1).required(),
+    schedule_id: Joi.number().min(1).required(),
     check_in: Joi.boolean().required(),
     latitude: Joi.number().required(),
     longitude: Joi.number().required()

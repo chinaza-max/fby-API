@@ -89,6 +89,12 @@ class CustomerRoutes extends CustomerController {
       authMiddleware.validateUserToken,
       this.getDeletedCustomers);
 
+    this.router.get(
+      "/get_deleted_facility", 
+      authMiddleware.validateUserToken,
+      this.getDeletedFacility);
+  
+
     
 
     // this.router.get("/", authMiddleware.validateUserToken, this.getAllCustomers);

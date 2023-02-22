@@ -7,4 +7,6 @@ export interface ICustomer_suspension_comments {
     updated_at?: Date;
     is_archived?: boolean;
     last_logged_in?: Date;
+    is_deleted:boolean;
+
 }
