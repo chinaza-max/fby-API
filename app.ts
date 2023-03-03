@@ -47,12 +47,13 @@ class Server {
     
     webpush()
     const job = cron.schedule('*/30 * * * *', () => {
-      notification_scheduler.sendNotificationToGuardForShiftCheckAndOut()
+      //notification_scheduler.sendNotificationToGuardForShiftCheckAndOut()
     });  
     
     job.start();
     notification_scheduler.sendNotificationToGuardForShiftCheckAndOut()
-
+    notification_scheduler.sendNotificationForMessageSent()
+    //notification_scheduler.sendNotificationToGuardAndAdminForFailedCheckIn()
     
   }
   

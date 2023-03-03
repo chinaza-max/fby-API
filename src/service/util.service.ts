@@ -96,43 +96,36 @@ class UtilService {
   async subscription(data){
 
     try {
-      const {
+      let {
         subscription,
         my_time_zone,
         guard_id,
       } = await userUtil.verifySubscription.validateAsync(data);
+      subscription=subscription.token
 
       let dateStamp = await this.getDateAndTimeForStamp(my_time_zone);
      
 
       const foundA=await this.SubscriptionsModel.findOne({
         where:{
-            guard_id
+          staff_id:guard_id
         }
       })
     
-/*
-      const payload=JSON.stringify({"title":"push notification am done"})
-      webpush.sendNotification(subscription,payload).catch(err=>console.log(err))
-
-      console.log("gggggggggggggggggggggggggggggggg")
-      console.log("gggggggggggggggggggggggggggggggg")
-      console.log("gggggggggggggggggggggggggggggggg")
-      console.log("gggggggggggggggggggggggggggggggg")
-      console.log("gggggggggggggggggggggggggggggggg")
-      console.log(guard_id)
-*/
 
       if(!foundA){
 
         let obj={
-          guard_id,
+          staff_id:guard_id,
           subscription,
           created_at: dateStamp,
           updated_at: dateStamp
         }
 
-        this.SubscriptionsModel.create(obj)
+        this.SubscriptionsModel.create(obj).then((e)=>{
+        }).catch((e)=>{
+          console.log(e)
+        })
       }
       else{
 
@@ -143,7 +136,7 @@ class UtilService {
         }
 
         this.SubscriptionsModel.update(obj,
-            {where:{guard_id}})
+            {where:{staff_id:guard_id}})
         }
 
     } catch (error) {

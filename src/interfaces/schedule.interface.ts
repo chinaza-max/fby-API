@@ -19,4 +19,7 @@ export default interface ISchedule {
     schedule_accepted_by_admin: boolean;
     is_check_in_notification_sent:boolean;
     is_check_out_notification_sent:boolean;
+    is_late_check_in_notification_sent:boolean;
+
+    
 }

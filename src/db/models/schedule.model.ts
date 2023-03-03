@@ -22,6 +22,7 @@ class Schedule
   declare job_id: number;
   declare is_check_in_notification_sent:boolean;
   declare is_check_out_notification_sent:boolean;
+  declare is_late_check_in_notification_sent:boolean
   declare guard_id: number;
   declare max_check_in_time:number;
   declare settlement_status:boolean;
@@ -75,6 +76,10 @@ export function init(connection: Sequelize) {
         defaultValue: false,
       },
       is_check_out_notification_sent: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      is_late_check_in_notification_sent: {
         type: DataTypes.BOOLEAN,
         defaultValue: false,
       },

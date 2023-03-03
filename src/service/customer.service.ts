@@ -67,6 +67,13 @@ class CustomerService {
     } = await customerUtil.verifyFacilityCreation.validateAsync(data);
 
     var existingUser = await this.getUserByEmail(email);
+
+
+
+  
+
+
+
     if (existingUser != null) {
       var existingSite = await this.getsitebyName(site_name, customer_id);
 

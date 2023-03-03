@@ -42,7 +42,6 @@ export default class UtilController {
         my_time_zone:req["user_time_zone"]
       }
 
-
       const obj = await utilService.subscription(my_obj);
 
       return res.status(200).json({

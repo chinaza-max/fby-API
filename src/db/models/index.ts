@@ -194,8 +194,8 @@ function associate() {
     onDelete: 'cascade',
     foreignKey: {
       allowNull: false,
-      name: "guard_id",
-      field: "guard_id",
+      name: "staff_id",
+      field: "staff_id",
     },
     as:"Admin",
   });

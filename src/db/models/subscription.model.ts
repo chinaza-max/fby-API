@@ -15,9 +15,9 @@ class Subscriptions
   declare id: CreationOptional<number>;
   declare created_at: CreationOptional<Date>;
   declare updated_at: CreationOptional<Date>;
-  declare guard_id: number;
+  declare staff_id: number;
   declare is_deleted:boolean;
-  declare subscription: JSON;
+  declare subscription: string;
 }
 
 export function init(connection: Sequelize) {
@@ -28,12 +28,12 @@ export function init(connection: Sequelize) {
         autoIncrement: true,
         primaryKey: true,
       },
-      guard_id: {
+      staff_id: {
         type: DataTypes.NUMBER,
         allowNull: false,
       },
       subscription:{
-        type: DataTypes.JSON,
+        type: DataTypes.STRING,
         allowNull: false,
       },
       created_at: {

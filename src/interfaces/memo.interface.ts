@@ -10,6 +10,6 @@ export default interface IJob {
     updated_at?: Date;
     is_archived?: boolean;
     is_deleted:boolean;
-
+    is_notification_sent:boolean;
 
 }

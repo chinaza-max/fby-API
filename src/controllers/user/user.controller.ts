@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import userService from "../../service/user.service";
+import tzlookup from "tz-lookup";
 
 export default class UserController {
 
@@ -136,10 +137,17 @@ export default class UserController {
       const data = req.body;
       const data2={
         ...data,
-        my_time_zone:req["user_time_zone"]
+        my_time_zone: tzlookup(data.latitude ,data.longitude)
       }
 
+      console.log(data2)
+      console.log("sssssssssssssssssssssssssssssssss")
+      console.log("sssssssssssssssssssssssssssssssss")
+      console.log("sssssssssssssssssssssssssssssssss")
+
+
     
+
       const { file } = req;
       const user = await userService.uploadLicense(id, data2, file);
 

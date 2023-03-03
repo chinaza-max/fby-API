@@ -45,17 +45,17 @@ class DB {
   async connectFirebase() {
     try {
       const serviceAccount = {
-        type: serverConfig.FIREBASE_TYPE,
-        project_id: serverConfig.FIREBASE_PROJECT_ID,
-        private_key_id: serverConfig.FIREBASE_PRIVATE_KEY_ID,
-        private_key: serverConfig.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
-        client_email: serverConfig.FIREBASE_CLIENT_EMAIL,
-        client_id: serverConfig.FIREBASE_CLIENT_ID,
-        auth_uri: serverConfig.FIREBASE_AUTH_URI,
-        token_uri: serverConfig.FIREBASE_TOKEN_URI,
+        type: serverConfig.FIREBASE_TYPE2,
+        project_id: serverConfig.FIREBASE_PROJECT_ID2,
+        private_key_id: serverConfig.FIREBASE_PRIVATE_KEY_ID2,
+        private_key: serverConfig.FIREBASE_PRIVATE_KEY2.replace(/\\n/g, "\n"),
+        client_email: serverConfig.FIREBASE_CLIENT_EMAIL2,
+        client_id: serverConfig.FIREBASE_CLIENT_ID2,
+        auth_uri: serverConfig.FIREBASE_AUTH_URI2,
+        token_uri: serverConfig.FIREBASE_TOKEN_URI2,
         auth_provider_x509_cert_url:
-          serverConfig.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
-        client_x509_cert_url: serverConfig.FIREBASE_CLIENT_X509_CERT_URL,
+        serverConfig.FIREBASE_AUTH_PROVIDER_X509_CERT_URL2,
+        client_x509_cert_url: serverConfig.FIREBASE_CLIENT_X509_CERT_URL2,
       };
       this.fireBaseConnection = firebase.initializeApp({
         credential: firebase.credential.cert(
@@ -67,6 +67,7 @@ class DB {
       DEBUG(`failed to connect to firebase: ${error}`);
     }
   }
+  
 }
 
 export default new DB();

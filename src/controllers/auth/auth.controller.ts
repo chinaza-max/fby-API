@@ -150,7 +150,6 @@ export default class AuthenticationController {
   ): Promise<Response> {   
     try {
       const data = req.body;
-      console.log(data)
 
       let my_bj={
         ...data,
@@ -172,7 +171,7 @@ export default class AuthenticationController {
               email: obj.transfromedUser.email,
               password: data.password,
             },
-          });
+          })
         }
       } catch (error) {
         console.log(error);

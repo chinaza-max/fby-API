@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import jobService from "../../service/job.service";
+import tzlookup from "tz-lookup";
 
 export default class JobController {
 
@@ -9,7 +10,7 @@ export default class JobController {
     res: Response,
     next: NextFunction
   ): Promise<Response> {
-    try {
+    try {               
       
       const data = req.body;
 
@@ -234,9 +235,33 @@ export default class JobController {
   }
 
   
- 
   
+  protected async emergence(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data =req.body
+      const guard_id=req.user.id
+      const data2 ={
+        ...data,
+        guard_id,
+        my_time_zone:req["user_time_zone"],
+      }
+    
 
+      const obj = await jobService.emergence(data2);
+      
+      return res.status(200).json({
+        status: 200,
+        message: `location good`,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
   protected async performSecurityCheck(
     req: Request,
     res: Response,
@@ -251,6 +276,7 @@ export default class JobController {
         longitude:req["objLatLon"][1],
         latitude:req["objLatLon"][0],
       }
+    
 
       const obj = await jobService.performSecurityCheck(data2);
       
@@ -328,18 +354,11 @@ export default class JobController {
     try {
       const data =req.body
 
-
-      console.log("ssssssssssssssssssssssssssssssssssssssssssss")
-
-      console.log(data)
-      console.log("oooooooooooooooooooooooooooo")
-
       const data2 ={
         ...data,
-        my_time_zone:req["user_time_zone"],
-        longitude:req["objLatLon"][1],
-        latitude:req["objLatLon"][0],
+        my_time_zone:req["user_time_zone"]
       }
+
 
       const obj = await jobService.checkTaskGuard(data2);
       
@@ -368,9 +387,6 @@ export default class JobController {
         longitude:req["objLatLon"][1],
         latitude:req["objLatLon"][0],
       }
-
-      console.log(data2)
-    
 
       const obj = await jobService.verifySecurityCode(data2);
       
@@ -509,12 +525,6 @@ export default class JobController {
       
 
       const obj = await jobService.shiftPerGuardAllJob(data);
-
-
-
-      console.log("lllllllllllllllllllllllllllllllll")
-
-      console.log(obj)
       
       return res.status(200).json({
         status: 200,
@@ -610,10 +620,15 @@ export default class JobController {
       //console.log(req)
       const { id } = req.user;
       const data = req.body;
+      let data2={
+        ...data,
+        my_time_zone: tzlookup(data.latitude ,data.longitude)
+      }
+
       const { file } = req;
      
       
-      const user = await jobService.submitReportAndAttachment(id, data, file);
+      const user = await jobService.submitReportAndAttachment(id, data2, file);
 
       return res.status(200).json({
         status: 200,
@@ -954,12 +969,14 @@ export default class JobController {
     next: NextFunction
   ): Promise<Response> {
     try {
-      const data = req.body;
+      let data = req.body;
 
 
       let guard_id = req.user.id;
      // let guard_id = 29;
 
+
+     //data={...data, longitude:req["objLatLon"][1],latitude:req["objLatLon"][0]  }
       let myObj2={
         guard_id,
         ...data
@@ -1154,12 +1171,17 @@ export default class JobController {
     try {
 
       const data =JSON.parse(req.body.shedule_agenda)
+
       let data2={
         shedule_agenda:data,
         created_by_id:req.user.id,
+        longitude:req["objLatLon"][1],
+        latitude:req["objLatLon"][0],
         my_time_zone:req["user_time_zone"]
       }
-    
+
+
+
       const obj = await jobService.sheduleAgenda(data2);
 
       return res.status(200).json({
@@ -1189,11 +1211,8 @@ export default class JobController {
         created_by_id:req.user.id,
         my_time_zone:req["user_time_zone"]
       }
-     /* const data2 ={
-        ...data,
-        created_by_id:req.user.id,
-        my_time_zone:req["user_time_zone"]
-      }*/
+
+
 
       const obj = await jobService.scheduleDateJob(data2);
 
@@ -1220,8 +1239,11 @@ export default class JobController {
       const data2 ={
         date_time_staff_shedule:data,
         created_by_id:req.user.id,
+        longitude:req["objLatLon"][1],
+        latitude:req["objLatLon"][0],
         my_time_zone:req["user_time_zone"]
       }
+      
 
       const obj = await jobService.sheduleDate(data2);
 

@@ -17,6 +17,8 @@ class UserUtil {
 
   public verifyUploadLicense = Joi.object().keys({
     my_time_zone: Joi.string().required(),
+    latitude:Joi.number().required(),
+    longitude:Joi.number().required(),
     expires_in: Joi.date()
       .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
       .required(),
@@ -50,6 +52,8 @@ class UserUtil {
     }),
   });
 
+
+  //pp//
   public verifyUserUpdateData = Joi.object().keys({
     first_name: Joi.string().required(),
     id: Joi.number(),

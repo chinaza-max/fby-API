@@ -19,6 +19,7 @@ import IMemo from "../../interfaces/memo.interface";
     declare is_deleted:boolean;
     declare send_date: Date;
     declare is_delivered:boolean;
+    declare is_notification_sent:boolean;
     declare created_at: Date;
     declare updated_at: Date;
     declare is_archived: CreationOptional<boolean>;
@@ -51,6 +52,10 @@ import IMemo from "../../interfaces/memo.interface";
         is_delivered: {
           type: DataTypes.BOOLEAN,
           allowNull: false,
+          defaultValue: false,
+        },
+        is_notification_sent: {
+          type: DataTypes.BOOLEAN,
           defaultValue: false,
         },
         created_at: {

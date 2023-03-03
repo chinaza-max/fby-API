@@ -54,6 +54,9 @@ class JobUtil {
   public verifySubmitReportAndAttachment = Joi.object().keys({
     job_id: Joi.number().required(),
     guard_id: Joi.number().required(),
+    my_time_zone: Joi.string().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
     reference_date:Joi.date()
     .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
     .required(),
@@ -100,6 +103,13 @@ class JobUtil {
 
   
   
+  public verifyEmergence = Joi.object().keys({
+    my_time_zone: Joi.string().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
+    job_id: Joi.number().required(),
+    guard_id: Joi.number().required(),
+});
   
   public verifyPerformSecurityCheck = Joi.object().keys({
     my_time_zone: Joi.string().required(),
@@ -191,6 +201,8 @@ class JobUtil {
   public verifyReplyMemo = Joi.object().keys({
     memo_receiver_id:Joi.number().required(),
     my_time_zone: Joi.string().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
     message:Joi.string().required()
     
   });
@@ -217,6 +229,8 @@ class JobUtil {
   public verifysheduleDateCreation = Joi.object().keys({
     my_time_zone: Joi.string().required(),
     created_by_id: Joi.number().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
     date_time_staff_shedule: Joi.array().min(1).required().items({
       guard_id: Joi.number().required(),
       job_id: Joi.number().required(),
@@ -242,6 +256,8 @@ class JobUtil {
     my_time_zone: Joi.string().required(),
     staff_charge: Joi.number().required(),
     client_charge: Joi.number().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
     check_in_date:Joi.date()
       .min(new Date("1900-01-01").toLocaleDateString("af-AZ"))
       .required(),
@@ -269,6 +285,8 @@ class JobUtil {
   public verifySheduleAgenda = Joi.object().keys({
       my_time_zone: Joi.string().required(),
       created_by_id: Joi.number().required(),
+      latitude: Joi.number().required(),
+      longitude: Joi.number().required(),
       shedule_agenda: Joi.array().min(1).required().items({
       guard_id: Joi.number().required(),
       job_id: Joi.number().required(),
@@ -288,6 +306,8 @@ class JobUtil {
   public verifyJobCreationData = Joi.object().keys({
     description: Joi.string().trim().min(1),
     customer_id: Joi.number().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
     site_id: Joi.number().required(),
     created_by_id:Joi.number().required(),
     my_time_zone: Joi.string().required(),

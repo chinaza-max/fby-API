@@ -35,6 +35,8 @@ class CustomerUtil {
         created_by_id: Joi.number().required(),
         latitude: Joi.number().required(),
         longitude: Joi.number().required(),
+        latitude2: Joi.number().required(),
+        longitude2: Joi.number().required(),
         operations_area_constraint: Joi.number().required(),
   });
 
@@ -53,6 +55,8 @@ class CustomerUtil {
     email: Joi.string().trim().required(),
     phone_number:Joi.number().required(),
     created_by_id:Joi.number().required(),
+    latitude: Joi.number().required(),
+    longitude: Joi.number().required(),
     my_time_zone: Joi.string().required(),
     // password: Joi.string().required(),
     gender: Joi.string().required().valid('MALE', 'FEMALE', 'NOT_SPECIFIED'),

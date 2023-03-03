@@ -19,14 +19,14 @@ class JobRoutes extends JobController {
     this.router.post("/check-in", this.checkInCheckOut);
     this.router.post("/check_in_admin", this.checkInCheckOutAdmin);
     this.router.post("/accept-decline-job", this.acceptDeclineJob);
-    this.router.post("/re_asign_or_delete-job", this.acceptDeclineJobAdmin);
+    this.router.post("/re_asign_or_delete_job", this.acceptDeclineJobAdmin);
     this.router.post("/add_shedule_date_staff", this.sheduleDate);
     this.router.post("/add_job_schedule_date_staff", this.scheduleDateJob);
     this.router.post("/update_Max_Check_InTime", this.updateMaxCheckInTime);
     this.router.post("/update_schedule_accept_status", this.updateScheduleAcceptStatus);
     this.router.post("/add_agenda", this.sheduleAgenda);
     this.router.post("/create_memo", this.createMemo);
-
+    
     this.router.get("/all_jobs_done_by_gaurd", this.getAllJobsdoneByGaurd);
     this.router.get("/get_site_from_job", this.getAllSiteWorkByGaurdForCompany);
     this.router.get("/get_job_details", this.getJobDetails);
@@ -91,7 +91,8 @@ class JobRoutes extends JobController {
     //check if the person placing the printed QR CODE is with in  location 
     this.router.post("/check_position_qr_code", this.checkPositionQRcode);
     this.router.post("/perform_security_check", this.performSecurityCheck);
-    
+    this.router.post("/emergence", this.emergence);
+
    // this.router.get("/myJobsAdminDetail", this.getMyJobsAdminDetail);
     this.router.post("/", this.createJob);
 
@@ -103,7 +104,7 @@ class JobRoutes extends JobController {
     this.router.get("/deleted_job", this.getDeletedJobs);
     this.router.get("/check_if_job_can_be_re-assigned", this.checkIfJobCanBeReassigned);
 
-    
+
   }
 }
 
