@@ -90,7 +90,10 @@ import IJob from "../../interfaces/job.interface";
           defaultValue: "60",
         },
         payment_status:{
-          type: DataTypes.STRING,
+          type: DataTypes.ENUM(
+            'Awaiting Payment',
+            'Paid',
+          ),
           allowNull: false,
         },
         created_at: {

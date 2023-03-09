@@ -1558,7 +1558,7 @@ class UserService {
           }
           if (i == scheduleWithTimeStamp.length - 1) {
              all_guard_id;
-             this.sendPushNotification(all_guard_id,"you have been added to a new job accept or decline","New job")
+             this.sendPushNotification(all_guard_id,"You have been added to a new job accept or decline","New job")
           }
         }
       }
@@ -2988,9 +2988,9 @@ class UserService {
       },
       attributes: ["job_id", "guard_id"],
       group: ["job_id", "guard_id"],
-    });
+    })
 
-    let decline = [];
+    let decline = []
 
     if (foundS.length != 0) {
       for (let i = 0; i < foundS.length; i++) {
@@ -3004,6 +3004,7 @@ class UserService {
           },
         });
 
+        let can_be_reasign= await this.checkIfJobCanBeReassigned2(foundS[i].job_id)
         let customerF = await this.getCustomerDetail(foundJ.customer_id);
         let facilityF = await this.getSiteDetail(foundJ.facility_id);
 
@@ -3014,6 +3015,7 @@ class UserService {
         obj["facility_name"] = facilityF["name"];
         obj["job_id"] = foundS[i].job_id;
         obj["guard_id"] = foundS[i].guard_id;
+        obj["can_be_reasign"] =can_be_reasign;
 
         decline.push(obj);
 
@@ -3275,6 +3277,10 @@ class UserService {
 
         }
       }
+      
+
+      await this.sendPushNotification(array_guard_id,"You have been added to a new job accept or decline","Reschedule")
+      await this.sendPushNotification([old_guard_id],`Your job with ID:${job_id} has been assigned to another guard`,"Reschedule")
 
 
     } catch (error) {
@@ -3282,6 +3288,8 @@ class UserService {
       throw new SystemError(error.toString());
     }
   }
+
+
   async getDashBoardInfoGuard(req) {
 
 
@@ -4180,11 +4188,8 @@ class UserService {
 
   async updateJobStatus(obj) {
 
-    var { job_id, status_value } =
+    var { job_id, status_value, payment_status} =
       await jobUtil.verifyUpdateJobStatus.validateAsync(obj);
-
-
-
 
     if (status_value == 'COMPLETED') {
 
@@ -4223,6 +4228,16 @@ class UserService {
         }
       )
     }
+
+    //Update  payment status for job 
+    await this.JobModel.update(
+      { payment_status },
+      {
+        where: { id: job_id },
+      }
+    )
+
+
 
   }
 
@@ -5933,8 +5948,6 @@ class UserService {
   }
 
 
-  
-  
   async checkIfJobCanBeReassigned(req) {
     let job_id=req.query.job_id
 
@@ -5962,6 +5975,35 @@ class UserService {
     }
 
   }
+
+  async checkIfJobCanBeReassigned2(job_id) {
+    
+
+    let foundJ = await this.JobModel.findByPk(job_id)
+    let foundS = await this.ScheduleModel.min(
+      "check_in_date",
+      {
+        where: { job_id }
+      }
+    )
+    const dateStamp = await this.getDateAndTimeForStamp(
+      foundJ.time_zone
+    );
+      
+    if (foundS) {
+
+      if (moment(dateStamp).isAfter(foundS)) {
+        return false
+      } else {
+        return true
+      }
+    }
+    else {
+      return false
+    }
+
+  }
+
 
 
   async getDeletedJobs() {

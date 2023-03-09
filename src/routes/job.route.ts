@@ -64,6 +64,7 @@ class JobRoutes extends JobController {
     this.router.post("/get_perform_security_check_log", this.getPerformSecurityCheckLog);
     this.router.post("/allJobs/logPerGuard", this.getLogPerGuard);
     this.router.post("/updateJobStatus", this.updateJobStatus);
+    
     this.router.post("/settleShift", this.settleShift);
     this.router.get("/getGeneralUnsettleShift", this.getGeneralUnsettleShift);
 
@@ -102,7 +103,7 @@ class JobRoutes extends JobController {
     this.router.post("/delete_shift_comment", this.deleteShiftComment);
     this.router.get("/shift_comment", this.getShiftComment);
     this.router.get("/deleted_job", this.getDeletedJobs);
-    this.router.get("/check_if_job_can_be_re-assigned", this.checkIfJobCanBeReassigned);
+    this.router.get("/check_if_job_can_be_re_assigned", this.checkIfJobCanBeReassigned);
 
 
   }

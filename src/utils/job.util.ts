@@ -162,6 +162,7 @@ class JobUtil {
   
   public verifyUpdateJobStatus = Joi.object().keys({
     job_id: Joi.number().required(),
+    payment_status:Joi.string().required(),
     status_value: Joi.string().required(),
 });
 

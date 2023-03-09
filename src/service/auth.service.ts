@@ -30,12 +30,15 @@ class AuthenticationService {
 
   async handleUserAuthentication(data): Promise<any> {
     const { email, password } = data;
-    const user = await Admin.findOne({
+
+
+    const user = await this.UserModel.findOne({
       where: {
-        email: email,
-        role: {
-          [Op.eq]: "GUARD",
-        },
+        [Op.and]: [
+          {  email: email},
+          {  role: {[Op.eq]: "GUARD"} },
+          { is_deleted:false },
+        ]
       },
     });   
    
@@ -56,7 +59,12 @@ class AuthenticationService {
 
   async handleAdminAuthentication(data): Promise<any> {
     const { email, password } = data;
-    const user = await Admin.findOne({ where: { email: email } });
+    const user = await Admin.findOne({
+                     where: {  [Op.and]: [
+                      {  email: email},
+                      { is_deleted:false },
+                    ]} 
+                    });
 
     if(user.suspended == true) return "Account has been suspended"
 
