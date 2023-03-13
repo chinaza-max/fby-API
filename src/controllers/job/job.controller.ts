@@ -1387,6 +1387,34 @@ export default class JobController {
     }
   }
 
+
+  
+
+  protected async getSingleJobWithAgenda(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = req.body;
+
+      const obj = await jobService.getSingleJobWithAgenda(req);
+   
+      if(obj?.length != 0 && obj?.length == null){
+        return res.status(400).json({
+          status: 400,
+          data: obj ?? "Failed to process request",
+        });
+      }
+
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
   protected async getAllJobs(
     req: Request,
     res: Response,

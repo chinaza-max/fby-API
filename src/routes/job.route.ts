@@ -39,6 +39,7 @@ class JobRoutes extends JobController {
     this.router.get("/allMemoDetailGuard", this.allMemoDetailGuard);
 
     this.router.get("/allJobs", this.getAllJobs);
+    this.router.get("/get_single_job_with_agenda",this.getSingleJobWithAgenda);
     this.router.post("/allJobs/guard", this.getGuardPerJob);
     this.router.post("/allJobs/security_code", this.getSecurityCodePerJob);
     this.router.post("/get_guard_id_from_job", this.getGuardIdFromJob);

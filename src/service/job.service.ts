@@ -845,6 +845,105 @@ class UserService {
     }
   }
 
+
+  async getSingleJobWithAgenda(data: any): Promise<any[]> {
+    let job_id = data.query.job_id;
+    let guard_id = data.query.guard_id;
+
+    try {
+
+      const foundS= await this.ScheduleModel.findAll({
+                          where: {
+                            [Op.and]: [
+                              { is_deleted: false},
+                              { guard_id},
+                              { job_id},
+                            ],
+                          }
+                        })
+      let shifts=[]
+
+      for (let index = 0; index < foundS.length; index++) {
+        const shift = foundS[index];
+
+        let obj={}
+
+        obj["start_date"] = await this.getDateOnly(shift.check_in_date);
+        obj["start_time"] = await this.getTimeOnly(shift.check_in_date);
+        obj["end_date"] = await this.getDateOnly(shift.check_out_date);
+        obj["end_time"] =  await this.getTimeOnly(shift.check_out_date);
+        obj["schedule_id"] = shift.id;
+        obj["status"] = await this.checkShiftStatus(job_id,shift.check_in_date,shift.check_out_date);
+       
+        const foundA= await this.AgendasModel.findAll({
+          where: {
+            [Op.and]: [
+              { is_deleted: false},
+              { guard_id},
+              { date_schedule_id:shift.id},
+            ],
+          }
+        })
+
+        let agendas=[]
+
+          //This if stattement help return shift in a case where their is no agenda
+          if(foundA.length!=0){
+            for (let index2 = 0; index2 < foundA.length; index2++) {
+              const agenda = foundA[index2];
+    
+              let obj2={}
+    
+              obj2["agenda_id"] = agenda.id;
+              obj2["schedule_id"] = shift.id;
+              obj2["title"] = agenda.title;
+              obj2["description"] = agenda.description;
+              obj2["date_schedule_id"] = agenda.date_schedule_id;
+              obj2["agenda_type"] = agenda.agenda_type;
+              obj2["operation_date"] = agenda.operation_date;
+              obj2["agenda_done"] = agenda.agenda_done;
+    
+              agendas.push(obj2)
+      
+              if(index2==foundA.length-1){
+                obj["agenda"]=agendas
+                shifts.push(obj)
+              }
+            }
+          }
+          else{
+            shifts.push(obj)
+
+          }
+      
+        
+        
+        if(index ==foundS.length-1){
+
+          console.log("sssssssssssssssssssssdddddddddd")
+          console.log("sssssssssssssssssssssdddddddddd")
+          console.log("sssssssssssssssssssssdddddddddd")
+          console.log(shifts)
+          console.log("sssssssssssssssssssssdddddddddd")
+          console.log("sssssssssssssssssssssdddddddddd")
+          console.log("sssssssssssssssssssssdddddddddd")
+          console.log("sssssssssssssssssssssdddddddddd")
+
+          console.log("sssssssssssssssssssssdddddddddd")
+          console.log("sssssssssssssssssssssdddddddddd")
+
+          return shifts
+        }
+        
+      }
+
+
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
+  }
+
   async getAllJobsAdmin(data: any): Promise<any[]> {
     let mytype = data.query.type;
     try {
@@ -6670,17 +6769,10 @@ class UserService {
                 body:message,
                 icon: "ICON URL",
               })
-
-
-
-             
+   
           } catch (error) {
               console.error("An error occurred:", error.message);
               console.error("An error occurred:", error.message);
-              console.error("An error occurred:", error.message);
-              console.error("An error occurred:", error.message);
-              console.error("An error occurred:", error.message);
-
           } 
         }
       }
