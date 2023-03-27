@@ -227,6 +227,15 @@ class JobUtil {
     array_guard_id: Joi.array().required()
   });
 
+  
+  public verifyCopyShiftToOtherGuard   = Joi.object().keys({
+    job_id:Joi.number().required(),
+    array_guard_id: Joi.array().required(),
+    my_time_zone: Joi.string().required(),
+    array_shift_and_agenda_id: Joi.array().required()
+
+  });
+
   public verifysheduleDateCreation = Joi.object().keys({
     my_time_zone: Joi.string().required(),
     created_by_id: Joi.number().required(),

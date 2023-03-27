@@ -3,6 +3,9 @@ import compression from "compression";
 import helmet from "helmet";
 import cors from "cors";
 import path from 'path';
+//var ComfyWeb = require( "webwebwebs" );
+import https from 'https';
+import fs from 'fs';
 import morgan from "morgan";
 import debug from "debug";
 import cron from "node-cron"
@@ -27,6 +30,25 @@ class Server {
 
   constructor() {
     this.app = express();
+
+
+/*
+    require("greenlock-express")
+    .init({
+        packageRoot: __dirname,
+        configDir: "./greenlock.d",
+ 
+        // contact for security and critical bug notices
+        maintainerEmail: "jon@example.com",
+ 
+        // whether or not to run at cloudscale
+        cluster: false
+    })
+    // Serves on 80 and 443
+    // Get's SSL certificates magically!
+    .serve(this.app);
+*/
+
     this.port =
       serverConfig.NODE_ENV === "test"
         ? 3234
@@ -42,18 +64,24 @@ class Server {
 
   // Class Method to initialize db and firebase
   private async initializeDbAndFirebase(): Promise<void> {
+
+
+
+    
     await DB.connectDB();
     await DB.connectFirebase();
     
     webpush()
     const job = cron.schedule('*/30 * * * *', () => {
       //notification_scheduler.sendNotificationToGuardForShiftCheckAndOut()
+
+      notification_scheduler.sendNotificationToGuardForShiftCheckAndOut()
+      notification_scheduler.sendNotificationForMessageSent()
+      notification_scheduler.sendNotificationToGuardAndAdminForFailedCheckIn()
     });  
     
     job.start();
-    notification_scheduler.sendNotificationToGuardForShiftCheckAndOut()
-    notification_scheduler.sendNotificationForMessageSent()
-    //notification_scheduler.sendNotificationToGuardAndAdminForFailedCheckIn()
+
     
   }
   
@@ -72,10 +100,13 @@ class Server {
       this.app.use(cors(this.corsOptions));
     }
     this.app.use((req: Request, res: Response, next: NextFunction) => {
+
+      
       (req as any).socketProgress = this.getSocketProgress(req.socket);
       console.log((req as any).socketProgress);
       express.json()(req, res, next);
     });
+    
     this.app.use(express.urlencoded({ extended: false }));
 
     this.app.use(express.static(path.join(__dirname, 'public')));
@@ -90,6 +121,20 @@ class Server {
 
   // Class Method to initiate app listening
   public start(): void {
+    
+
+    const sslFolder = '/home/fbyteamschedule/ssl/cert'
+    const sslFolder2 = '/home/fbyteamschedule/ssl/private'; 
+
+    /*
+    const serverOptions = {
+      cert: fs.readFileSync(path.join(sslFolder, 'middleware.fbyteamschedule.com.crt')),
+      ca: fs.readFileSync(path.join(sslFolder, 'middleware.fbyteamschedule.com-ca.crt')),
+      key: fs.readFileSync(path.join(sslFolder2, 'middleware.fbyteamschedule.com.key')),
+    };
+       
+    const server = https.createServer(serverOptions,  this.app);
+    */
     this.app.listen(this.port, () => {
 
      // console.log(process.env.DB_USERNAME)
@@ -99,6 +144,14 @@ class Server {
     }).on('error', (e) => {
       console.log('Error happened: ', e.message)
    });
+
+/*
+    ComfyWeb.Run( 443, {
+        domain: "fbyteamschedule.com",
+        email: "mosesogbonna68@gmail.com"
+    } );
+
+    */
    
   }
 

@@ -33,6 +33,8 @@ class JobRoutes extends JobController {
 
     this.router.post("/delete_job", this.deleteJob);
     this.router.post("/reasign_schedule_and_remove_guard", this.rescheduleAndRemoveGuard);
+    this.router.post("/copy_shift_to_other_guard", this.CopyShiftToOtherGuard);
+
     this.router.post("/delete_memo", this.deleteMemo);
     this.router.post("/reply_memo", this.replyMemo);
     this.router.get("/allMemoDetail", this.allMemoDetail);
@@ -71,6 +73,8 @@ class JobRoutes extends JobController {
 
     //THIS IS FOR AVAILABLE GUARD (guard on job and free guard)
     this.router.post("/getGuard", this.getGuard);
+    this.router.post("/getGuard2", this.getGuard2);
+
 
      //THIS IS FOR ONLY FREE GUARD
      this.router.post("/get_free_Guard", this.getFreeGuard);
@@ -105,6 +109,7 @@ class JobRoutes extends JobController {
     this.router.get("/shift_comment", this.getShiftComment);
     this.router.get("/deleted_job", this.getDeletedJobs);
     this.router.get("/check_if_job_can_be_re_assigned", this.checkIfJobCanBeReassigned);
+    this.router.get("/get_customer_with_job", this.getCustomerWithJob);
 
 
   }

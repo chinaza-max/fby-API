@@ -445,7 +445,7 @@ class AuthenticationService {
   }
 
    getDateAndTime(val) {
-    return moment(val).format("YYYY-MM-DD hh:mm:ss a");
+    return moment(val).format("MM-DD-YYYY hh:mm a");
   }
 }
 

@@ -196,6 +196,51 @@ export default class JobController {
 
 
 
+  protected async getGuard2(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+
+
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+      console.log("dddddddddddddddddddddddddddddddd")
+
+      const data=JSON.parse(req.body.schedules)
+      const data2 = {...req.body,
+        my_time_zone:req["user_time_zone"],
+        schedules:data
+      };
+
+      const obj = await jobService.getGuard2(data2);
+      
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+      
+    } catch (error) {
+      next(error);
+    }
+  }
+
+
+
 
 
 
@@ -973,8 +1018,6 @@ export default class JobController {
   ): Promise<Response> {
     try {
       let data = req.body;
-
-
       let guard_id = req.user.id;
      // let guard_id = 29;
 
@@ -1087,6 +1130,35 @@ export default class JobController {
     }
   }
 
+  
+  protected async CopyShiftToOtherGuard(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try {
+      const data = JSON.parse(req.body.shiftAndagenda) ;
+      const data2 = JSON.parse(req.body.array_guard_id) ;
+
+      const data3={ 
+        job_id:req.body.job_id,
+        array_guard_id:data2,
+        array_shift_and_agenda_id:data,
+        my_time_zone:req["user_time_zone"]
+      }
+
+      
+
+      const obj = await jobService.CopyShiftToOtherGuard(data3);
+
+      return res.status(200).json({
+        status: 200,
+        message: "shift has been copied successfully",
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 
   protected async rescheduleAndRemoveGuard(
     req: Request,
@@ -1207,8 +1279,6 @@ export default class JobController {
     
       const data =req.body
     
-
-
       const data2 ={
         ...data,
         created_by_id:req.user.id,
@@ -1627,7 +1697,23 @@ export default class JobController {
   } 
 
 
-  
+  protected async getCustomerWithJob(req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<Response> {
+    try{
+      
+    const obj = await jobService.getCustomerWithJob(req);  
+
+      return res.status(200).json({
+        status: 200,
+        data: obj,
+      });
+  } catch (error) {
+    next(error);
+  }
+  } 
+
   protected async checkIfJobCanBeReassigned(req: Request,
     res: Response,
     next: NextFunction

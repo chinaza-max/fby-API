@@ -391,7 +391,7 @@ class UserService {
         phone_number: data.phone_number,
         role: data.role,
         suspended: data.staff_status,
-      });
+      })
       // await user.update();
       return user;
     }
