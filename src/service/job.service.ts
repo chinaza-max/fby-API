@@ -985,19 +985,13 @@ class UserService {
                 { job_status: "ACTIVE"  }
               ],
             },
-           
             order: [["created_at", "DESC"]],
-          });
+          })
 
           setTimeout(() => {
             this.shiftJobToCompleted();
           }, 1000 * 60 * 60)
         }
-
-
-
-
-
 
       } else if (mytype == "PENDING") {
 
@@ -6435,6 +6429,9 @@ class UserService {
 
   async getCustomerWithJob(req) {
    
+    let availableJobs;
+    const mytype = req.query.type;
+    let jobs = [];
 
     const foundCJ = await this.JobModel.findAll({
       attributes: [
@@ -6449,13 +6446,9 @@ class UserService {
         {
           model: this.CustomerModel,
           as: "customer",
-          attributes: ['company_name', 'email', 'image', 'phone_number','id']
+          attributes: ['company_name', 'email', 'image', 'phone_number','id','created_at']
         },
-        {
-          model: this.CustomerModel,
-          as: "customer",
-          attributes: ['company_name', 'email', 'image', 'phone_number','id']
-        }
+       
     
     ],
       
@@ -6476,7 +6469,100 @@ class UserService {
       console.log("sssssssssssssss")
 
     })*/
+
     
+    for (let index = 0; index < foundCJ.length; index++) {
+      
+
+      const customer_id=foundCJ[index].customer_id
+      if (mytype == "ACTIVE") {
+        availableJobs = await this.JobModel.findAll({
+          where: {
+            [Op.and]: [
+              { is_deleted: false },
+              { customer_id },
+              { job_status: "ACTIVE"  }
+            ],
+          },
+         
+          order: [["created_at", "DESC"]],
+        })
+  
+      }
+      else if(mytype == "PENDING"){
+        availableJobs = await this.JobModel.findAll({
+          where: {
+            [Op.and]: [
+              { is_deleted: false },
+              { customer_id },
+              { job_status: "PENDING"  }
+            ],
+          },
+         
+          order: [["created_at", "DESC"]],
+        })
+      }
+
+      else if(mytype == "COMPLETED"){
+        availableJobs = await this.JobModel.findAll({
+          where: {
+            [Op.and]: [
+              { is_deleted: false },
+              { customer_id },
+              { job_status: "COMPLETED"  }
+            ],
+          },
+         
+          order: [["created_at", "DESC"]],
+        })
+      }
+
+      
+      for (const availableJob of availableJobs) {
+        let foundC = await this.CustomerModel.findOne({
+          where: {
+            id: availableJob.customer_id,
+          },
+        });
+        let foundF = await this.FacilityModel.findOne({
+          where: {
+            id: availableJob.facility_id,
+          },
+        });
+        let job_progress = await this.returnJobPercentage(availableJob.id);
+        let foundS = await this.ScheduleModel.findAll({
+          where: {
+            job_id: availableJob.id
+          }
+        })
+
+
+        const jobRes = {
+          id: availableJob.id,
+          job_progress: job_progress,
+          description: availableJob.description,
+          client_charge: availableJob.client_charge,
+          staff_payment: availableJob.staff_charge,
+          status: availableJob.job_status,
+          customer: foundC.company_name,
+          customer_id: availableJob.customer_id,
+          site: foundF.name,
+          create: await this.getDateAndTime(availableJob.created_at),
+          has_shift: foundS.length != 0 ? true : false
+        };
+
+        jobs.push(jobRes);
+      }
+      
+    
+      foundCJ[index].dataValues["job_details"]=jobs;
+      jobs = [];
+      availableJobs=''
+    }
+    
+
+
+    console.log(foundCJ)
     return foundCJ
 
 
