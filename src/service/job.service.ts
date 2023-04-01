@@ -6446,7 +6446,11 @@ class UserService {
         {
           model: this.CustomerModel,
           as: "customer",
-          attributes: ['company_name', 'email', 'image', 'phone_number','id','created_at']
+          attributes: ['company_name', 'email', 'image', 'phone_number','id',
+          [
+            fn('LOWER', fn('DATE_FORMAT', col('customer.created_at'), '%Y-%m-%d %h:%i %p')), 
+            'created_at'
+        ]]
         },
        
     
@@ -6456,19 +6460,7 @@ class UserService {
         is_deleted: false
       },
       group: ['customer_id', 'customer.id']
-    })/*.catch((e)=>{
-      console.log("sssssssssssssss")
-      console.log("sssssssssssssss")
-      console.log("sssssssssssssss")
-      console.log("sssssssssssssss")
-
-      console.log(e)
-      console.log("sssssssssssssss")
-      console.log("sssssssssssssss")
-      console.log("sssssssssssssss")
-      console.log("sssssssssssssss")
-
-    })*/
+    })
 
     
     for (let index = 0; index < foundCJ.length; index++) {
@@ -6476,6 +6468,8 @@ class UserService {
 
       const customer_id=foundCJ[index].customer_id
       if (mytype == "ACTIVE") {
+
+
         availableJobs = await this.JobModel.findAll({
           where: {
             [Op.and]: [
@@ -6487,7 +6481,13 @@ class UserService {
          
           order: [["created_at", "DESC"]],
         })
-  
+
+
+        setTimeout(() => {
+          this.shiftJobToCompleted();
+        }, 1000 * 60 * 60)
+
+
       }
       else if(mytype == "PENDING"){
         availableJobs = await this.JobModel.findAll({
@@ -6538,7 +6538,7 @@ class UserService {
 
 
         const jobRes = {
-          id: availableJob.id,
+          Job_id: availableJob.id,
           job_progress: job_progress,
           description: availableJob.description,
           client_charge: availableJob.client_charge,
@@ -6547,7 +6547,7 @@ class UserService {
           customer: foundC.company_name,
           customer_id: availableJob.customer_id,
           site: foundF.name,
-          create: await this.getDateAndTime(availableJob.created_at),
+          created_at: await this.getDateAndTime(availableJob.created_at),
           has_shift: foundS.length != 0 ? true : false
         };
 
@@ -6559,11 +6559,74 @@ class UserService {
       jobs = [];
       availableJobs=''
     }
-    
+  
+    const tableDataNested=[]
+    const data=foundCJ
 
 
-    console.log(foundCJ)
-    return foundCJ
+    for (let index = 0; index < data.length; index++) {
+      const parent = data[index].dataValues["customer"];
+      const parent2 = data[index];
+       
+      if(parent2.dataValues["job_details"]?.length==0||parent2.dataValues["job_details"]==undefined){
+        continue
+      }
+
+      let obj={}
+
+
+      obj["date_created"]=parent.created_at   
+      obj["id"] ={id:parent.id,has_shift:"skip"}
+      obj["image"] =`<img src=${parent.image} alt="" width="40" height="40" class="rounded-500">`
+      obj["company_name"] =parent.company_name
+      obj["customer_site"] =''
+      obj["progress"]=null
+      obj["client_charge"]=null
+      obj["guard_charge"]=null
+      obj["schedule"]=null 
+      obj["action"]=null
+
+      if(parent2.dataValues["job_details"]?.length!=0&&parent2.dataValues["job_details"]!=undefined){
+        let childArr=[]
+
+
+        for (let index2 = 0; index2 < parent2.dataValues["job_details"].length; index2++) {
+          const child = parent2.dataValues["job_details"][index2];
+
+          let obj2={}
+        
+
+
+          
+          obj2["date_created"]=child.created_at
+          obj2["id"] ={id:child.Job_id,has_shift:child.has_shift}
+          obj2["image"] =`<div class="icon icofont-cop-badge"></div>`
+          obj2["company_name"] =parent.company_name
+          obj2["customer_site"] =child.site
+          obj2["progress"]=child.job_progress
+          obj2["client_charge"]="$"+child.client_charge
+          obj2["guard_charge"]="$"+child.staff_payment
+          obj2["schedule"]=child.Job_id
+          obj2["action"]=child.Job_id
+
+          childArr.push(obj2)
+          if(index2== parent2.dataValues["job_details"].length-1){
+            obj["_children"]=childArr
+
+            tableDataNested.push(obj)
+          }
+        }
+      }
+      else{
+        tableDataNested.push(obj)
+      }
+      
+      if( index == data.length-1){
+        
+      }
+    }
+
+    return tableDataNested
 
 
   }
